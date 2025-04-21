@@ -172,7 +172,7 @@ namespace lambda2ppi_line {
 
     Allen::Monitoring::Histogram<> m_histogram_lz_mass {this, "lz_mass", "mass", {100u, 1000.f, 1200.f}};
     Allen::Monitoring::Histogram<> m_histogram_lz_pt {this, "lz_pt", "pT (lz)", {100u, 0.f, 1e4f}};
-    Allen::Monitoring::Histogram<> m_histogram_lz_svz {this, "lz_svz", "SVz (lz)", {100u, -541.f, 1000.f}};
-    Allen::Monitoring::Histogram<> m_histogram_lz_pvz {this, "lz_pvz", "PVz (lz)", {100u, -541.f, -341.f}};
+    Allen::Monitoring::Histogram<> m_histogram_lz_svz {this, "lz_svz", "SVz (lz)", {100u, -550.f, 1000.f}};
+    Allen::Monitoring::Histogram<> m_histogram_lz_pvz {this, "lz_pvz", "PVz (lz)", {100u, -550.f, -300.f}};
   };
 } // namespace lambda2ppi_line

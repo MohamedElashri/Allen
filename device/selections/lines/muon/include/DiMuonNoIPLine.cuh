@@ -117,7 +117,7 @@ namespace di_muon_no_ip_line {
     Allen::Property<float> m_maxTrChi2 {this, "maxTrChi2", 3.f, "maxTrChi2 description"};             // run 2 value: 3
     Allen::Property<bool> m_ss_on {this, "ss_on", false, "ss_on description"};
     Allen::Property<float> m_minPt {this, "minPt", 1.f * Gaudi::Units::GeV, "minPt description"};
-    Allen::Property<float> m_minZ {this, "minZ", -341.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<float> m_minZ {this, "minZ", -330.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
     Allen::Property<float> m_maxChi2Muon {this, "maxChi2Muon", 1.3f, "maximum Chi2Muon evaluation"};
     Allen::Property<float> m_minNN {this, "minNN", 0.74f, "minimum NN evaluation"};
   };

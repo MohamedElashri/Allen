@@ -87,6 +87,6 @@ namespace heavy_ion_event_line {
     Allen::Property<int> m_max_pvs_SMOG {this, "max_pvs_SMOG", -1, "Maximum number of PVs in the SMOG region"};
     Allen::Property<float> m_min_ecal_e {this, "min_ecal_e", 0.f, "Minimum ECAL energy"};
     Allen::Property<float> m_max_ecal_e {this, "max_ecal_e", -1.f, "Maximum ECAL energy"};
-    Allen::Property<float> m_PbPb_SMOG_z_separation {this, "PbPb_SMOG_z_separation", -341.f, "PbPb_SMOG_z_separation"};
+    Allen::Property<float> m_PbPb_SMOG_z_separation {this, "PbPb_SMOG_z_separation", -330.f, "PbPb_SMOG_z_separation"};
   };
 } // namespace heavy_ion_event_line

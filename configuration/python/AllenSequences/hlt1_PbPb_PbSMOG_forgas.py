@@ -16,7 +16,7 @@ from AllenConf.persistency import make_routingbits_writer, rb_map_PbPb
 from AllenConf.hlt1_heavy_ions_lines import make_heavy_ion_event_line
 
 with make_routingbits_writer.bind(rb_map=rb_map_PbPb):
-    with make_heavy_ion_event_line.bind(PbPb_SMOG_z_separation=-341.):
+    with make_heavy_ion_event_line.bind(PbPb_SMOG_z_separation=-330.):
         with make_ecal_clusters.bind(
                 seed_min_adc=10, neighbour_min_adc=2, min_et=200, min_e19=0):
             hlt1_node = setup_hlt1_node(

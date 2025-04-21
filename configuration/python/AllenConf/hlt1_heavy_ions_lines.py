@@ -15,7 +15,7 @@ from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
 
 # constants
-__PbPb_SMOG_Z_SEPERATION = -341.
+__PbPb_SMOG_Z_SEPARATION = -330.
 
 
 def make_photon_lowmult_line(calo,
@@ -111,7 +111,7 @@ def make_heavy_ion_event_line(velo_tracks,
                               max_pvs_SMOG=-1,
                               min_ecal_e=0.,
                               max_ecal_e=-1.,
-                              PbPb_SMOG_z_separation=__PbPb_SMOG_Z_SEPERATION,
+                              PbPb_SMOG_z_separation=__PbPb_SMOG_Z_SEPARATION,
                               name="Hlt1HeavyIon_{hash}",
                               pre_scaler=1.):
 

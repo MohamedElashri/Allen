@@ -92,8 +92,8 @@ namespace SMOG2_kstopipi_line {
                                          200.f * Gaudi::Units::MeV,
                                          "Minimum final-state particles Pt"};
     Allen::Property<float> m_maxMass {this, "maxMass", 600.f * Gaudi::Units::MeV, "Maximum invariat mass"};
-    Allen::Property<float> m_minPVZ {this, "minPVZ", -541.f * Gaudi::Units::mm, "minimum PV z coordinate"};
-    Allen::Property<float> m_maxPVZ {this, "maxPVZ", -341.f * Gaudi::Units::mm, "maximum PV z coordinate"};
+    Allen::Property<float> m_minPVZ {this, "minPVZ", -537.5f * Gaudi::Units::mm, "minimum PV z coordinate"};
+    Allen::Property<float> m_maxPVZ {this, "maxPVZ", -337.5f * Gaudi::Units::mm, "maximum PV z coordinate"};
     Allen::Property<int> m_CombCharge {this, "CombCharge", 0, "Charge of the combination"};
 
     Allen::Monitoring::Histogram<> m_histogram_smogks_mass {this,
@@ -103,11 +103,11 @@ namespace SMOG2_kstopipi_line {
     Allen::Monitoring::Histogram<> m_histogram_smogks_svz {this,
                                                            "SMOGks_svz",
                                                            "SV_z (Ks) [mm]",
-                                                           {100u, -541.f, 1000.f}};
+                                                           {100u, -550.f, 1000.f}};
     Allen::Monitoring::Histogram<> m_histogram_smogks_pvz {this,
                                                            "SMOGks_pvz",
                                                            "PV_z (Ks) [mm]",
-                                                           {100u, -541.f, -341.f}};
+                                                           {100u, -550.f, -300.f}};
     Allen::Monitoring::Histogram<> m_histogram_smogks_pt {this, "SMOGks_pt", "pT (Ks)", {100u, 100.f, 8000.f}};
   };
 } // namespace SMOG2_kstopipi_line

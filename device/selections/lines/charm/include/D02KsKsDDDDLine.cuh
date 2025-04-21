@@ -224,7 +224,7 @@ namespace d02ksks_DDDD_line {
     Allen::Property<float> m_minM_D0 {this, "minM_D0", 1650.0f * Gaudi::Units::MeV, "minM_D0 description"};
     Allen::Property<float> m_maxM_D0 {this, "maxM_D0", 2100.0f * Gaudi::Units::MeV, "maxM_D0 description"};
     Allen::Property<float> m_minZ_sv {this, "minZ_sv", 400.f * Gaudi::Units::mm, "minZ_sv description"};
-    Allen::Property<float> m_minZ_pv {this, "minZ_pv", -341.f * Gaudi::Units::mm, "minZ_pv description"};
+    Allen::Property<float> m_minZ_pv {this, "minZ_pv", -330.f * Gaudi::Units::mm, "minZ_pv description"};
     Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign dibody combinations"};
   };
 } // namespace d02ksks_DDDD_line

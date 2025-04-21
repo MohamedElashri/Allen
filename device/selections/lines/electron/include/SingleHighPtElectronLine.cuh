@@ -62,6 +62,6 @@ namespace single_high_pt_electron_line {
   private:
     Allen::Property<float> m_maxChi2Ndof {this, "maxChi2Ndof", 100.f, "maxChi2Ndof description"};
     Allen::Property<float> m_singleMinPt {this, "singleMinPt", 6000.f / Gaudi::Units::MeV, "singleMinPt description"};
-    Allen::Property<float> m_minZ {this, "MinZ", -341.f * Gaudi::Units::mm, "Minimum track state z"};
+    Allen::Property<float> m_minZ {this, "MinZ", -330.f * Gaudi::Units::mm, "Minimum track state z"};
   };
 } // namespace single_high_pt_electron_line

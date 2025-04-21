@@ -861,8 +861,8 @@ def default_SMOG2_lines(reconstructed_objects,
                         chi2_cuts,
                         with_muon=True,
                         with_v0s=True,
-                        min_z=-541.,
-                        max_z=-341.,
+                        min_z=-537.5,
+                        max_z=-337.5,
                         enable_tupling=False):
 
     velo_tracks = reconstructed_objects["velo_tracks"]

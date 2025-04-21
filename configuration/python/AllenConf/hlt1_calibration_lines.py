@@ -101,7 +101,7 @@ def make_d2kpi_align_line(long_tracks,
         minDira=0.9995,
         minEta=2.,
         maxEta=5.,
-        minZ=-341.,  #mm
+        minZ=-330.,  #mm
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[

@@ -86,7 +86,7 @@ namespace track_muon_mva_line {
     Allen::Property<float> m_alpha {this, "alpha", 0.f, "alpha description"};
     Allen::Property<float> m_minBPVz {this,
                                       "minBPVz",
-                                      -341.f * Gaudi::Units::mm,
+                                      -330.f * Gaudi::Units::mm,
                                       "minimum z for the best primary vertex associated to the muon"};
     Allen::Property<float> m_maxChi2Muon {this, "maxChi2Muon", 1.8, "maximum Chi2Muon evaluation"};
     Allen::Property<float> m_minMuonNN {this, "minMuonNN", 0.15, "minimum NN evaluation"};
