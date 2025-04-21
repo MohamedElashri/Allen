@@ -55,7 +55,7 @@ namespace low_pt_di_muon_line {
     Allen::Property<float> m_maxDOCA {this, "maxDOCA", 0.2f, "maxDOCA description"};
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 25.f, "maxVertexChi2 description"};
     Allen::Property<float> m_minMass {this, "minMass", 220.f, "minMass description"};
-    Allen::Property<float> m_minZ {this, "minZ", -341.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<float> m_minZ {this, "minZ", -330.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
     Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign dimuon combinations"};
   };
 } // namespace low_pt_di_muon_line

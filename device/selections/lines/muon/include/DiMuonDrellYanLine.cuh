@@ -99,7 +99,7 @@ namespace di_muon_drell_yan_line {
     Allen::Property<float> m_maxDoca {this, "maxDoca", .15f * Gaudi::Units::mm, "maxDoca description"};
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 20.f, "maxVertexChi2 description"};
     Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign dimuon combinations"};
-    Allen::Property<float> m_minZ {this, "minZ", -341.f * Gaudi::Units::mm, "minimum dimuon vertex z coordinate"};
+    Allen::Property<float> m_minZ {this, "minZ", -330.f * Gaudi::Units::mm, "minimum dimuon vertex z coordinate"};
     Allen::Property<float> m_maxChi2Muon {this, "maxChi2Muon", 2.2, "maximum muonID chi2corr value"};
     Allen::Property<float> m_minMuonNN {this, "minMuonNN", 0.15, "minimum NN evaluation"};
     Allen::Property<bool> m_useNN {this, "useNN", true, "Use NN instead of Chi2Corr"};

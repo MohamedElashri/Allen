@@ -98,7 +98,7 @@ namespace di_muon_mass_line {
     Allen::Property<float> m_maxDoca {this, "maxDoca", 0.2f, "maxDoca description"};
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 25.0f, "maxVertexChi2 description"};
     Allen::Property<float> m_minIPChi2 {this, "minIPChi2", 0.f, "minIPChi2 description"};
-    Allen::Property<float> m_minZ {this, "minZ", -341.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<float> m_minZ {this, "minZ", -330.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
     Allen::Property<float> m_maxChi2Muon {this, "maxChi2Muon", 1.8, "maximum Chi2Muon evaluation"};
     Allen::Property<float> m_minMuonNN {this, "minMuonNN", 0.1, "min NN evaluation"};
     Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign dimuon combinations"};

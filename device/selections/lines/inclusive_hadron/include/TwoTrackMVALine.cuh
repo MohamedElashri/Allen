@@ -108,7 +108,7 @@ namespace two_track_mva_line {
       "minipchi2",
       4.f,
       "minimum ipchi2 of the tracks"}; // this is probably a noop, but better safe than sorry
-    Allen::Property<float> m_minZ {this, "minZ", -341.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<float> m_minZ {this, "minZ", -330.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
     Allen::Property<float> m_maxGhostProb {this, "maxGhostProb", 0.5, "Maximum ghost probability of the tracks"};
 
     Allen::Monitoring::Histogram<> m_histogram_p0_ghost_prob {this,

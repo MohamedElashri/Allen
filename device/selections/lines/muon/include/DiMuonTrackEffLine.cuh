@@ -45,7 +45,7 @@ namespace di_muon_track_eff_line {
     // Mass window around J/psi meson.
     Allen::Property<float> m_DMTrackEffM0 {this, "DMTrackEffM0", 2900.f, "DMTrackEffM0 description"};
     Allen::Property<float> m_DMTrackEffM1 {this, "DMTrackEffM1", 3100.f, "DMTrackEffM1 description"};
-    Allen::Property<float> m_DMTrackEffMinZ {this, "DMTrackEffMinZ", -341.f, "MinZ for DMTrackEff"};
+    Allen::Property<float> m_DMTrackEffMinZ {this, "DMTrackEffMinZ", -330.f, "MinZ for DMTrackEff"};
     Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign dimuon combinations"};
   };
 } // namespace di_muon_track_eff_line

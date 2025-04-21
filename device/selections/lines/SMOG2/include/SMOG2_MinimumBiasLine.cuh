@@ -67,11 +67,11 @@ namespace SMOG2_minimum_bias_line {
     Allen::Property<unsigned> m_minNHits {this, "minNHits", 12, "min number of hits of velo track"};
     Allen::Property<float> m_minZ {this,
                                    "minZ",
-                                   -551.f * Gaudi::Units::mm,
+                                   -537.5f * Gaudi::Units::mm,
                                    "min z coordinate for accepted reconstructed primary vertex"};
     Allen::Property<float> m_maxZ {this,
                                    "maxZ",
-                                   -331.f * Gaudi::Units::mm,
+                                   -337.5f * Gaudi::Units::mm,
                                    "max z coordinate for accepted reconstructed primary vertex"};
   };
 } // namespace SMOG2_minimum_bias_line

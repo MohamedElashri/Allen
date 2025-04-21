@@ -88,6 +88,6 @@ namespace two_track_mva_charm_xsec_line {
                                       "Value of SV pT in MeV below which the low PT MVA cut is applied."};
     Allen::Property<float> m_minMVAhighPt {this, "minMVAhighPt", 0.92385f, "Minimum passing MVA response at hight Pt."};
     Allen::Property<float> m_minMVAlowPt {this, "minMVAlowPt", 0.7f, "Minimum passing MVA response at low Pt."};
-    Allen::Property<float> m_minZ {this, "minZ", -341.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<float> m_minZ {this, "minZ", -330.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
   };
 } // namespace two_track_mva_charm_xsec_line

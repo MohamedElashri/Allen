@@ -84,7 +84,7 @@ namespace track_electron_mva_line {
     Allen::Property<float> m_alpha {this, "alpha", 0.f, "alpha description"};
     Allen::Property<float> m_minBPVz {this,
                                       "min_BPVz",
-                                      -341.f * Gaudi::Units::mm,
+                                      -330.f * Gaudi::Units::mm,
                                       "Minimum z for the associated best primary vertex"};
     Allen::Property<float> m_minElectronNN {this, "minElectronNN", 0.1, "min NN evaluation"};
     Allen::Property<bool> m_useNN {this, "useNN", true, "useNN"};

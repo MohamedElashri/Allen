@@ -110,7 +110,7 @@ namespace lowmass_dielectron_line {
     Allen::Property<float> m_minMass {this, "MinMass", 5.f, "Min vertex mass"};
     Allen::Property<float> m_maxMass {this, "MaxMass", 300.f, "Max vertex mass"};
     Allen::Property<bool> m_ss_on {this, "ss_on", false, "Flag when same-sign candidates should be selected"};
-    Allen::Property<float> m_minZ {this, "MinZ", -341.f * Gaudi::Units::mm, "Min z dielectron coordinate"};
+    Allen::Property<float> m_minZ {this, "MinZ", -330.f * Gaudi::Units::mm, "Min z dielectron coordinate"};
     Allen::Property<float> m_trackIPChi2Threshold {
       this,
       "TrackIPChi2Threshold",

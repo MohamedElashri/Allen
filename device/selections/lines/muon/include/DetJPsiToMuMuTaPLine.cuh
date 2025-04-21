@@ -147,7 +147,7 @@ namespace det_jpsitomumu_tap_line {
     Allen::Property<float> m_JpsiMaxMass {this, "JpsiMaxMass", 3250.f * Gaudi::Units::MeV, "JpsiMaxMass description"};
     Allen::Property<float> m_JpsiMinZ {this,
                                        "JpsiMinZ",
-                                       -341.f * Gaudi::Units::mm,
+                                       -330.f * Gaudi::Units::mm,
                                        "minimum vertex z dimuon coordinate"};
     Allen::Property<float> m_JpsiMaxDoca {this, "JpsiMaxDoca", 1.f * Gaudi::Units::mm, "JpsiMaxDoca description"};
     Allen::Property<float> m_JpsiMinCosDira {this, "JpsiMinCosDira", 0.99f, "JpsiMinCosDira description"};

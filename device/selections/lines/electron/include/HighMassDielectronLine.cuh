@@ -113,7 +113,7 @@ namespace highmass_dielectron_line {
     Allen::Property<float> m_minMass {this, "minMass", 8.0f * Gaudi::Units::GeV, "Min mass of the composite"};
     Allen::Property<float> m_maxMass {this, "maxMass", 140.f * Gaudi::Units::GeV, "Max mass of the composite"};
     Allen::Property<float> m_maxDoca {this, "maxDoca", .2f * Gaudi::Units::mm, "maxDoca description"};
-    Allen::Property<float> m_MinZ {this, "MinZ", -341.f * Gaudi::Units::mm, "Min z dielectron coordinate"};
+    Allen::Property<float> m_MinZ {this, "MinZ", -330.f * Gaudi::Units::mm, "Min z dielectron coordinate"};
     Allen::Property<bool> m_only_select_opposite_sign {this,
                                                        "OppositeSign",
                                                        true,

@@ -121,8 +121,8 @@ namespace SMOG2_ditrack_line {
                                                800.f * Gaudi::Units::MeV,
                                                "minimum transverse momentum for at least one final-state particle"};
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 20.f, "max SV Chi2"};
-    Allen::Property<float> m_minZ {this, "minZ", -551.f * Gaudi::Units::mm, "minimum accepted SV z"};
-    Allen::Property<float> m_maxZ {this, "maxZ", -331.f * Gaudi::Units::mm, "maximum accepted SV z"};
+    Allen::Property<float> m_minZ {this, "minZ", -537.5f * Gaudi::Units::mm, "minimum accepted SV z"};
+    Allen::Property<float> m_maxZ {this, "maxZ", -337.5f * Gaudi::Units::mm, "maximum accepted SV z"};
     Allen::Property<float> m_maxDoca {this, "maxDoca", 0.2f * Gaudi::Units::mm, "max distance of closest approach"};
     Allen::Property<int> m_combCharge {this, "combCharge", 0, "Charge of the combination"};
     Allen::Property<float> m_minTrackIPCHI2 {this, "minTrackIPCHI2", 5.f, "Min IPCHI2 for the final-state parts"};
@@ -156,10 +156,10 @@ namespace SMOG2_ditrack_line {
     Allen::Monitoring::Histogram<> m_histogram_smogditrack_svz {this,
                                                                 "smogditrack_svz",
                                                                 "SV_z [mm]",
-                                                                {100u, -541.f, -300.f}};
+                                                                {100u, -550.f, -300.f}};
     Allen::Monitoring::Histogram<> m_histogram_smogditrack_pvz {this,
                                                                 "smogditrack_Pvz",
                                                                 "PV_z [mm]",
-                                                                {100u, -541.f, -341.f}};
+                                                                {100u, -550.f, -300.f}};
   };
 } // namespace SMOG2_ditrack_line

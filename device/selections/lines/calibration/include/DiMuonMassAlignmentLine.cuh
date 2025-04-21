@@ -81,7 +81,7 @@ namespace di_muon_mass_alignment_line {
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 10.0f, "maxVertexChi2 description"};
     Allen::Property<float> m_minIP {this, "minIP", 0.07f * Gaudi::Units::mm, "minIP description"};
     Allen::Property<float> m_minFdChi2 {this, "minFdChi2", 5.f, "minFdChi2 description"};
-    Allen::Property<float> m_minZ {this, "minZ", -341.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<float> m_minZ {this, "minZ", -330.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
     Allen::Property<float> m_minEta {this, "minEta", 2.0f, "minEta description"};
     Allen::Property<float> m_maxEta {this, "maxEta", 5.0f, "maxEta description"};
     Allen::Property<float> m_minDira {this, "minDira", 0.9995f, "minimum value of cos(theta_dira)"};

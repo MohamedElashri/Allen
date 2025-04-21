@@ -103,8 +103,8 @@ namespace SMOG2_dimuon_highmass_line {
     Allen::Property<int> m_CombCharge {this, "HighMassCombCharge", 0, "Charge of the combination"};
     Allen::Property<float> m_maxDoca {this, "maxDoca", 0.5f * Gaudi::Units::mm, "max distance of closest approach"};
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 25.0f, "Max vertex chi2"};
-    Allen::Property<float> m_minZ {this, "minZ", -551.f * Gaudi::Units::mm, "minimum vertex z"};
-    Allen::Property<float> m_maxZ {this, "maxZ", -331.f * Gaudi::Units::mm, "maximum vertex z"};
+    Allen::Property<float> m_minZ {this, "minZ", -537.5f * Gaudi::Units::mm, "minimum vertex z"};
+    Allen::Property<float> m_maxZ {this, "maxZ", -337.5f * Gaudi::Units::mm, "maximum vertex z"};
     Allen::Property<float> m_maxChi2Corr {this, "maxChi2Corr", 1.8, "maximum Chi2Muon evaluation"};
 
     Allen::Monitoring::Histogram<> m_histogram_smogdimuon_mass {this,
@@ -115,10 +115,10 @@ namespace SMOG2_dimuon_highmass_line {
     Allen::Monitoring::Histogram<> m_histogram_smogdimuon_svz {this,
                                                                "smogdimuon_svz",
                                                                "SV_z(smogdimuon)",
-                                                               {100u, -541.f, -300.f}};
+                                                               {100u, -550.f, -300.f}};
     Allen::Monitoring::Histogram<> m_histogram_smogdimuon_pvz {this,
                                                                "smogdimuon_Pvz",
                                                                "PV_z (smogdimuon)",
-                                                               {100u, -541.f, -341.f}};
+                                                               {100u, -550.f, -300.f}};
   };
 } // namespace SMOG2_dimuon_highmass_line

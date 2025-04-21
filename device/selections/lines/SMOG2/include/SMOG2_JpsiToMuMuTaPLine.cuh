@@ -101,11 +101,11 @@ namespace SMOG2jpsitomumu_tap_line {
                                           "Min invariant mass for JPsi candidate"};
     Allen::Property<float> m_JpsiMinZ {this,
                                        "JpsiMinZ",
-                                       -551.f * Gaudi::Units::mm,
+                                       -537.5f * Gaudi::Units::mm,
                                        "minimum vertex z dimuon coordinate"};
     Allen::Property<float> m_JpsiMaxZ {this,
                                        "JpsiMaxZ",
-                                       -331.f * Gaudi::Units::mm,
+                                       -337.5f * Gaudi::Units::mm,
                                        "maximum vertex z dimuon coordinate"};
     Allen::Property<float> m_mutagMinP {this, "mutagMinP", 3000.f * Gaudi::Units::MeV, "Min momentum for tag muon"};
     Allen::Property<float> m_mutagMinPt {this, "mutagMinPt", 600.f * Gaudi::Units::MeV, "Min Pt for tag muon"};

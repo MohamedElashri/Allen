@@ -24,7 +24,7 @@ def make_pvs(velo_tracks,
              pv_name="",
              zmin=-541.,
              zmax=307.,
-             SMOG2_pp_separation=-341.,
+             SMOG2_pp_separation=-334.,
              Nbins=3392):
 
     dz = 0.25

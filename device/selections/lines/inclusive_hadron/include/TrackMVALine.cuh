@@ -87,7 +87,7 @@ namespace track_mva_line {
                                     "alpha description"}; // tuned to about 330 kHz (modulo GEC)
     Allen::Property<float> m_minBPVz {this,
                                       "minBPVz",
-                                      -341.f * Gaudi::Units::mm,
+                                      -330.f * Gaudi::Units::mm,
                                       "minimum z for the best associated primary vertex"};
     Allen::Property<float> m_maxGhostProb {this, "maxGhostProb", 0.5, "Maximum ghost probability of the tracks"};
 

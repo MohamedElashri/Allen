@@ -48,7 +48,7 @@ namespace low_pt_muon_line {
     Allen::Property<float> m_minIPChi2 {this, "minIPChi2", 7.4f, "minIPChi2 description"};
     Allen::Property<float> m_minBPVz {this,
                                       "minBPVz",
-                                      -341.f * Gaudi::Units::mm,
+                                      -330.f * Gaudi::Units::mm,
                                       "minimum z for the best primary vertex associated to the muon"};
   };
 } // namespace low_pt_muon_line

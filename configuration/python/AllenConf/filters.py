@@ -242,7 +242,7 @@ def make_minimal_activity_filter(reconstructed_objects, minimal_activity_type,
 
 
 @configurable
-def make_checkPV(pvs, name='check_PV', min_z=-541., max_z=-341.):
+def make_checkPV(pvs, name='check_PV', min_z=-537.5, max_z=-337.5):
     return checkPV(pvs, name=name, minZ=min_z, maxZ=max_z)
 
 

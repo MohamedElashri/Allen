@@ -98,7 +98,7 @@ namespace two_track_line_ks {
     Allen::Property<float> m_maxM_Ks {this, "maxM_Ks", 545.0f / Gaudi::Units::MeV, "maxM_Ks description"};
     Allen::Property<float> m_minCosOpening {this, "minCosOpening", 0.99f, "minCosOpening description"};
     Allen::Property<float> m_min_combip {this, "min_combip", 0.72f / Gaudi::Units::mm, "min_combip description"};
-    Allen::Property<float> m_minZ {this, "minZ", -341.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<float> m_minZ {this, "minZ", -330.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
     Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign dimuon combinations"};
   };
 } // namespace two_track_line_ks

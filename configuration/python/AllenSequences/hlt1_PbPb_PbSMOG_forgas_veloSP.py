@@ -20,7 +20,7 @@ with decode_velo.bind(retina_decoding=False):
     with make_routingbits_writer.bind(rb_map=rb_map_PbPb):
         with make_ecal_clusters.bind(
                 seed_min_adc=10, neighbour_min_adc=2, min_et=200, min_e19=0):
-            with make_heavy_ion_event_line.bind(PbPb_SMOG_z_separation=-341.):
+            with make_heavy_ion_event_line.bind(PbPb_SMOG_z_separation=-330.):
                 hlt1_node = setup_hlt1_node(
                     prescale=True,
                     with_ut=True,
