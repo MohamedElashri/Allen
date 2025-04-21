@@ -222,8 +222,8 @@ Hlt1DiElectronLowMass_SS_NoIP          INFO 1D histograms in directory "Hlt1DiEl
  | dielectron_mass_counts_brem                                                      | "dielectron masses with brem"                                                    |        235 |      819.4 | 533.86     |  -0.029464 |    -1.7599 |
 Hlt1DiElectronLowMass_SS_NoIPNorm      INFO 1D histograms in directory "Hlt1DiElectronLowMass_SS_NoIPNorm" : 2
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | dielectron_mass_counts                                                           | "dielectron masses"                                                              |        811 |       1050 | 481.73     |   -0.94856 |   -0.72912 |
- | dielectron_mass_counts_brem                                                      | "dielectron masses with brem"                                                    |        729 |     1040.4 | 486.08     |    -0.8462 |   -0.94285 |
+ | dielectron_mass_counts                                                           | "dielectron masses"                                                              |        810 |     1051.2 | 480.80     |   -0.95239 |   -0.72029 |
+ | dielectron_mass_counts_brem                                                      | "dielectron masses with brem"                                                    |        728 |     1041.7 | 485.22     |   -0.85038 |   -0.93416 |
 Hlt1DiMuonHighMass                     INFO 1D histograms in directory "Hlt1DiMuonHighMass" : 1
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
  | Jpsi_mass                                                                        | "m(J/Psi)"                                                                       |         16 |     3067.4 | 120.68     |    0.38588 |    -1.0504 |
