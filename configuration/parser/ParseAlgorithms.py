@@ -238,11 +238,7 @@ class AllenCore():
         ]
         aggregate_input_vectors = [
             "\n".join([
-                f"#ifdef GAUDI_FUNCTIONAL_MAKE_VECTOR_OF_HANDLES_USES_DATAOBJID",
                 f"Gaudi::Property<std::vector<DataObjID>> m_{agg.typename}_locations",
-                f"#else",
-                f"Gaudi::Property<std::vector<std::string>> m_{agg.typename}_locations",
-                f"#endif",
                 f"{{this, \"{agg.typename}\", {{}},",
                 f"  [=,this]( Gaudi::Details::PropertyBase& ) {{",
                 f"    this->m_{agg.typename} =",
