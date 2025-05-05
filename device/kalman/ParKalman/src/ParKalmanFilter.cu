@@ -27,6 +27,41 @@ namespace kalman_filter { // [nSets * nPars + 2]
 
 void kalman_filter::kalman_filter_t::update(const Constants& constants) const
 {
+
+  struct BeamlinePVConstants::Common::Beamline host_beamline;
+
+  host_beamline.pos.x = constants.host_beamline[0];
+  host_beamline.pos.y = constants.host_beamline[1];
+  host_beamline.pos.z = constants.host_beamline[2];
+
+  for (long unsigned int i = 0; i < 6; i++) { // spread matrix have 6 elements
+    host_beamline.sprd[i] = constants.host_beamline[3 + i];
+  }
+  double beamlineTx = 0.;
+  double beamlineTy = 0.; // Beamline inclination is set at zero for now. This will be modified later
+  host_beamline.tx.x = beamlineTx;
+  host_beamline.tx.y = beamlineTy;
+
+  // To stay backward compatible we need to check the size of host_beamline. In version 0 and 1 of the beamline only
+  // position with 3 elements and spread matrix with 6 were included
+  double CrossingAngleh = constants.host_beamline.size() == 9 ?
+                            0 :
+                            static_cast<double>(constants.host_beamline[9]) /
+                              (2 * std::pow(10, 6)); // Convert crossing angles between beams from microrad to rad,
+                                                     // take half to convert the angle to the beam inclination
+  if ((CrossingAngleh == 0.0) & (constants.host_gen_crossing_angles.size() == 2)) {
+    CrossingAngleh = fabs(static_cast<double>(constants.host_gen_crossing_angles[0])) / 2.;
+  }
+  double CrossingAnglev =
+    constants.host_beamline.size() == 9 ? 0 : static_cast<double>(constants.host_beamline[10]) / (2 * std::pow(10, 6));
+
+  if ((CrossingAnglev == 0.0) & (constants.host_gen_crossing_angles.size() == 2)) {
+    CrossingAnglev = fabs(static_cast<double>(constants.host_gen_crossing_angles[1])) / 2.;
+  }
+  host_beamline.tx_SMOG.x = beamlineTx + CrossingAngleh;
+  host_beamline.tx_SMOG.y = beamlineTy + CrossingAnglev;
+  Allen::memcpyToSymbol(dev_beamline, &host_beamline, sizeof(struct BeamlinePVConstants::Common::Beamline));
+
   Allen::memcpyToSymbol(dev_UT_lay, constants.host_UT_Layers, (1 * 4 + 2) * sizeof(float));
   Allen::memcpyToSymbol(dev_T_lay, constants.host_T_Layers, (4 * 12 + 2) * sizeof(float));
   if (constants.host_magnet_polarity.empty()) {
@@ -78,10 +113,12 @@ void kalman_filter::kalman_filter_t::operator()(
   dim3 block_dim = m_block_dim;
   int _gridDim = (first<host_number_of_reconstructed_scifi_tracks_t>(arguments) + (block_dim.x) - 1) / (block_dim.x);
   global_function(kalman_filter)(dim3(_gridDim), m_block_dim, context)(
-    arguments, constants.dev_magnet_polarity.data(), constants.dev_kalman_params, constants.dev_beamline.data());
+    arguments, constants.dev_magnet_polarity.data(), constants.dev_kalman_params);
 
   global_function(kalman_pv_ip)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(arguments);
 }
+
+__constant__ struct BeamlinePVConstants::Common::Beamline dev_beamline;
 
 namespace ParKalmanFilter {
   //----------------------------------------------------------------------
@@ -131,8 +168,7 @@ namespace ParKalmanFilter {
     const float* dev_UTTF_pars,
     const float* dev_T_pars,
     const float* dev_TFT_pars,
-    const float* dev_UTT_META,
-    float* dev_beamline)
+    const float* dev_UTT_META)
   {
     // Fit information.
     trackInfo tI;
@@ -342,8 +378,7 @@ set_result(const unsigned track_number, const ParKalmanFilter::FittedTrack& trac
 __global__ void kalman_filter::kalman_filter(
   kalman_filter::Parameters parameters,
   const float* dev_magnet_polarity,
-  const ParKalmanFilter::KalmanParametrizationsStruct* dev_kalman_params,
-  float* dev_beamline)
+  const ParKalmanFilter::KalmanParametrizationsStruct* dev_kalman_params)
 {
   const auto magSign = dev_magnet_polarity[0];
   const ParKalmanFilter::KalmanParametrizations* kalman_params;
@@ -386,8 +421,7 @@ __global__ void kalman_filter::kalman_filter(
       dev_UTTF_pars,
       dev_T_pars,
       dev_TFT_pars,
-      dev_UTT_META,
-      dev_beamline);
+      dev_UTT_META);
     set_result(track_id, kalman_track, kalman_states);
     parameters.dev_kf_tracks[track_id] = kalman_track;
   }

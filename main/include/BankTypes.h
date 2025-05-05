@@ -22,7 +22,7 @@
 #include "Common.h"
 
 constexpr auto NBankTypes = 12;
-enum class BankTypes { VP, UT, FT, MUON, ODIN, MCTracks, MCVertices, Rich1, Rich2, ECal, Plume, HCal, Unknown };
+enum class BankTypes { VP, UT, FT, MUON, ODIN, MCTracks, MCVertices, Rich1, Rich2, ECal, Plume, HCal, Gen, Unknown };
 
 const std::unordered_set<BankTypes> DataBankTypes = {BankTypes::VP,
                                                      BankTypes::UT,
@@ -49,7 +49,8 @@ const std::unordered_map<BankTypes, float> BankSizes = {{BankTypes::VP, 40.f},
                                                         {BankTypes::Plume, 15.f},
                                                         {BankTypes::ODIN, 1.f},
                                                         {BankTypes::MCTracks, 110.f},
-                                                        {BankTypes::MCVertices, 0.3f}};
+                                                        {BankTypes::MCVertices, 0.3f},
+                                                        {BankTypes::Gen, 0.3f}};
 
 // Average measured event size, measured
 // FIXME: make this configurable

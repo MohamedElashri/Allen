@@ -41,7 +41,8 @@ target_include_directories(Velo PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/simplified_kalman_filter/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tracks_ACsplit/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/consolidate_tracks/include>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/filter_for_material_interactions/include>)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/filter_for_material_interactions/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../PV/beamlinePV/include>)
 
 target_include_directories(WrapperInterface INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/common/include>)

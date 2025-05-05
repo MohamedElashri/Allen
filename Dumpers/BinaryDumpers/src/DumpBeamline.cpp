@@ -15,7 +15,7 @@
 
 #include <DetDesc/GenericConditionAccessorHolder.h>
 #include <LHCbDet/InteractionRegion.h>
-
+#include <LHCbDet/LHCInfo.h>
 #include <Dumpers/Identifiers.h>
 #include <Dumpers/Utils.h>
 #include <DD4hep/GrammarUnparsed.h>
@@ -27,7 +27,11 @@ namespace {
 
     Beamline() {}
 
-    Beamline(std::vector<char>& data, LHCb::Conditions::InteractionRegion const& region, std::array<float, 2> offset)
+    Beamline(
+      std::vector<char>& data,
+      LHCb::Conditions::InteractionRegion const& region,
+      std::optional<LHCb::Detector::LHCInfo> const& LHC_info,
+      std::array<float, 2> offset)
     {
       DumpUtils::Writer output;
 
@@ -37,20 +41,30 @@ namespace {
       pos[1] = pos[1] + offset[1];
 
       std::vector<double> sprd(region.spread.begin(), region.spread.end());
-
       auto as_float = [](auto const& vd) {
         std::vector<float> vf(vd.size());
         std::transform(vd.begin(), vd.end(), vf.begin(), [](double v) { return static_cast<float>(v); });
         return vf;
       };
 
-      // version 1, position, spread
-      output.write(1u, as_float(pos), as_float(sprd));
+      double xangleh = 0.;
+      double xanglev = 0.;
+      if (LHC_info.has_value()) {
+        xangleh = LHC_info.value().xangleh;
+        xanglev = LHC_info.value().xanglev;
+      }
+      std::vector<double> cross_angles(2);
+      cross_angles[0] = xangleh;
+      cross_angles[1] = xanglev;
+
+      // version 2, position, spread, effectie crossing angles
+      output.write(2u, as_float(pos), as_float(sprd), as_float(cross_angles));
       data = output.buffer();
     }
   };
 
   using IR = LHCb::Conditions::InteractionRegion;
+  using LI = LHCb::Conditions::LHCInfo;
 
 } // namespace
 
@@ -60,6 +74,7 @@ namespace {
  *  @author Roel Aaij
  *  @date   2019-04-27
  */
+
 class DumpBeamline final
   : public Allen::Dumpers::Dumper<void(Beamline const&), LHCb::Algorithm::Traits::usesConditions<Beamline>> {
 public:
@@ -86,16 +101,18 @@ StatusCode DumpBeamline::initialize()
     register_producer(Allen::NonEventData::Beamline::id, "beamline", m_data);
 
     auto ir_loc = location(name(), "interaction_region");
+    auto li_loc = location(name(), "LHC_info");
 
     // First register a derivation on the interaction region
     IR::addConditionDerivation(this, ir_loc);
-
-    // Then derived the interaction region to create the device representation
-    addConditionDerivation({ir_loc}, inputLocation<Beamline>(), [&](LHCb::Conditions::InteractionRegion const& ir) {
-      auto beamline = Beamline {m_data, ir, m_offset};
-      dump();
-      return beamline;
-    });
+    LI::addConditionDerivation(this, li_loc);
+    // Then derived the interaction region to create the host representation and copy it in the device constant memory
+    addConditionDerivation(
+      {ir_loc, li_loc}, inputLocation<Beamline>(), [&](IR const& ir, std::optional<LHCb::Detector::LHCInfo> const& li) {
+        auto beamline = Beamline {m_data, ir, li, m_offset};
+        dump();
+        return beamline;
+      });
   });
 }
 

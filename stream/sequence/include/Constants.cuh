@@ -91,7 +91,10 @@ struct Constants {
   float* dev_inv_clus_res;
 
   // Beam location
-  gsl::span<float> dev_beamline;
+  std::vector<float> host_beamline;
+
+  // Beam location
+  std::vector<float> host_gen_crossing_angles;
 
   // Magnet polarity
   gsl::span<float> dev_magnet_polarity;

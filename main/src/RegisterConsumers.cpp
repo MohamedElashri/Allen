@@ -44,12 +44,16 @@ void register_consumers(
       BankTypes::FT),
     std::make_tuple(
       Allen::NonEventData::Beamline {},
-      [&constants]() { return std::make_unique<Consumers::Beamline>(constants.dev_beamline); },
+      [&constants]() { return std::make_unique<Consumers::Beamline>(constants); },
       BankTypes::VP),
     std::make_tuple(
       Allen::NonEventData::VeloGeometry {},
       [&constants]() { return std::make_unique<Consumers::VPGeometry>(constants); },
       BankTypes::VP),
+    std::make_tuple(
+      Allen::NonEventData::CrossingAngles {},
+      [&constants]() { return std::make_unique<Consumers::CrossingAngles>(constants); },
+      BankTypes::Gen),
     std::make_tuple(
       Allen::NonEventData::ECalGeometry {},
       [&constants]() {

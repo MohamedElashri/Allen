@@ -31,11 +31,12 @@ namespace pv_beamline_calculate_denom {
     DEVICE_OUTPUT(dev_pvtracks_denom_t, float) dev_pvtracks_denom;
   };
 
-  __global__ void pv_beamline_calculate_denom(Parameters, const float*);
+  __global__ void pv_beamline_calculate_denom(Parameters);
 
   struct pv_beamline_calculate_denom_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
+    void update(const Constants& constants) const;
 
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
