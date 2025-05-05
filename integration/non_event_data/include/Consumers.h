@@ -107,14 +107,23 @@ namespace Consumers {
 
   struct Beamline final : public Allen::NonEventData::Consumer {
   public:
-    Beamline(gsl::span<float>&);
+    Beamline(Constants& constants);
 
     void consume(std::vector<char> const& data) override;
 
   private:
-    std::reference_wrapper<gsl::span<float>> m_dev_beamline;
+    std::reference_wrapper<Constants> m_constants;
   };
 
+  struct CrossingAngles final : public Allen::NonEventData::Consumer {
+  public:
+    CrossingAngles(Constants& constants);
+
+    void consume(std::vector<char> const& data) override;
+
+  private:
+    std::reference_wrapper<Constants> m_constants;
+  };
   struct MagneticField final : public Allen::NonEventData::Consumer {
   public:
     MagneticField(gsl::span<float>&, std::vector<float>&);

@@ -48,8 +48,7 @@ __device__ void simplified_step(
 __device__ void simplified_fit(
   const Allen::Views::Velo::Consolidated::Track& velo_track,
   const KalmanFloat init_qop,
-  FittedTrack& track,
-  float* dev_beamline);
+  FittedTrack& track);
 
 namespace kalman_velo_only {
   struct Parameters {
@@ -77,11 +76,13 @@ namespace kalman_velo_only {
     dev_kalman_pv_tables;
   };
 
-  __global__ void kalman_velo_only(Parameters parameters, float* dev_beamline);
+  __global__ void kalman_velo_only(Parameters parameters);
 
   __global__ void kalman_pv_ip(Parameters parameters);
 
   struct kalman_velo_only_t : public DeviceAlgorithm, Parameters {
+    void update(const Constants& constants) const;
+
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(

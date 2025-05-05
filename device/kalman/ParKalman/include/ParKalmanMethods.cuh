@@ -17,6 +17,7 @@
 #include "SciFiConsolidated.cuh"
 #include "UTConsolidated.cuh"
 #include "VeloConsolidated.cuh"
+#include "BeamlinePVConstants.cuh"
 
 namespace ParKalmanFilter {
 
@@ -40,6 +41,7 @@ namespace ParKalmanFilter {
     KalmanFloat m_chi2V;
     KalmanFloat m_chi2UT;
   };
+
 } // namespace ParKalmanFilter
 
 using namespace ParKalmanFilter;
@@ -1234,19 +1236,36 @@ __device__ inline void add_noise_1d(
   qop = (fabsf(momnew) > 10.f && fabsf(qop) > 1e-20f) ? (charge / momnew) : qop;
 }
 
-__device__ inline void propagate_to_beamline(FittedTrack& track, const float* dev_beamline, const bool add_eloss = true)
+__device__ inline void propagate_to_beamline(
+  FittedTrack& track,
+  const BeamlinePVConstants::Common::Beamline dev_beamline,
+  const bool add_eloss = true)
 {
+  float tx_beam;
+  float ty_beam;
+  if (track.z > BeamlinePVConstants::Common::SMOG2_pp_separation) {
+    tx_beam = dev_beamline.tx.x;
+    ty_beam = dev_beamline.tx.y;
+  }
+  else {
+    tx_beam = dev_beamline.tx_SMOG.x;
+    ty_beam = dev_beamline.tx_SMOG.y;
+  }
   KalmanFloat x = track.state[0];
   KalmanFloat y = track.state[1];
-  KalmanFloat tx = track.state[2];
-  KalmanFloat ty = track.state[3];
+  KalmanFloat tx = track.state[2] - tx_beam;
+  KalmanFloat ty = track.state[3] - ty_beam;
   const KalmanFloat t2 = sqrtf(tx * tx + ty * ty);
 
   // Get the beam position.
   KalmanFloat zBeam = track.z;
   KalmanFloat denom = t2 * t2;
   const KalmanFloat tol = (KalmanFloat) 0.001;
-  zBeam = (denom < tol * tol) ? zBeam : track.z + ((dev_beamline[0] - x) * tx + (dev_beamline[1] - y) * ty) / denom;
+  zBeam =
+    (denom < tol * tol) ?
+      zBeam :
+      track.z +
+        ((dev_beamline.pos.x + tx_beam * track.z - x) * tx + (dev_beamline.pos.y + ty_beam * track.z - y) * ty) / denom;
   const KalmanFloat dz = zBeam - track.z;
   KalmanFloat qop = track.state[4];
   // Propagate the covariance matrix.

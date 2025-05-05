@@ -81,12 +81,11 @@ void velo_kalman_filter::velo_kalman_filter_t::output_monitor(
 void velo_kalman_filter::velo_kalman_filter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
-  const Constants& constants,
+  const Constants&,
   const Allen::Context& context) const
 {
   global_function(velo_kalman_filter)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments,
-    constants.dev_beamline.data(),
     m_histogram_velo_total_track_eta.data(context),
     m_histogram_velo_total_track_phi.data(context),
     m_histogram_velo_total_track_nhits.data(context),
@@ -97,6 +96,8 @@ void velo_kalman_filter::velo_kalman_filter_t::operator()(
     m_histogram_velo_backward_track_phi.data(context),
     m_histogram_velo_backward_track_nhits.data(context));
 }
+
+void velo_kalman_filter::velo_kalman_filter_t::update(const Constants& constants) const { updateCommon(constants); }
 
 /**
  * @brief Calculates the parameters according to a root means square fit
@@ -156,7 +157,7 @@ __device__ MiniState least_means_square_fit(const Allen::Views::Velo::Consolidat
 /**
  * @brief Calculates the parameters according to a linear fit between the first and last velo hit
  */
-__device__ MiniState linear_fit(const Allen::Views::Velo::Consolidated::Track& track, float* dev_beamline)
+__device__ MiniState linear_fit(const Allen::Views::Velo::Consolidated::Track& track)
 {
   MiniState state;
 
@@ -169,7 +170,7 @@ __device__ MiniState linear_fit(const Allen::Views::Velo::Consolidated::Track& t
   state.ty() = (last.y - first.y) / (last.z - first.z);
 
   // Propagate to the beamline
-  auto delta_z = (state.tx() * (dev_beamline[0] - last.x) + state.ty() * (dev_beamline[1] - last.y)) /
+  auto delta_z = (state.tx() * (dev_beamline.pos.x - last.x) + state.ty() * (dev_beamline.pos.y - last.y)) /
                  (state.tx() * state.tx() + state.ty() * state.ty());
   state.x() = last.x + state.tx() * delta_z;
   state.y() = last.y + state.ty() * delta_z;
@@ -180,7 +181,6 @@ __device__ MiniState linear_fit(const Allen::Views::Velo::Consolidated::Track& t
 
 __global__ void velo_kalman_filter::velo_kalman_filter(
   velo_kalman_filter::Parameters parameters,
-  float* dev_beamline,
   Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_total_track_eta,
   Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_total_track_phi,
   Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_total_track_nhits,
@@ -212,15 +212,15 @@ __global__ void velo_kalman_filter::velo_kalman_filter(
     const auto track = velo_tracks_view.track(i);
 
     // Get first estimate of the state , changed least means square fit to linear fit between first and last hit
-    const auto lin_fit_at_beamline = linear_fit(track, dev_beamline);
+    const auto lin_fit_at_beamline = linear_fit(track);
     bool backward = lin_fit_at_beamline.z() > track.hit(0).z();
     parameters.dev_is_backward[velo_tracks_view.offset() + i] = backward;
 
     // Perform a Kalman fit to obtain state at beamline
-    const auto kalman_beamline_state = simplified_fit<true>(track, lin_fit_at_beamline, dev_beamline, backward);
+    const auto kalman_beamline_state = simplified_fit<true>(track, lin_fit_at_beamline, backward);
 
     // Perform a Kalman fit in the other direction to obtain state at the end of the Velo
-    const auto kalman_endvelo_state = simplified_fit<false>(track, kalman_beamline_state, dev_beamline, backward);
+    const auto kalman_endvelo_state = simplified_fit<false>(track, kalman_beamline_state, backward);
 
     kalman_beamline_states.set(velo_tracks_view.offset() + i, kalman_beamline_state);
     kalman_endvelo_states.set(velo_tracks_view.offset() + i, kalman_endvelo_state);

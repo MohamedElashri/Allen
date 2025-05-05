@@ -13,6 +13,7 @@
 #include "States.cuh"
 #include "AlgorithmTypes.cuh"
 #include "VeloConsolidated.cuh"
+#include "BeamlinePVConstants.cuh"
 
 namespace CountMaterialInteractionCandidates {
 
@@ -31,13 +32,18 @@ namespace CountMaterialInteractionCandidates {
     HOST_OUTPUT(host_number_of_total_interaction_seeds_t, unsigned) host_number_of_total_interaction_seeds;
   };
 
-  __global__ void count_materialinteraction_candidates(
-    Parameters,
-    float*,
-    const float beamdoca_r,
-    const float max_doca_for_close_track_pairs);
+  __global__ void
+  count_materialinteraction_candidates(Parameters, const float beamdoca_r, const float max_doca_for_close_track_pairs);
+
+  struct Beamline {
+    float3 pos;
+    float2 tx;
+    float sprd[6];
+  };
 
   struct count_materialinteraction_candidates_t : public DeviceAlgorithm, Parameters {
+    void update(const Constants& constants) const;
+
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(

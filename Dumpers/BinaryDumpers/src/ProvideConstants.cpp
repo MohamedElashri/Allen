@@ -102,6 +102,11 @@ StatusCode ProvideConstants::initialize()
   }
   register_consumers(m_updater.get(), m_constants, subdetectors);
 
+  std::unordered_set<BankTypes> GenCrossingAngles;
+  if (m_updater->getProdiveGenCrossingAngles()) {
+    GenCrossingAngles.insert(static_cast<BankTypes>(NBankTypes));
+    register_consumers(m_updater.get(), m_constants, GenCrossingAngles);
+  }
   return StatusCode::SUCCESS;
 }
 

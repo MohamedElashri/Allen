@@ -28,13 +28,49 @@ void kalman_velo_only::kalman_velo_only_t::set_arguments_size(
 void kalman_velo_only::kalman_velo_only_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
-  const Constants& constants,
+  const Constants&,
   const Allen::Context& context) const
 {
-  global_function(kalman_velo_only)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
-    arguments, constants.dev_beamline.data());
+  global_function(kalman_velo_only)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(arguments);
 
   global_function(kalman_pv_ip)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(arguments);
+}
+
+void kalman_velo_only::kalman_velo_only_t::update(const Constants& constants) const
+{
+  struct BeamlinePVConstants::Common::Beamline host_beamline;
+
+  host_beamline.pos.x = constants.host_beamline[0];
+  host_beamline.pos.y = constants.host_beamline[1];
+  host_beamline.pos.z = constants.host_beamline[2];
+
+  for (long unsigned int i = 0; i < 6; i++) { // spread matrix have 6 elements
+    host_beamline.sprd[i] = constants.host_beamline[3 + i];
+  }
+  double beamlineTx = 0.;
+  double beamlineTy = 0.; // Beamline inclination is set at zero for now. This will be modified later
+  host_beamline.tx.x = beamlineTx;
+  host_beamline.tx.y = beamlineTy;
+
+  // To stay backward compatible we need to check the size of host_beamline. In version 0 and 1 of the beamline only
+  // position with 3 elements and spread matrix with 6 were included
+  double CrossingAngleh = constants.host_beamline.size() == 9 ?
+                            0 :
+                            static_cast<double>(constants.host_beamline[9]) /
+                              (2 * std::pow(10, 6)); // Convert crossing angles between beams from microrad to rad,
+                                                     // take half to convert the angle to the beam inclination
+  if ((CrossingAngleh == 0.0) & (constants.host_gen_crossing_angles.size() == 2)) {
+    CrossingAngleh = fabs(static_cast<double>(constants.host_gen_crossing_angles[0])) / 2.;
+  }
+  double CrossingAnglev =
+    constants.host_beamline.size() == 9 ? 0 : static_cast<double>(constants.host_beamline[10]) / (2 * std::pow(10, 6));
+
+  if ((CrossingAnglev == 0.0) & (constants.host_gen_crossing_angles.size() == 2)) {
+    CrossingAnglev = fabs(static_cast<double>(constants.host_gen_crossing_angles[1])) / 2.;
+  }
+  host_beamline.tx_SMOG.x = beamlineTx + CrossingAngleh;
+  host_beamline.tx_SMOG.y = beamlineTy + CrossingAnglev;
+  Allen::memcpyToSymbol(dev_beamline, &host_beamline, sizeof(struct BeamlinePVConstants::Common::Beamline));
 }
 
 __device__ void simplified_step(
@@ -99,8 +135,7 @@ __device__ void simplified_step(
 __device__ void simplified_fit(
   const Allen::Views::Velo::Consolidated::Track& velo_track,
   const KalmanFloat init_qop,
-  FittedTrack& track,
-  float* dev_beamline)
+  FittedTrack& track)
 {
   const auto n_velo_hits = velo_track.number_of_hits();
   int first_hit_number = 0;
@@ -206,7 +241,7 @@ __host__ __device__ void set_fit_result(
   return;
 }
 
-__global__ void kalman_velo_only::kalman_velo_only(kalman_velo_only::Parameters parameters, float* dev_beamline)
+__global__ void kalman_velo_only::kalman_velo_only(kalman_velo_only::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
@@ -226,7 +261,7 @@ __global__ void kalman_velo_only::kalman_velo_only(kalman_velo_only::Parameters 
     const auto velo_track = long_track.track_segment<Allen::Views::Physics::Track::segment::velo>();
     const KalmanFloat init_qop = (KalmanFloat) long_track.qop();
     ParKalmanFilter::FittedTrack kalman_track;
-    simplified_fit(velo_track, init_qop, kalman_track, dev_beamline);
+    simplified_fit(velo_track, init_qop, kalman_track);
 
     set_fit_result(event_long_tracks.offset() + i_long_track, kalman_track, kalman_states);
     parameters.dev_kf_tracks[event_long_tracks.offset() + i_long_track] = kalman_track;

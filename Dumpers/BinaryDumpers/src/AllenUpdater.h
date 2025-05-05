@@ -80,10 +80,13 @@ public:
    */
   void registerProducer(std::string const& id, Allen::NonEventData::Producer p) override;
 
+  bool getProdiveGenCrossingAngles() const { return m_prodiveGenCrossingAngles.value(); }
+
   LHCb::ODIN odin() const { return m_odin ? *m_odin : LHCb::ODIN {}; }
 
 private:
   Gaudi::Property<bool> m_triggerEventLoop {this, "TriggerEventLoop", false};
+  Gaudi::Property<bool> m_prodiveGenCrossingAngles {this, "ProdiveGenCrossingAngles", false};
   std::map<
     std::string,
     std::tuple<Allen::NonEventData::Producer, std::vector<std::unique_ptr<Allen::NonEventData::Consumer>>>>

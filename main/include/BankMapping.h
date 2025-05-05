@@ -32,6 +32,7 @@ namespace Allen {
     {LHCb::RawBank::Rich, {BankTypes::Rich1, BankTypes::Rich2}},
     {LHCb::RawBank::OTError, {BankTypes::MCVertices}}, // used for PV MC info
     {LHCb::RawBank::OTRaw, {BankTypes::MCTracks}},
+    {LHCb::RawBank::OTError, {BankTypes::Gen}},  // used for beam crossing angles Gen info
     {LHCb::RawBank::Plume, {BankTypes::Plume}}}; // used for track MC info
 
   const std::unordered_map<SourceIdSys, BankTypes> subdetectors = {{SourceIdSys::SourceIdSys_ODIN, BankTypes::ODIN},

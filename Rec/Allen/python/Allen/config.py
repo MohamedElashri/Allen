@@ -15,14 +15,16 @@ from Configurables import ApplicationMgr, AllenUpdater
 from collections import OrderedDict
 from PyConf import configurable
 from PyConf.control_flow import CompositeNode, NodeLogic
-from PyConf.application import all_nodes_and_algs
-from PyConf.application import configure_input, configure
+from PyConf.application import ApplicationOptions, configure_input, configure
 from PyConf.Algorithms import (
     DumpBeamline, DumpCaloGeometry, DumpMagneticField, DumpVPGeometry,
-    DumpFTGeometry, DumpUTGeometry, DumpUTLookupTables, DumpMuonGeometry,
-    DumpMuonTable, AllenODINProducer, DumpRichPDMDBMapping,
+    DumpCrossingAngles, DumpFTGeometry, DumpUTGeometry, DumpUTLookupTables,
+    DumpMuonGeometry, DumpMuonTable, AllenODINProducer, DumpRichPDMDBMapping,
     DumpRichCableMapping)
 from DDDB.CheckDD4Hep import UseDD4Hep
+from PyConf.reading import get_generator_BeamParameters
+from GaudiConf.LbExec import Options as DefaultOptions
+from importlib import import_module
 
 
 @configurable
@@ -84,27 +86,64 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
     An ExtSvc is added to the ApplicationMgr to provide the Allen non-event
     data (geometries etc.)
     """
-
     dump_geometry, out_dir, beamline_offset = allen_non_event_data_config()
-    converter_types = {
-        'VP': [(DumpBeamline, 'DeviceBeamline', {
-            "Offset": beamline_offset
-        }, 'beamline'),
-               (DumpVPGeometry, 'DeviceVPGeometry', {}, 'velo_geometry')],
-        'UT': [(DumpUTGeometry, 'DeviceUTGeometry', {}, 'ut_geometry'),
-               (DumpUTLookupTables, 'DeviceUTLookupTables', {}, 'ut_tables')],
-        'ECal': [(DumpCaloGeometry, 'DeviceCaloGeometry', {},
-                  'ecal_geometry')],
-        'Magnet': [(DumpMagneticField, 'DeviceMagneticField', {}, 'polarity')],
-        'FTCluster': [(DumpFTGeometry, 'DeviceFTGeometry', {},
-                       'scifi_geometry')],
-        'Muon': [(DumpMuonGeometry, 'DeviceMuonGeometry', {}, 'muon_geometry'),
-                 (DumpMuonTable, 'DeviceMuonTable', {}, 'muon_tables')],
-        'Rich': [(DumpRichPDMDBMapping, 'DeviceRichPDMDBMapping', {},
-                  'rich_pdmdbmaps'),
-                 (DumpRichCableMapping, 'DeviceRichCableMapping', {},
-                  'rich_tel40maps')]
-    }
+    options = ApplicationOptions(_enabled=False)
+    try:
+        app = import_module(os.environ.get("GAUDIAPPNAME"))
+    except ModuleNotFoundError:
+        GaudiOptions = DefaultOptions
+    else:
+        GaudiOptions = getattr(app, "Options", DefaultOptions)
+    if (getattr(options, "input_type", None) == "ROOT") or (getattr(
+            GaudiOptions, "input_type", None) == "ROOT"):
+        converter_types = {
+            'VP': [(DumpBeamline, 'DeviceBeamline', {
+                "Offset": beamline_offset
+            }, 'beamline'),
+                   (DumpVPGeometry, 'DeviceVPGeometry', {}, 'velo_geometry')],
+            'Gen': [(DumpCrossingAngles, 'DeviceCrossingAngles', {
+                "GenBeamlineLocation": get_generator_BeamParameters()
+            }, 'crossing_angles')],
+            'UT': [(DumpUTGeometry, 'DeviceUTGeometry', {}, 'ut_geometry'),
+                   (DumpUTLookupTables, 'DeviceUTLookupTables', {},
+                    'ut_tables')],
+            'ECal': [(DumpCaloGeometry, 'DeviceCaloGeometry', {},
+                      'ecal_geometry')],
+            'Magnet': [(DumpMagneticField, 'DeviceMagneticField', {},
+                        'polarity')],
+            'FTCluster': [(DumpFTGeometry, 'DeviceFTGeometry', {},
+                           'scifi_geometry')],
+            'Muon': [(DumpMuonGeometry, 'DeviceMuonGeometry', {},
+                      'muon_geometry'),
+                     (DumpMuonTable, 'DeviceMuonTable', {}, 'muon_tables')],
+            'Rich': [(DumpRichPDMDBMapping, 'DeviceRichPDMDBMapping', {},
+                      'rich_pdmdbmaps'),
+                     (DumpRichCableMapping, 'DeviceRichCableMapping', {},
+                      'rich_tel40maps')]
+        }
+    else:
+        converter_types = {
+            'VP': [(DumpBeamline, 'DeviceBeamline', {
+                "Offset": beamline_offset
+            }, 'beamline'),
+                   (DumpVPGeometry, 'DeviceVPGeometry', {}, 'velo_geometry')],
+            'UT': [(DumpUTGeometry, 'DeviceUTGeometry', {}, 'ut_geometry'),
+                   (DumpUTLookupTables, 'DeviceUTLookupTables', {},
+                    'ut_tables')],
+            'ECal': [(DumpCaloGeometry, 'DeviceCaloGeometry', {},
+                      'ecal_geometry')],
+            'Magnet': [(DumpMagneticField, 'DeviceMagneticField', {},
+                        'polarity')],
+            'FTCluster': [(DumpFTGeometry, 'DeviceFTGeometry', {},
+                           'scifi_geometry')],
+            'Muon': [(DumpMuonGeometry, 'DeviceMuonGeometry', {},
+                      'muon_geometry'),
+                     (DumpMuonTable, 'DeviceMuonTable', {}, 'muon_tables')],
+            'Rich': [(DumpRichPDMDBMapping, 'DeviceRichPDMDBMapping', {},
+                      'rich_pdmdbmaps'),
+                     (DumpRichCableMapping, 'DeviceRichCableMapping', {},
+                      'rich_tel40maps')]
+        }
 
     detector_names = {
         'ECal': 'Ecal',
@@ -129,7 +168,6 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
 
     # Always include the magnetic field polarity
     bank_types.add('Magnet')
-
     appMgr = ApplicationMgr()
     if not UseDD4Hep:
         # MagneticFieldSvc is required for non-DD4hep builds
@@ -144,6 +182,10 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
     data_bank_types = bank_types.copy()
     data_bank_types.remove('Magnet')
     appMgr.ExtSvc.extend(AllenUpdater(TriggerEventLoop=allen_event_loop))
+
+    if getattr(options, "input_type", None) == "ROOT":
+        appMgr.ExtSvc.extend(AllenUpdater(ProdiveGenCrossingAngles=True))
+        bank_types.add('Gen')
 
     algorithm_converters = []
 
@@ -187,7 +229,6 @@ def run_allen_reconstruction(options, make_reconstruction, public_tools=[]):
     from Allen.config import setup_allen_non_event_data_service
 
     config = configure_input(options)
-
     reconstruction = make_reconstruction()
     reco_node = reconstruction if not hasattr(reconstruction,
                                               "node") else reconstruction.node
