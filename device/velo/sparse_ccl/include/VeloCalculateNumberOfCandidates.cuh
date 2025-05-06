@@ -12,6 +12,7 @@
 
 #include "AlgorithmTypes.cuh"
 #include "ClusteringDefinitions.cuh"
+#include "AllenMonitoring.h"
 
 namespace velo_calculate_number_of_candidates {
   struct Parameters {
@@ -41,5 +42,7 @@ namespace velo_calculate_number_of_candidates {
 
   private:
     Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 256, "block dimension X"};
+    Allen::Property<bool> m_check_velo_rawbank {this, "check_velo_rawbank", true, "check velo raw bank"};
+    Allen::Monitoring::Counter<> m_n_unexpected_velo_rawbank {this, "n_unexpected_velo_rawbank"};
   };
 } // namespace velo_calculate_number_of_candidates
