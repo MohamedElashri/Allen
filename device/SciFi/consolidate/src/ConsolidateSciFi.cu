@@ -32,10 +32,13 @@ __device__ void create_scifi_views_impl(
   for (unsigned track_index = threadIdx.x; track_index < event_number_of_tracks; track_index += blockDim.x) {
     const auto input_track_index = event_scifi_track_ut_indices[track_index];
     const auto input_tracks_view = tracks->container(event_number);
+    unsigned vp_state_idx;
     if constexpr (with_ut) {
 
       const auto* ut_track = &input_tracks_view.track(input_track_index);
       const auto* velo_track = &ut_track->velo_track();
+      vp_state_idx = velo_track->track_index();
+
       new (parameters.dev_scifi_track_view + event_tracks_offset + track_index)
         Allen::Views::SciFi::Consolidated::Track {parameters.dev_scifi_hits_view,
                                                   parameters.dev_scifi_qop,
@@ -54,6 +57,7 @@ __device__ void create_scifi_views_impl(
     else {
 
       const auto* velo_track = &input_tracks_view.track(input_track_index);
+      vp_state_idx = velo_track->track_index();
 
       new (parameters.dev_scifi_track_view + event_tracks_offset + track_index)
         Allen::Views::SciFi::Consolidated::Track {parameters.dev_scifi_hits_view,
@@ -72,7 +76,7 @@ __device__ void create_scifi_views_impl(
     }
 
     const auto long_track = parameters.dev_long_track_view[event_tracks_offset + track_index];
-    const auto velo_state = parameters.dev_velo_states_view[event_number].state(input_track_index);
+    const auto velo_state = parameters.dev_velo_states_view[event_number].state(vp_state_idx);
     scifi_consolidate_tracks::scifi_consolidate_tracks_t::monitor(
       long_track,
       velo_state,
