@@ -17,6 +17,7 @@ NONLAZY_OR: allen_reconstruction               #=1       Sum=1           Eff=|( 
  NONLAZY_OR: allen_non_event_data              #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpBeamline/DeviceBeamline                  #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpVPGeometry/DeviceVPGeometry              #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  DumpCrossingAngles/DeviceCrossingAngles      #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpUTGeometry/DeviceUTGeometry              #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpUTLookupTables/DeviceUTLookupTables      #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpCaloGeometry/DeviceCaloGeometry          #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
@@ -33,7 +34,7 @@ ApplicationMgr                         INFO Application Manager Finalized succes
 ApplicationMgr                         INFO Application Manager Terminated successfully
 DeviceBeamline                         INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "BytesWritten_Beamline"                         |        40 |
+ | "BytesWritten_Beamline"                         |        48 |
 DeviceCaloGeometry                     INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "BytesWritten_EcalGeometry"                     |    202524 |

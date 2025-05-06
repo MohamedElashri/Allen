@@ -46,16 +46,16 @@ namespace pv_beamline_multi_fitter {
     const float chi2CutExp,
     const float minWeight,
     const float maxDeltaZConverged,
-    const float maxVertexRho2,
-    const float* dev_beamline);
+    const float maxVertexRho2);
 
   struct pv_beamline_multi_fitter_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
+    void update(const Constants& constants) const;
 
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
-      const Constants& constants,
+      const Constants&,
       const Allen::Context& context) const;
 
   private:

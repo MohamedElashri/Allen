@@ -24,7 +24,7 @@ void pv_beamline_multi_fitter::pv_beamline_multi_fitter_t::set_arguments_size(
 void pv_beamline_multi_fitter::pv_beamline_multi_fitter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
-  const Constants& constants,
+  const Constants&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_number_of_multi_fit_vertices_t>(arguments, 0, context);
@@ -42,8 +42,12 @@ void pv_beamline_multi_fitter::pv_beamline_multi_fitter_t::operator()(
     m_chi2CutExp,
     m_minWeight,
     m_maxDeltaZConverged,
-    m_maxVertexRho2,
-    constants.dev_beamline.data());
+    m_maxVertexRho2);
+}
+
+void pv_beamline_multi_fitter::pv_beamline_multi_fitter_t::update(const Constants& constants) const
+{
+  updateCommon(constants);
 }
 
 __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
@@ -58,8 +62,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
   const float chi2CutExp,
   const float minWeight,
   const float maxDeltaZConverged,
-  const float maxVertexRho2,
-  const float* dev_beamline)
+  const float maxVertexRho2)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   unsigned* number_of_multi_fit_vertices = parameters.dev_number_of_multi_fit_vertices + event_number;
@@ -75,17 +78,27 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
   PV::Vertex vertex;
   const float* pvtracks_denom = parameters.dev_pvtracks_denom + velo_tracks_view.offset();
 
-  const float2 seed_pos_xy {dev_beamline[0], dev_beamline[1]};
-
   // make sure that we have one thread per seed
   for (unsigned i_thisseed = threadIdx.y; i_thisseed < number_of_seeds; i_thisseed += blockDim.y) {
     bool converged = false;
     bool accept = true;
     float vtxcov[6] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
-
-    // initial vertex posisiton, use x,y of the beamline and z of the seed
-    float2 vtxpos_xy = seed_pos_xy;
     const float seed_pos_z = zseeds[i_thisseed];
+    float tx_beam_seed;
+    float ty_beam_seed;
+    if (seed_pos_z > SMOG2_pp_separation) {
+      tx_beam_seed = dev_beamline.tx.x;
+      ty_beam_seed = dev_beamline.tx.y;
+    }
+    else {
+      tx_beam_seed = dev_beamline.tx_SMOG.x;
+      ty_beam_seed = dev_beamline.tx_SMOG.y;
+    }
+    const float2 seed_pos_xy {dev_beamline.pos.x + tx_beam_seed * zseeds[i_thisseed],
+                              dev_beamline.pos.y + ty_beam_seed * zseeds[i_thisseed]};
+
+    float2 vtxpos_xy = seed_pos_xy;
+
     auto vtxpos_z = seed_pos_z;
     float chi2tot = 0.f;
     float sum_weights = 0.f;
@@ -111,9 +124,17 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
         // compute the chi2
         const PVTrackInVertex& trk = tracks[i];
         if (trk.z < zmin || trk.z >= zmax) continue;
+        float2 tx_beam;
+        if (seed_pos_z > SMOG2_pp_separation) {
+          tx_beam = dev_beamline.tx;
+        }
+        else {
+          tx_beam = dev_beamline.tx_SMOG;
+        }
 
         const auto dz = vtxpos_z - trk.z;
-        const float2 res = vtxpos_xy - (trk.x + trk.tx * dz);
+        const float2 tx = trk.tx - tx_beam;
+        const float2 res = vtxpos_xy - (trk.x + tx * dz);
         const auto chi2 = res.x * res.x * trk.W_00 + res.y * res.y * trk.W_11;
 
         // compute the weight.
@@ -123,8 +144,9 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
           // Adaptive Multi-vertex fitting, R. Frühwirth, W. Waltenberger
           // https://cds.cern.ch/record/803519/files/p280.pdf
           // use seed position for chi2 calculation of nominator
+
           const float dz_seed = seed_pos_z - trk.z;
-          const float2 res_seed = seed_pos_xy - (trk.x + trk.tx * dz_seed);
+          const float2 res_seed = seed_pos_xy - (trk.x + tx * dz_seed);
           const float chi2_seed = res_seed.x * res_seed.x * trk.W_00 + res_seed.y * res_seed.y * trk.W_11;
           const float exp_chi2_0 = expf(chi2_seed * (-0.5f));
           // calculating chi w.r.t to vtx position and not seed posotion very important for resolution of high mult
@@ -139,8 +161,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
           // unfortunately branchy, but reduces fake rate
           // not cutting on the weights seems to be important for resolution of high multiplicity tracks
           if (track_weight > minWeight) {
-            const float3 HWr {
-              res.x * trk.W_00, res.y * trk.W_11, -trk.tx.x * res.x * trk.W_00 - trk.tx.y * res.y * trk.W_11};
+            const float3 HWr {res.x * trk.W_00, res.y * trk.W_11, -tx.x * res.x * trk.W_00 - tx.y * res.y * trk.W_11};
 
             halfDChi2DX = halfDChi2DX + HWr * track_weight;
             halfD2Chi2DX2_00 += track_weight * trk.HWH_00;
@@ -235,8 +256,8 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
       vertex.setCovMatrix(vtxcov);
       vertex.nTracks = sum_weights;
 
-      const auto beamlinedx = vertex.position.x - dev_beamline[0];
-      const auto beamlinedy = vertex.position.y - dev_beamline[1];
+      const auto beamlinedx = vertex.position.x - dev_beamline.pos.x;
+      const auto beamlinedy = vertex.position.y - dev_beamline.pos.y;
       const auto beamlinerho2 = beamlinedx * beamlinedx + beamlinedy * beamlinedy;
       const auto minTracks =
         vertex.position.z <= SMOG2_pp_separation ? SMOG2_minNumTracksPerVertex : pp_minNumTracksPerVertex;

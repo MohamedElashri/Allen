@@ -27,25 +27,29 @@ void CountMaterialInteractionCandidates::count_materialinteraction_candidates_t:
 void CountMaterialInteractionCandidates::count_materialinteraction_candidates_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
-  const Constants& constants,
+  const Constants&,
   const Allen::Context& context) const
 {
-  const auto dev_beamline = constants.dev_beamline.data();
 
   Allen::memset_async<dev_filtered_velo_track_idx_t>(arguments, 0, context);
   Allen::memset_async<dev_number_of_filtered_tracks_t>(arguments, 0, context);
   Allen::memset_async<dev_interaction_seeds_offsets_t>(arguments, 0, context);
 
   global_function(count_materialinteraction_candidates)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
-    arguments, dev_beamline, m_beamdoca_r, m_max_doca_for_close_track_pairs);
+    arguments, m_beamdoca_r, m_max_doca_for_close_track_pairs);
 
   PrefixSum::prefix_sum<dev_interaction_seeds_offsets_t, host_number_of_total_interaction_seeds_t>(
     *this, arguments, context);
 }
 
+void CountMaterialInteractionCandidates::count_materialinteraction_candidates_t::update(
+  const Constants& constants) const
+{
+  updateCommon(constants);
+}
+
 __global__ void CountMaterialInteractionCandidates::count_materialinteraction_candidates(
   CountMaterialInteractionCandidates::Parameters parameters,
-  float* dev_beamline,
   const float beamdoca_r,
   const float max_doca_for_close_track_pairs)
 {
@@ -67,9 +71,22 @@ __global__ void CountMaterialInteractionCandidates::count_materialinteraction_ca
     const auto track = velo_tracks.track(i_track);
     const auto state = track.state(velo_states);
 
+    float tx_beam;
+    float ty_beam;
+    if (state.z() > BeamlinePVConstants::Common::SMOG2_pp_separation) {
+      tx_beam = dev_beamline.tx.x;
+      ty_beam = dev_beamline.tx.y;
+    }
+    else {
+      tx_beam = dev_beamline.tx_SMOG.x;
+      ty_beam = dev_beamline.tx_SMOG.y;
+    }
+
     const float beamspot_doca_r = std::sqrt(
-      ((state.x() - dev_beamline[0]) * (state.x() - dev_beamline[0])) +
-      ((state.y() - dev_beamline[1]) * (state.y() - dev_beamline[1])));
+      ((state.x() - dev_beamline.pos.x - state.z() * tx_beam) *
+       (state.x() - dev_beamline.pos.x - state.z() * tx_beam)) +
+      ((state.y() - dev_beamline.pos.y - state.z() * ty_beam) *
+       (state.y() - dev_beamline.pos.y - state.z() * ty_beam)));
 
     if (beamspot_doca_r > beamdoca_r) {
       auto insert_index = atomicAdd(&shared_number_of_filtered_tracks, 1);

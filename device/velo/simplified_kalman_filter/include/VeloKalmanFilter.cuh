@@ -19,7 +19,7 @@
 #include "ParticleTypes.cuh"
 #include "patPV_Definitions.cuh"
 #include "CopyTrackParameters.cuh"
-
+#include "BeamlinePVConstants.cuh"
 #include "AllenMonitoring.h"
 
 namespace velo_kalman_filter {
@@ -67,12 +67,10 @@ namespace velo_kalman_filter {
    * @brief Fit the track with a Kalman filter,
    *        allowing for some scattering at every hit
    */
+
   template<bool upstream, typename AllenState>
-  __device__ KalmanVeloState simplified_fit(
-    const Allen::Views::Velo::Consolidated::Track& track,
-    const AllenState& stateAtBeamLine,
-    float* dev_beamline,
-    bool backward)
+  __device__ KalmanVeloState
+  simplified_fit(const Allen::Views::Velo::Consolidated::Track& track, const AllenState& stateAtBeamLine, bool backward)
   {
     const int direction = (backward ? 1 : -1) * (upstream ? 1 : -1);
     const float noise2PerLayer =
@@ -133,12 +131,24 @@ namespace velo_kalman_filter {
     state.c22() += noise2PerLayer;
     state.c33() += noise2PerLayer;
 
+    float tx_beam;
+    float ty_beam;
+    if (state.z() > BeamlinePVConstants::Common::SMOG2_pp_separation) {
+      tx_beam = dev_beamline.tx.x;
+      ty_beam = dev_beamline.tx.y;
+    }
+    else {
+      tx_beam = dev_beamline.tx_SMOG.x;
+      ty_beam = dev_beamline.tx_SMOG.y;
+    }
+
     auto delta_z = 0.f;
+    const float tx = state.tx() - tx_beam;
+    const float ty = state.ty() - ty_beam;
 
     if constexpr (upstream) {
       // Propagate to the closest point near the beam line
-      delta_z = (state.tx() * (dev_beamline[0] - state.x()) + state.ty() * (dev_beamline[1] - state.y())) /
-                (state.tx() * state.tx() + state.ty() * state.ty());
+      delta_z = (tx * (dev_beamline.pos.x - state.x()) + ty * (dev_beamline.pos.y - state.y())) / (tx * tx + ty * ty);
     }
     else {
       // Propagate to the end of the Velo (z=770 mm)
@@ -146,8 +156,8 @@ namespace velo_kalman_filter {
     }
 
     // Propagate the state
-    state.x() = state.x() + state.tx() * delta_z;
-    state.y() = state.y() + state.ty() * delta_z;
+    state.x() = state.x() + tx * delta_z;
+    state.y() = state.y() + ty * delta_z;
     state.z() = state.z() + delta_z;
 
     // Propagate the covariance matrix
@@ -185,7 +195,6 @@ namespace velo_kalman_filter {
 
   __global__ void velo_kalman_filter(
     Parameters,
-    float* dev_beamline,
     Allen::Monitoring::Histogram<>::DeviceType,
     Allen::Monitoring::Histogram<>::DeviceType,
     Allen::Monitoring::Histogram<>::DeviceType,
@@ -196,6 +205,7 @@ namespace velo_kalman_filter {
     Allen::Monitoring::Histogram<>::DeviceType,
     Allen::Monitoring::Histogram<>::DeviceType);
   struct velo_kalman_filter_t : public DeviceAlgorithm, Parameters {
+    void update(const Constants& constants) const;
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(

@@ -18,7 +18,8 @@ target_link_libraries(Kalman PUBLIC SciFi Associate
   PRIVATE Backend HostEventModel EventModel Utils)
 
 target_include_directories(Kalman PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ParKalman/include>)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ParKalman/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../PV/beamlinePV/include>)
 
 target_include_directories(WrapperInterface INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ParKalman/include>)

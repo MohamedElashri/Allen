@@ -32,7 +32,6 @@ namespace pv_beamline_histo {
 
   __global__ void pv_beamline_histo(
     Parameters,
-    float* dev_beamline,
     const int Nbins,
     const float zmin,
     const float zmax,
@@ -44,12 +43,13 @@ namespace pv_beamline_histo {
     const int order_polynomial);
 
   struct pv_beamline_histo_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
+    void update(const Constants& constants) const;
 
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
-      const Constants& constants,
+      const Constants&,
       const Allen::Context& context) const;
 
   private:

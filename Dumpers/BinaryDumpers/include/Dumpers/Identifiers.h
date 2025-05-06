@@ -52,11 +52,18 @@ namespace Allen {
       inline static std::string const id = "UTLookupTables";
     };
 
-    /** @class UTLookupTables
+    /** @class Beamline
      *  Identifier for the beamline position for Allen
      */
     struct Beamline : Identifier {
       inline static std::string const id = "Beamline";
+    };
+
+    /** @class CrossingAngles
+     *  Identifier for the crossing angles for Allen
+     */
+    struct CrossingAngles : Identifier {
+      inline static std::string const id = "CrossingAngles";
     };
 
     /** @class UTLookupTables

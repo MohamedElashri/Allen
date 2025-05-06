@@ -41,6 +41,7 @@ gaudi_add_module(BinaryDumpersModule
                    src/ODINProducer.cpp
                    src/AllenUpdater.cpp
                    src/DumpBeamline.cpp
+                   src/DumpCrossingAngles.cpp
                    src/DumpCaloGeometry.cpp
                    src/DumpForwardTracks.cpp
                    src/DumpFTGeometry.cpp

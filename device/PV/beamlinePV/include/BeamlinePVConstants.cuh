@@ -9,10 +9,12 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
+#include "AlgorithmTypes.cuh"
 
 namespace BeamlinePVConstants {
 
   namespace Common {
+    static constexpr int beamlineSize = 11;
     static constexpr float zmin = -541.f; // unit: mm Min z position of vertex seed
     static constexpr float zmax = 307.f;  // unit: mm Max z position of vertex seed
     static constexpr int Nbins =
@@ -21,7 +23,13 @@ namespace BeamlinePVConstants {
     static constexpr float pp_maxTrackZ0Err = 1.5f;       // unit: mm "Max z0-error for adding track to histo" for pp
     static constexpr float SMOG2_maxTrackZ0Err = 10.f;    // unit: mm "Max z0-error for adding track to histo" for SMOG2
     static constexpr float SMOG2_pp_separation = -334.0f; // unit: mm separation between pp and SMOG2 regions
-  }                                                       // namespace Common
+    struct Beamline {
+      float3 pos {0.f, 0.f, 0.f};
+      float2 tx {0.f, 0.f};
+      float2 tx_SMOG {0.f, 0.f};
+      float sprd[6] = {0.f};
+    };
+  } // namespace Common
 
   namespace Histo {
     static constexpr float maxTrackBLChi2 = 10.f;
@@ -53,5 +61,7 @@ namespace BeamlinePVConstants {
     static constexpr float minChi2Dist =
       25.f; // minimum chi2 distance of two reconstructed PVs for them to be considered unique
   }         // namespace CleanUp
-
 } // namespace BeamlinePVConstants
+void pv_beamline_monitor(unsigned n_events, float*);
+extern __constant__ struct BeamlinePVConstants::Common::Beamline dev_beamline;
+extern void updateCommon(const Constants& constants);
