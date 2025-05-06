@@ -36,7 +36,7 @@ lines = CompositeNode(
 
 persistency_node, persistency_algorithms = make_persistency(line_algorithms)
 
-passthrough_sequence = CompositeNode(
+hlt1_node = CompositeNode(
     "Passthrough", [
         providers, lines, persistency_node,
         rate_validation(lines=line_algorithms)
@@ -44,4 +44,4 @@ passthrough_sequence = CompositeNode(
     NodeLogic.NONLAZY_AND,
     force_order=True)
 
-generate(passthrough_sequence)
+generate(hlt1_node)

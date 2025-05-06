@@ -358,7 +358,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
         muonid = reconstructed_objects["muonID"]
         muon_nn_cuts = {
             'vloose':
-            0.01,  #equivalent to Chi2Corr 2.4 provided PT cuts are loosened too 
+            0.01,  #equivalent to Chi2Corr 2.4 provided PT cuts are loosened too
             'loose':
             0.03,  # equivalent to Chi2Corr 1.8 provided PT cuts are loosened too
             'displaced_soft_pt': 0.8,  #ad-hoc cut for the DP search
@@ -1241,6 +1241,7 @@ def setup_hlt1_node(enablePhysics=True,
                     enableTupling=False,
                     data_quality=False,
                     with_fullKF=False,
+                    passthrough_pre_scaler=0.0001,
                     enabled_lines=[r'.*?'],
                     disabled_lines=[],
                     user_hooks=False):
@@ -1300,7 +1301,10 @@ def setup_hlt1_node(enablePhysics=True,
                                              odin_err_filter, velo_closed)
 
     with line_maker.bind(prefilter=odin_err_filter):
-        physics_lines += [line_maker(make_passthrough_line())]
+        physics_lines += [
+            line_maker(
+                make_passthrough_line(pre_scaler=passthrough_pre_scaler))
+        ]
 
     if tae_passthrough:
         if tae_activity:
