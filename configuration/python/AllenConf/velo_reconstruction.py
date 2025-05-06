@@ -30,7 +30,9 @@ def masked_modules_bitmask(masked_modules):
 
 
 @configurable
-def decode_velo(retina_decoding=True, masked_modules=[]):
+def decode_velo(retina_decoding=True,
+                masked_modules=[],
+                check_velo_rawbank=True):
     number_of_events = initialize_number_of_events()
 
     if retina_decoding:
@@ -46,7 +48,8 @@ def decode_velo(retina_decoding=True, masked_modules=[]):
             dev_velo_retina_raw_input_offsets_t=velo_banks.dev_raw_offsets_t,
             dev_velo_retina_raw_input_sizes_t=velo_banks.dev_raw_sizes_t,
             dev_velo_retina_raw_input_types_t=velo_banks.dev_raw_types_t,
-            masked_modules=masked_modules_bitmask(masked_modules))
+            masked_modules=masked_modules_bitmask(masked_modules),
+            check_velo_rawbank=check_velo_rawbank)
 
         decode_retinaclusters = make_algorithm(
             decode_retinaclusters_t,
@@ -93,7 +96,8 @@ def decode_velo(retina_decoding=True, masked_modules=[]):
             dev_velo_raw_input_t=velo_banks.dev_raw_banks_t,
             dev_velo_raw_input_offsets_t=velo_banks.dev_raw_offsets_t,
             dev_velo_raw_input_sizes_t=velo_banks.dev_raw_sizes_t,
-            dev_velo_raw_input_types_t=velo_banks.dev_raw_types_t)
+            dev_velo_raw_input_types_t=velo_banks.dev_raw_types_t,
+            check_velo_rawbank=check_velo_rawbank)
 
         velo_sparse_ccl = make_algorithm(
             velo_sparse_ccl_t,
