@@ -9,7 +9,7 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from AllenConf.utils import line_maker, make_invert_event_list
-from AllenConf.odin import make_bxtype, odin_error_filter, tae_filter, make_event_type, make_odin_orbit
+from AllenConf.odin import make_bxtype, make_nzs_filter, odin_error_filter, tae_filter, make_event_type, make_odin_orbit
 from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node, make_dq_node
@@ -1237,6 +1237,7 @@ def setup_hlt1_node(enablePhysics=True,
                     tracking_type=TrackingType.FORWARD,
                     threshold_settings=get_thresholds("default"),
                     tae_passthrough=True,
+                    nonZeroSuppress=True,
                     tae_activity=False,
                     enableTupling=False,
                     data_quality=False,
@@ -1322,6 +1323,16 @@ def setup_hlt1_node(enablePhysics=True,
                 line_maker(
                     make_passthrough_line(
                         name="Hlt1TAEPassthrough", pre_scaler=1))
+            ]
+
+    if nonZeroSuppress:
+        non_zero_suppress_filter = [make_nzs_filter(nzsfilter=True)]
+        with line_maker.bind(
+                prefilter=odin_err_filter + non_zero_suppress_filter):
+            physics_lines += [
+                line_maker(
+                    make_passthrough_line(
+                        name="Hlt1NonZeroSuppress", pre_scaler=1))
             ]
 
     with line_maker.bind(prefilter=[sd_error_filter()]):
