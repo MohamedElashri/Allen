@@ -307,8 +307,8 @@ fit_v0_secondary_vertices              INFO 1D histograms in directory "fit_v0_s
  | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     0.8534 | 1.8768     |     5.8391 |     76.302 |
 gather_selections                      INFO 1D histograms in directory "gather_selections" : 2
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | line_passes                                                                      | "line passes"                                                                    |      17515 |     79.883 | 19.803     |   -0.80639 |   -0.39864 |
- | line_rates                                                                       | "line rates"                                                                     |        759 |     70.064 | 30.623     |   -0.84847 |    -1.0231 |
+ | line_passes                                                                      | "line passes"                                                                    |      17515 |     80.809 | 19.950     |   -0.82633 |   -0.32801 |
+ | line_rates                                                                       | "line rates"                                                                     |        759 |     70.732 | 31.077     |   -0.84461 |     -1.036 |
 is_muon                                INFO 1D histograms in directory "is_muon" : 3
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
  | n_muons                                                                          | "# muons"                                                                        |     458953 |    0.10948 | 0.31224    |     2.5014 |     4.2569 |
