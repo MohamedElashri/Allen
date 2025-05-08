@@ -74,10 +74,8 @@ HLTControlFlowMgr                      INFO Number of counters : 1
 calo_filter_clusters_b3e43409          INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_calo_clusters"                               |     10000 |     494739 |     49.474 |
-gather_selections                      INFO Number of counters : 90
+gather_selections                      INFO Number of counters : 85
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "Hlt1BGIPseudoPVsIRBeamBeamPass"                |         8 |
- | "Hlt1BGIPseudoPVsIRBeamBeamRate"                |         8 |
  | "Hlt1ConeJet100GeVPass"                         |         1 |
  | "Hlt1ConeJet100GeVRate"                         |         1 |
  | "Hlt1D2KKPass"                                  |        15 |
@@ -138,10 +136,7 @@ gather_selections                      INFO Number of counters : 90
  | "Hlt1KsToPiPiRate"                              |         2 |
  | "Hlt1LambdaLLDetachedTrackPass"                 |         1 |
  | "Hlt1LambdaLLDetachedTrackRate"                 |         1 |
- | "Hlt1MaterialVertexSeedsDownstreamzPass"        |         4 |
- | "Hlt1MaterialVertexSeedsDownstreamzRate"        |         4 |
  | "Hlt1OneMuonTrackLinePass"                      |      5724 |
- | "Hlt1OneMuonTrackLineRate"                      |         3 |
  | "Hlt1RICH1AlignmentPass"                        |         5 |
  | "Hlt1RICH1AlignmentRate"                        |         5 |
  | "Hlt1SMOG2PassThroughLowMult5Pass"              |         3 |
@@ -307,8 +302,8 @@ fit_v0_secondary_vertices              INFO 1D histograms in directory "fit_v0_s
  | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     0.8617 | 1.8939     |      5.798 |     74.381 |
 gather_selections                      INFO 1D histograms in directory "gather_selections" : 2
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | line_passes                                                                      | "line passes"                                                                    |      17562 |     79.815 | 19.886     |   -0.81308 |   -0.37772 |
- | line_rates                                                                       | "line rates"                                                                     |        791 |     69.838 | 30.745     |   -0.83274 |    -1.0592 |
+ | line_passes                                                                      | "line passes"                                                                    |      17550 |     79.856 | 19.823     |   -0.80117 |   -0.43621 |
+ | line_rates                                                                       | "line rates"                                                                     |        776 |     70.637 | 30.265     |   -0.85974 |    -1.0449 |
 is_muon                                INFO 1D histograms in directory "is_muon" : 3
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
  | n_muons                                                                          | "# muons"                                                                        |     461097 |    0.10964 | 0.31244    |     2.4988 |     4.2442 |
