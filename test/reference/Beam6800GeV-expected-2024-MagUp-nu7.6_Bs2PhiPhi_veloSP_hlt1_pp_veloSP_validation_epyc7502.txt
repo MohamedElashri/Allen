@@ -105,7 +105,7 @@ Hlt1Kplus2PiPiPi:                        0/   500, (    0.00 +/-     0.00) kHz
 Hlt1KsToPiPi:                            0/   500, (    0.00 +/-     0.00) kHz
 Hlt1KsToPiPiDoubleMuonMisID:             0/   500, (    0.00 +/-     0.00) kHz
 Hlt1LambdaLLDetachedTrack:               0/   500, (    0.00 +/-     0.00) kHz
-Hlt1MaterialVertexSeedsDownstreamz:      1/   500, (   60.00 +/-    59.94) kHz
+Hlt1MaterialVertexSeedsDownstreamz:      0/   500, (    0.00 +/-     0.00) kHz
 Hlt1MaterialVertexSeeds_DWFS:            0/   500, (    0.00 +/-     0.00) kHz
 Hlt1ODIN1kHzLumi:                        0/   500, (    0.00 +/-     0.00) kHz
 Hlt1ODINCalib:                           0/   500, (    0.00 +/-     0.00) kHz
@@ -149,7 +149,7 @@ Hlt1UpsilonAlignment:                    0/   500, (    0.00 +/-     0.00) kHz
 Hlt1VeloMicroBias:                       1/   500, (   60.00 +/-    59.94) kHz
 Hlt1VeloMicroBiasVeloClosing:            0/   500, (    0.00 +/-     0.00) kHz
 Hlt1XiOmegaLLL:                          0/   500, (    0.00 +/-     0.00) kHz
-Inclusive:                             293/   500, (17580.00 +/-   660.82) kHz
+Inclusive:                             292/   500, (17520.00 +/-   661.29) kHz
 
 
 selreport_validator validation:
@@ -208,7 +208,7 @@ Hlt1Kplus2PiPiPi:                        0           0
 Hlt1KsToPiPi:                            0           0
 Hlt1KsToPiPiDoubleMuonMisID:             0           0
 Hlt1LambdaLLDetachedTrack:               0           0
-Hlt1MaterialVertexSeedsDownstreamz:      1           0
+Hlt1MaterialVertexSeedsDownstreamz:      0           0
 Hlt1MaterialVertexSeeds_DWFS:            0           0
 Hlt1ODIN1kHzLumi:                        0           0
 Hlt1ODINCalib:                           0           0
@@ -253,12 +253,12 @@ Hlt1VeloMicroBias:                       1           0
 Hlt1VeloMicroBiasVeloClosing:            0           0
 Hlt1XiOmegaLLL:                          0           0
 
-Total decisions:      450
+Total decisions:      449
 Total tracks:         911
 Total calos clusters: 6
 Total SVs:            752
 Total hits:           23775
-Total stdinfo:        10770
+Total stdinfo:        10769
 
 
 veloUT_validator validation:

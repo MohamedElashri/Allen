@@ -54,7 +54,7 @@ rate_validator validation:
 Hlt1BGIPseudoPVsBeamOne:                 0/   500, (    0.00 +/-     0.00) kHz
 Hlt1BGIPseudoPVsBeamTwo:                 0/   500, (    0.00 +/-     0.00) kHz
 Hlt1BGIPseudoPVsDownBeamBeam:            0/   500, (    0.00 +/-     0.00) kHz
-Hlt1BGIPseudoPVsIRBeamBeam:              1/   500, (   60.00 +/-    59.94) kHz
+Hlt1BGIPseudoPVsIRBeamBeam:              0/   500, (    0.00 +/-     0.00) kHz
 Hlt1BGIPseudoPVsNoBeam:                  0/   500, (    0.00 +/-     0.00) kHz
 Hlt1BGIPseudoPVsUpBeamBeam:              0/   500, (    0.00 +/-     0.00) kHz
 Hlt1BeamGas:                             0/   500, (    0.00 +/-     0.00) kHz
@@ -265,7 +265,7 @@ selreport_validator validation:
 Hlt1BGIPseudoPVsBeamOne:                 0           0
 Hlt1BGIPseudoPVsBeamTwo:                 0           0
 Hlt1BGIPseudoPVsDownBeamBeam:            0           0
-Hlt1BGIPseudoPVsIRBeamBeam:              1           0
+Hlt1BGIPseudoPVsIRBeamBeam:              0           0
 Hlt1BGIPseudoPVsNoBeam:                  0           0
 Hlt1BGIPseudoPVsUpBeamBeam:              0           0
 Hlt1BeamGas:                             0           0
@@ -361,12 +361,12 @@ Hlt1VeloMicroBias:                       1           0
 Hlt1VeloMicroBiasVeloClosing:            0           0
 Hlt1XiOmegaLLL:                          0           0
 
-Total decisions:      548
+Total decisions:      547
 Total tracks:         1135
 Total calos clusters: 9
 Total SVs:            1066
 Total hits:           29542
-Total stdinfo:        13928
+Total stdinfo:        13927
 
 
 velo_validator validation:

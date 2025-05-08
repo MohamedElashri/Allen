@@ -803,7 +803,7 @@ def alignment_monitoring_lines(reconstructed_objects,
             min_z_materialvertex_seed=300,
             max_z_materialvertex_seed=1000,
             name="Hlt1MaterialVertexSeedsDownstreamz",
-            pre_scaler=0.005),
+            pre_scaler=5e-4),
         make_z_range_materialvertex_seed_line(
             material_interaction_tracks,
             min_z_materialvertex_seed=700,
@@ -825,7 +825,7 @@ def alignment_monitoring_lines(reconstructed_objects,
                 muon_stubs["dev_muon_tracks_offsets"],
                 muon_stubs["host_muon_total_number_of_tracks"],
                 name="Hlt1OneMuonTrackLine",
-                post_scaler=0.001),
+                post_scaler=6e-5),
             make_di_muon_mass_align_line(
                 long_tracks,
                 dileptons,
@@ -1124,7 +1124,7 @@ def default_bgi_activity_lines(pvs,
             make_beam_line(
                 name="Hlt1BGIPseudoPVsDownBeamBeam",
                 beam_crossing_type=3,
-                pre_scaler=0.1,
+                pre_scaler=0.05,
                 post_scaler=1.),
             prefilter=prefilter + [velo_states_z_down])
     ]
@@ -1141,7 +1141,7 @@ def default_bgi_activity_lines(pvs,
             make_beam_line(
                 name="Hlt1BGIPseudoPVsIRBeamBeam",
                 beam_crossing_type=3,
-                pre_scaler=1. if enableBGI_full else 1e-3,
+                pre_scaler=1. if enableBGI_full else 4e-5,
                 post_scaler=1.),
             prefilter=prefilter + [velo_states_z_ir])
     ]
