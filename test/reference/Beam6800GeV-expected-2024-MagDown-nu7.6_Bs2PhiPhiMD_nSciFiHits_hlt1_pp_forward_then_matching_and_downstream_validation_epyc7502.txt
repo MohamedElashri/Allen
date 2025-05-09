@@ -118,7 +118,6 @@ Hlt1ConeJet100GeV:                                     0/   500, (    0.00 +/-  
 Hlt1ConeJet15GeV:                                      0/   500, (    0.00 +/-     0.00) kHz
 Hlt1ConeJet30GeV:                                      0/   500, (    0.00 +/-     0.00) kHz
 Hlt1ConeJet50GeV:                                      0/   500, (    0.00 +/-     0.00) kHz
-Hlt1D02KsKsDDDD:                                       0/   500, (    0.00 +/-     0.00) kHz
 Hlt1D2KK:                                             18/   500, ( 1080.00 +/-   249.93) kHz
 Hlt1D2KPi:                                            25/   500, ( 1500.00 +/-   292.40) kHz
 Hlt1D2KPiAlignment:                                    8/   500, (  480.00 +/-   168.34) kHz
@@ -126,9 +125,9 @@ Hlt1D2Kshh:                                            2/   500, (  120.00 +/-  
 Hlt1D2PiPi:                                           15/   500, (  900.00 +/-   228.87) kHz
 Hlt1DetJpsiToMuMuNegTagLine:                           0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DetJpsiToMuMuPosTagLine:                           0/   500, (    0.00 +/-     0.00) kHz
-Hlt1DiElectronDisplaced:                               8/   500, (  480.00 +/-   168.34) kHz
-Hlt1DiElectronHighMass:                                1/   500, (   60.00 +/-    59.94) kHz
-Hlt1DiElectronHighMass_SS:                             1/   500, (   60.00 +/-    59.94) kHz
+Hlt1DiElectronDisplaced:                               4/   500, (  240.00 +/-   119.52) kHz
+Hlt1DiElectronHighMass:                                0/   500, (    0.00 +/-     0.00) kHz
+Hlt1DiElectronHighMass_SS:                             0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiElectronLowMass_Displaced:                       1/   500, (   60.00 +/-    59.94) kHz
 Hlt1DiElectronLowMass_NoIP:                            1/   500, (   60.00 +/-    59.94) kHz
 Hlt1DiElectronLowMass_NoIPNorm:                        0/   500, (    0.00 +/-     0.00) kHz
@@ -136,17 +135,17 @@ Hlt1DiElectronLowMass_SS_Displaced:                    0/   500, (    0.00 +/-  
 Hlt1DiElectronLowMass_SS_NoIP:                         0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiElectronLowMass_SS_NoIPNorm:                     0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiElectronSoft:                                    0/   500, (    0.00 +/-     0.00) kHz
-Hlt1DiMuonDisplaced:                                   2/   500, (  120.00 +/-    84.68) kHz
+Hlt1DiMuonDisplaced:                                   0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDisplacedSoftPT:                             1/   500, (   60.00 +/-    59.94) kHz
 Hlt1DiMuonDisplacedSoftPT_SS:                          0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan:                                    0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan_SS:                                 0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan_VLowMass:                           0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan_VLowMass_SS:                        0/   500, (    0.00 +/-     0.00) kHz
-Hlt1DiMuonHighMass:                                    7/   500, (  420.00 +/-   157.63) kHz
+Hlt1DiMuonHighMass:                                    2/   500, (  120.00 +/-    84.68) kHz
 Hlt1DiMuonJpsiMassAlignment:                           0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonNoIP:                                        1/   500, (   60.00 +/-    59.94) kHz
-Hlt1DiMuonNoIPNorm:                                    2/   500, (  120.00 +/-    84.68) kHz
+Hlt1DiMuonNoIPNorm:                                    1/   500, (   60.00 +/-    59.94) kHz
 Hlt1DiMuonNoIPNorm_SS:                                 0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonNoIP_SS:                                     0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonSoft:                                        0/   500, (    0.00 +/-     0.00) kHz
@@ -172,7 +171,7 @@ Hlt1DownstreamKsToPiPi:                                2/   500, (  120.00 +/-  
 Hlt1DownstreamLambdaToPPi:                             3/   500, (  180.00 +/-   103.61) kHz
 Hlt1DownstreamPromptKsToPiPi:                          0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DownstreamPromptLambdaToPPi:                       0/   500, (    0.00 +/-     0.00) kHz
-Hlt1DownstreamTwoTrackKs:                              0/   500, (    0.00 +/-     0.00) kHz
+Hlt1DownstreamTwoTrackKs:                              1/   500, (   60.00 +/-    59.94) kHz
 Hlt1Dst2D0Pi:                                          0/   500, (    0.00 +/-     0.00) kHz
 Hlt1Dst2D0PiAlignment:                                 0/   500, (    0.00 +/-     0.00) kHz
 Hlt1ErrorBank:                                         0/   500, (    0.00 +/-     0.00) kHz
@@ -214,10 +213,10 @@ Hlt1SMOG2SingleTrackVeryHighPt:                        0/   500, (    0.00 +/-  
 Hlt1SMOG2etacTopp:                                     0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtElectron:                              5/   500, (  300.00 +/-   133.49) kHz
 Hlt1SingleHighPtMuon:                                  1/   500, (   60.00 +/-    59.94) kHz
-Hlt1SingleHighPtMuonNoMuID:                            4/   500, (  240.00 +/-   119.52) kHz
+Hlt1SingleHighPtMuonNoMuID:                            3/   500, (  180.00 +/-   103.61) kHz
 Hlt1TAEPassthrough:                                    0/   500, (    0.00 +/-     0.00) kHz
 Hlt1TauToPhiMu:                                        4/   500, (  240.00 +/-   119.52) kHz
-Hlt1TrackElectronMVA:                                 25/   500, ( 1500.00 +/-   292.40) kHz
+Hlt1TrackElectronMVA:                                 22/   500, ( 1320.00 +/-   275.16) kHz
 Hlt1TrackMVA:                                        119/   500, ( 7140.00 +/-   571.35) kHz
 Hlt1TrackMuonMVA:                                     12/   500, (  720.00 +/-   205.34) kHz
 Hlt1TwoKs:                                             1/   500, (   60.00 +/-    59.94) kHz
@@ -351,7 +350,6 @@ Hlt1ConeJet100GeV:                                     0           0
 Hlt1ConeJet15GeV:                                      0           0
 Hlt1ConeJet30GeV:                                      0           0
 Hlt1ConeJet50GeV:                                      0           0
-Hlt1D02KsKsDDDD:                                       0           0
 Hlt1D2KK:                                             18          19
 Hlt1D2KPi:                                            25          26
 Hlt1D2KPiAlignment:                                    8           8
@@ -359,9 +357,9 @@ Hlt1D2Kshh:                                            2           2
 Hlt1D2PiPi:                                           15          15
 Hlt1DetJpsiToMuMuNegTagLine:                           0           0
 Hlt1DetJpsiToMuMuPosTagLine:                           0           0
-Hlt1DiElectronDisplaced:                               8          10
-Hlt1DiElectronHighMass:                                1           1
-Hlt1DiElectronHighMass_SS:                             1           1
+Hlt1DiElectronDisplaced:                               4           5
+Hlt1DiElectronHighMass:                                0           0
+Hlt1DiElectronHighMass_SS:                             0           0
 Hlt1DiElectronLowMass_Displaced:                       1           1
 Hlt1DiElectronLowMass_NoIP:                            1           1
 Hlt1DiElectronLowMass_NoIPNorm:                        0           0
@@ -369,17 +367,17 @@ Hlt1DiElectronLowMass_SS_Displaced:                    0           0
 Hlt1DiElectronLowMass_SS_NoIP:                         0           0
 Hlt1DiElectronLowMass_SS_NoIPNorm:                     0           0
 Hlt1DiElectronSoft:                                    0           0
-Hlt1DiMuonDisplaced:                                   2           2
+Hlt1DiMuonDisplaced:                                   0           0
 Hlt1DiMuonDisplacedSoftPT:                             1           1
 Hlt1DiMuonDisplacedSoftPT_SS:                          0           0
 Hlt1DiMuonDrellYan:                                    0           0
 Hlt1DiMuonDrellYan_SS:                                 0           0
 Hlt1DiMuonDrellYan_VLowMass:                           0           0
 Hlt1DiMuonDrellYan_VLowMass_SS:                        0           0
-Hlt1DiMuonHighMass:                                    7          10
+Hlt1DiMuonHighMass:                                    2           2
 Hlt1DiMuonJpsiMassAlignment:                           0           0
 Hlt1DiMuonNoIP:                                        1           1
-Hlt1DiMuonNoIPNorm:                                    2           2
+Hlt1DiMuonNoIPNorm:                                    1           1
 Hlt1DiMuonNoIPNorm_SS:                                 0           0
 Hlt1DiMuonNoIP_SS:                                     0           0
 Hlt1DiMuonSoft:                                        0           0
@@ -405,7 +403,7 @@ Hlt1DownstreamKsToPiPi:                                2           2
 Hlt1DownstreamLambdaToPPi:                             3           3
 Hlt1DownstreamPromptKsToPiPi:                          0           0
 Hlt1DownstreamPromptLambdaToPPi:                       0           0
-Hlt1DownstreamTwoTrackKs:                              0           0
+Hlt1DownstreamTwoTrackKs:                              1           1
 Hlt1Dst2D0Pi:                                          0           0
 Hlt1Dst2D0PiAlignment:                                 0           0
 Hlt1ErrorBank:                                         0           0
@@ -447,10 +445,10 @@ Hlt1SMOG2SingleTrackVeryHighPt:                        0           0
 Hlt1SMOG2etacTopp:                                     0           0
 Hlt1SingleHighPtElectron:                              5           7
 Hlt1SingleHighPtMuon:                                  1           1
-Hlt1SingleHighPtMuonNoMuID:                            4           4
+Hlt1SingleHighPtMuonNoMuID:                            3           3
 Hlt1TAEPassthrough:                                    0           0
 Hlt1TauToPhiMu:                                        4           4
-Hlt1TrackElectronMVA:                                 25          26
+Hlt1TrackElectronMVA:                                 22          23
 Hlt1TrackMVA:                                        119         185
 Hlt1TrackMuonMVA:                                     12          12
 Hlt1TwoKs:                                             1           1
@@ -461,12 +459,12 @@ Hlt1VeloMicroBias:                                     1           0
 Hlt1VeloMicroBiasVeloClosing:                          0           0
 Hlt1XiOmegaLLL:                                        0           0
 
-Total decisions:      583
-Total tracks:         1198
+Total decisions:      566
+Total tracks:         1177
 Total calos clusters: 9
-Total SVs:            1125
-Total hits:           31122
-Total stdinfo:        14703
+Total SVs:            1108
+Total hits:           30502
+Total stdinfo:        14450
 
 
 velo_validator validation:

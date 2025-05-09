@@ -19,7 +19,7 @@ default_bgi_activity_lines.global_bind(enableBGI_full=True)
 hlt1_node = setup_hlt1_node(
     tracking_type=TrackingType.FORWARD_THEN_MATCHING,
     threshold_settings=get_thresholds(
-        "forward_then_matching_tuned_mu5p3_1000KHz"),
+        "forward_then_matching_and_downstream_with_parkf_tuned_mu5p3_1000kHz"),
     with_ut=True)
 
 generate(hlt1_node)
