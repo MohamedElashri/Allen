@@ -98,6 +98,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
         make_diproton_highmass_line(
             prompt_dihadrons,
             name="Hlt1DiProtonHighMass",
+            minPT_p=thresholds.DiProtonHighMass_P_minPt,
+            minPT_pp=thresholds.DiProtonHighMass_PP_minPt,
             pre_scaler=1.,
             enable_tupling=enable_tupling),
         make_kplus_to_piee_line(
@@ -118,7 +120,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 reconstructed_objects['downstream_tracks'],
                 reconstructed_objects['downstream_secondary_vertices'],
                 mva_ks_threshold=0.55,
-                mva_detached_ks_threshold=0.55,
+                mva_detached_ks_threshold=thresholds.
+                DownstreamKsToPiPi_minMVA_detached,
                 name="Hlt1DownstreamKsToPiPi",
                 enable_monitoring=True,
                 enable_tupling=enable_tupling),
@@ -126,7 +129,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 reconstructed_objects['downstream_tracks'],
                 reconstructed_objects['downstream_secondary_vertices'],
                 mva_l0_threshold=0.5,
-                mva_detached_l0_threshold=0.5,
+                mva_detached_l0_threshold=thresholds.
+                DownstreamLambdaToPPi_minMVA_detached,
                 name="Hlt1DownstreamLambdaToPPi",
                 enable_monitoring=True,
                 enable_tupling=enable_tupling),
@@ -151,8 +155,9 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
             make_downstream_gamma_line(
                 reconstructed_objects['downstream_tracks'],
                 reconstructed_objects['downstream_secondary_vertices'],
-                minPt=2500.,
+                minPt=thresholds.DownstreamGammaToEE_minPt,
                 name="Hlt1DownstreamGammaToEE",
+                post_scaler=0.2,
                 enable_monitoring=True,
                 enable_tupling=enable_tupling),
             make_BuSca_line(  # BuSca HLT1 Monitoring Line / Trigger disabled
@@ -217,19 +222,20 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 reconstructed_objects['downstream_tracks'],
                 reconstructed_objects['downstream_secondary_vertices'],
                 name='Hlt1DownstreamTwoTrackKs',
-                minTrackPt_piKs=475.0,
+                minTrackPt_piKs=thresholds.
+                DownstreamTwoTrackKs_minTrackPt_piKs,
                 enable_monitoring=True,
                 enable_tupling=enable_tupling),
         ]
         if 'downstream_sv_pairs' in reconstructed_objects:
             lines += [
-                make_d02ksks_DDDD_line(
-                    reconstructed_objects['downstream_tracks'],
-                    reconstructed_objects['downstream_sv_pairs'],
-                    name='Hlt1D02KsKsDDDD',
-                    minTrackPt_piKs=450.0,
-                    minComboPt_Ks=1500.0,
-                    enable_tupling=enable_tupling),
+                # make_d02ksks_DDDD_line(
+                #     reconstructed_objects['downstream_tracks'],
+                #     reconstructed_objects['downstream_sv_pairs'],
+                #     name='Hlt1D02KsKsDDDD',
+                #     minTrackPt_piKs=450.0,
+                #     minComboPt_Ks=1200.0,
+                #     enable_tupling=enable_tupling),
                 make_BuSca_line(  # BuSca HLT1 HH with PiPi mass hypo. with same sign reconstuction / Trigger disabled
                     reconstructed_objects[
                         'downstream_combined_hadronic_and_leptonic_same_sign_secondary_vertices'],
@@ -378,17 +384,17 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 maxChi2Ndof=chi2_cuts.Hlt1SingleHighPtMuonNoMuID_maxChi2Ndof,
                 name="Hlt1SingleHighPtMuonNoMuID",
                 enable_tupling=enable_tupling,
-                singleMinPt=thresholds.SingleHighPtLepton_pt),
+                singleMinPt=thresholds.SingleHighPtLepton_pt_noMuonID),
             make_di_muon_mass_line(
                 long_tracks,
                 dileptons,
                 muonid,
-                maxChi2Corr=thresholds.DiMuonHighMass_maxCorrChi2,
+                #maxChi2Corr=thresholds.DiMuonHighMass_maxCorrChi2,
                 name="Hlt1DiMuonHighMass",
                 enable_tupling=enable_tupling,
                 minHighMassTrackPt=thresholds.DiMuonHighMass_pt,
                 useMuonNN=True,
-                minMuonNN=muon_nn_cuts['loose']),
+                minMuonNN=thresholds.DiMuonHighMass_NN),
             make_di_muon_mass_line(
                 long_tracks,
                 dileptons,
@@ -401,7 +407,6 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 maxVertexChi2=25.,
                 minIPChi2=thresholds.DiMuonDisplaced_ipchi2,
                 enable_tupling=enable_tupling,
-                maxChi2Corr=thresholds.DiMuonDisplaced_maxCorrChi2,
                 minMuonNN=thresholds.DiMuonDisplaced_NN,
                 useMuonNN=True,
             ),
@@ -483,6 +488,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 maxVertexChi2=9,
                 minIPChi2=-1,
                 enable_tupling=enable_tupling,
+                minMuonNN=thresholds.DiMuonDisplacedSoftPT_NN,
                 useMuonNN=True,
                 vetoSharedHits=True,
                 pre_scaler=0.001),
@@ -600,7 +606,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 name="Hlt1TrackElectronMVA",
                 alpha=thresholds.TrackElectronMVA_alpha,
                 useNN=
-                False,  #it uses it implicitely per the definition of isElectron
+                True,  #it uses it implicitely per the definition of isElectron
                 minElectronNN=thresholds.TrackElectronMVA_NN,
                 enable_tupling=enable_tupling),
             make_single_high_pt_electron_line(
@@ -617,7 +623,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 calo_matching_objects,
                 electronid_nn,
                 useNN=
-                False,  #it uses it implicitely per the definition of isElectron
+                True,  #it uses it implicitely per the definition of isElectron
                 minElectronNN=thresholds.DiElectronDisplaced_NN,
                 name="Hlt1DiElectronDisplaced",
                 MinPT=thresholds.DiElectronDisplaced_pt,
@@ -697,7 +703,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 4,  # it will only be picked up by the displaced line the NoIP (aka prompt) won't trigger this cut
                 "selectPrompt": "NoIP" in subSample,
                 "useNN": True,
-                "nnCut": 0.94 if subSample == "NoIP" else 0.75,
+                "nnCut": 0.96 if subSample == "NoIP" else 0.73,
                 "enable_monitoring": True,
                 "enable_tupling": enable_tupling
             }

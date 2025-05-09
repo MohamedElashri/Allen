@@ -154,7 +154,7 @@ namespace downstream_two_track_ks_line {
                                              "minTrackP_piKs",
                                              5000.f * Gaudi::Units::MeV,
                                              "minTrackP_piKs description"};
-    Allen::Property<float> m_minTrackIP_piKs {this, "minTrackIP_piKs", 110.f, "minTrackIP_piKs description"};
+    Allen::Property<float> m_minTrackIP_piKs {this, "minTrackIP_piKs", 1.f, "minTrackIP_piKs description"};
     Allen::Property<float> m_minM_Ks {this, "minM_Ks", 400.0f * Gaudi::Units::MeV, "minM_Ks description"};
     Allen::Property<float> m_maxM_Ks {this, "maxM_Ks", 600.0f * Gaudi::Units::MeV, "maxM_Ks description"};
     Allen::Property<float> m_minZ_sv {this, "minZ_sv", 400.f * Gaudi::Units::mm, "minZ_sv description"};
