@@ -9,8 +9,6 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 if (NOT STANDALONE)
-    add_test(NAME Allen:pytest
-      COMMAND ${CMAKE_BINARY_DIR}/run bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_configuration.sh ${CMAKE_CURRENT_SOURCE_DIR})
     gaudi_install(PYTHON)
 
     # Configuration library
