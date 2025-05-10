@@ -14,10 +14,11 @@ from AllenCore.algorithms import (
     check_pvs_t, check_cyl_pvs_t, low_occupancy_t,
     check_localized_beamline_ip_t, error_bank_filter_t, data_provider_t,
     check_ecal_energy_t, velo_track_activity_filter_t,
-    long_track_activity_filter_t, pv_activity_filter_t)
+    long_track_activity_filter_t, pv_activity_filter_t, prescaler_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.enum_types import ActivityType
+from AllenConf.odin import decode_odin
 from PyConf.tonic import configurable
 from PyConf.control_flow import NodeLogic, CompositeNode
 
@@ -108,6 +109,23 @@ def make_gec(gec_name='gec',
 
     return CompositeNode(
         gec_name + "_node", algos, NodeLogic.LAZY_AND, force_order=False)
+
+
+def make_prescaler(value, name, hash_string=None):
+    number_of_events = initialize_number_of_events()
+    odin = decode_odin()
+
+    # Check for None or empty string
+    if not hash_string:
+        hash_string = f"{name}_pre"
+
+    return make_algorithm(
+        prescaler_t,
+        name="prescaler_" + name,
+        pre_scaler=value,
+        pre_scaler_hash_string=hash_string,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_odin_data_t=odin['dev_odin_data'])
 
 
 def long_track_activity_filter(long_tracks,

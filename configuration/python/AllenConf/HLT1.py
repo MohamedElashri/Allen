@@ -797,19 +797,7 @@ def alignment_monitoring_lines(reconstructed_objects,
             name="Hlt1RICH2Alignment"),
         make_d2kpi_align_line(
             long_tracks, dihadrons, name="Hlt1D2KPiAlignment"),
-        make_dst_line(dstars, name="Hlt1Dst2D0PiAlignment"),
-        make_z_range_materialvertex_seed_line(
-            material_interaction_tracks,
-            min_z_materialvertex_seed=300,
-            max_z_materialvertex_seed=1000,
-            name="Hlt1MaterialVertexSeedsDownstreamz",
-            pre_scaler=5e-4),
-        make_z_range_materialvertex_seed_line(
-            material_interaction_tracks,
-            min_z_materialvertex_seed=700,
-            max_z_materialvertex_seed=1000,
-            name="Hlt1MaterialVertexSeeds_DWFS",
-            pre_scaler=0.1)
+        make_dst_line(dstars, name="Hlt1Dst2D0PiAlignment")
     ]
 
     if with_muon:
@@ -842,6 +830,32 @@ def alignment_monitoring_lines(reconstructed_objects,
 
     with line_maker.bind(prefilter=prefilters_bx):
         lines = [line_maker(line) for line in lines]
+
+    with line_maker.bind(
+            prefilter=prefilters_bx +
+        [make_prescaler(5e-4, "Hlt1MaterialVertexSeedsDownstreamz")]):
+        lines += [
+            line_maker(
+                make_z_range_materialvertex_seed_line(
+                    material_interaction_tracks,
+                    min_z_materialvertex_seed=300,
+                    max_z_materialvertex_seed=1000,
+                    name="Hlt1MaterialVertexSeedsDownstreamz",
+                    pre_scaler=5e-4))
+        ]
+
+    with line_maker.bind(
+            prefilter=prefilters_bx +
+        [make_prescaler(0.1, "Hlt1MaterialVertexSeeds_DWFS")]):
+        lines += [
+            line_maker(
+                make_z_range_materialvertex_seed_line(
+                    material_interaction_tracks,
+                    min_z_materialvertex_seed=700,
+                    max_z_materialvertex_seed=1000,
+                    name="Hlt1MaterialVertexSeeds_DWFS",
+                    pre_scaler=0.1))
+        ]
 
     with line_maker.bind(prefilter=prefilters_odin_err):
         lines += [

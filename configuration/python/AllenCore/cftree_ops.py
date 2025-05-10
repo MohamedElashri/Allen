@@ -12,6 +12,9 @@ import itertools
 import functools
 import ast
 import sympy
+import sys
+from pyeda.inter import *
+from pyeda.boolalg.expr import AndOp, OrOp
 from collections import defaultdict, OrderedDict
 from PyConf.control_flow import CompositeNode, NodeLogic
 from functools import lru_cache
@@ -64,9 +67,34 @@ class BoolNode:
         return hash(self) == hash(other)
 
 
+def pyeda_to_string(expr):
+    if str(expr) == "1": return "true"
+    if str(expr) == "0": return "false"
+    if isinstance(expr, OrOp):
+        return "(" + " | ".join([pyeda_to_string(e) for e in expr.xs]) + ")"
+    if isinstance(expr, AndOp):
+        return "(" + " & ".join([pyeda_to_string(e) for e in expr.xs]) + ")"
+    return str(expr)
+
+
 @lru_cache(1000)
 def simplify(string):
-    return str(sympy.simplify(string))
+    """
+    Espresso refuses to simplify expressions that are not in DNF
+    And expressions that should simplify to True fall in that case..
+    So we need to treat them as a special case
+    """
+    # traveral of pyeda's ast can reach recursion limit of 1000 on some expressions...
+    sys.setrecursionlimit(10000)
+    string = string.replace("false", '0')
+    string = pyeda_to_string(
+        espresso_exprs(expr(string, simplify=True).to_dnf())[0])
+    if string == 'true': return string
+    string = string.replace('true', '1')
+    if (str(expr(string, simplify=True)) == "1"): return "true"
+    string = pyeda_to_string(
+        espresso_exprs(expr(string, simplify=True).to_dnf())[0])
+    return string
 
 
 @lru_cache(1000)
