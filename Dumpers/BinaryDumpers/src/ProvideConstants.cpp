@@ -95,6 +95,28 @@ StatusCode ProvideConstants::initialize()
 
   m_constants.reserve_and_initialize(muon_field_of_interest_params, geometry_path);
 
+  // Kalman Filter Parameters
+  std::unique_ptr<ParKalmanReader> parKalmanFilter_reader;
+  parKalmanFilter_reader = std::make_unique<ParKalmanReader>(geometry_path + "/ParametrizedKalmanFit/24v0/params.json");
+
+  m_constants.initialize_kalman_pars_constants(
+    parKalmanFilter_reader->VP_pars(-1),
+    parKalmanFilter_reader->VPUT_pars(-1),
+    parKalmanFilter_reader->UT_pars(-1),
+    parKalmanFilter_reader->T_pars(-1),
+    parKalmanFilter_reader->UTTF_pars(-1),
+    parKalmanFilter_reader->TFT_pars(-1),
+    parKalmanFilter_reader->VP_pars(1),
+    parKalmanFilter_reader->VPUT_pars(1),
+    parKalmanFilter_reader->UT_pars(1),
+    parKalmanFilter_reader->T_pars(1),
+    parKalmanFilter_reader->UTTF_pars(1),
+    parKalmanFilter_reader->TFT_pars(1),
+    parKalmanFilter_reader->UT_layer(),
+    parKalmanFilter_reader->T_layer(),
+    parKalmanFilter_reader->UTT_META(-1),
+    parKalmanFilter_reader->UTT_META(1));
+
   // Allen Consumers
   std::unordered_set<BankTypes> subdetectors;
   for (unsigned bt = 0; bt < NBankTypes; ++bt) {

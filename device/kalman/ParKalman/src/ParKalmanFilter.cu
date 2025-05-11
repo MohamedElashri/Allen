@@ -27,7 +27,6 @@ namespace kalman_filter { // [nSets * nPars + 2]
 
 void kalman_filter::kalman_filter_t::update(const Constants& constants) const
 {
-
   struct BeamlinePVConstants::Common::Beamline host_beamline;
 
   host_beamline.pos.x = constants.host_beamline[0];
@@ -62,6 +61,10 @@ void kalman_filter::kalman_filter_t::update(const Constants& constants) const
   host_beamline.tx_SMOG.y = beamlineTy + CrossingAnglev;
   Allen::memcpyToSymbol(dev_beamline, &host_beamline, sizeof(struct BeamlinePVConstants::Common::Beamline));
 
+  // load ParKF parameters
+  if (constants.host_UT_Layers == nullptr) {
+    throw std::runtime_error("host_UT_Layers is empty and thus likely all constant ParKF parameters are empty");
+  }
   Allen::memcpyToSymbol(dev_UT_lay, constants.host_UT_Layers, (1 * 4 + 2) * sizeof(float));
   Allen::memcpyToSymbol(dev_T_lay, constants.host_T_Layers, (4 * 12 + 2) * sizeof(float));
   if (constants.host_magnet_polarity.empty()) {

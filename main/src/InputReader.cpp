@@ -43,7 +43,11 @@ std::vector<char> GeometryReader::read_geometry(const std::string& filename) con
 ParKalmanReader::ParKalmanReader(const std::string& path)
 {
   if (!exists_test(path)) {
-    throw StrException("ParKalman parameter file " + path + " does not exist.");
+    throw StrException(
+      "ParKalman parameter file " + path +
+      " does not exist. Try updating the 'ParamFiles' folder. In Allen standalone builds under "
+      "'build/external/ParamFiles' in "
+      "full stack under 'PARAM/ParamFiles'");
   }
 
   std::ifstream i(path);
