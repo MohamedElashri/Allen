@@ -22,7 +22,7 @@ configuration.
 import os
 import sys
 import json
-from Allen.qmtest.utils import sequence_differences
+from AllenTesting.utils import sequence_differences
 from Allen.tck import manifest_from_git, sequence_from_git
 from pathlib import Path
 

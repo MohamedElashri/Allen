@@ -82,7 +82,7 @@ gaudi_add_module(BinaryDumpersModule
                    yaml-cpp::yaml-cpp
                    BinaryDumpers)
 
-gaudi_add_tests(QMTest)
+gaudi_add_pytest(tests/pytest)
 
 pybind11_add_module(bank_mapping NO_EXTRAS src/lib/bindings.cpp)
 target_link_libraries(bank_mapping
