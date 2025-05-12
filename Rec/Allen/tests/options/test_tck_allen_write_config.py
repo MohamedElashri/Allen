@@ -23,7 +23,7 @@ import os
 import json
 from pathlib import Path
 from subprocess import PIPE, run
-from Allen.qmtest.utils import sequence_differences
+from AllenTesting.utils import sequence_differences
 from Allen.tck import manifest_from_git, sequence_from_git
 
 tck_repo = Path(os.getenv("PREREQUISITE_0", "")) / "config_json.git"

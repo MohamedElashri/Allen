@@ -793,9 +793,9 @@ std::pair<TColor*, Int_t> GetColorAndLineStyle(Int_t index)
 /*-------------------------------------------------------------------------*/
 void DataQualityPlot_Overlay()
 {
-  TString isQMtest = std::getenv("QMTTEST_NAME");
-  if (isQMtest.Contains("lhcb_ODQV_plot")) {
-    DataQualityPlot_Overlay("allen_odqv_qmtest.root");
+  TString isPYtest = std::getenv("PYTEST_NAME");
+  if (isPYtest.Contains("lhcb_ODQV_plot")) {
+    DataQualityPlot_Overlay("allen_odqv_pytest.root");
   }
   else {
     std::cerr << "ERROR : Give me a set of files to run over!" << std::endl;

@@ -19,7 +19,7 @@ import os
 import sys
 import subprocess
 from pathlib import Path
-from Allen.qmtest.utils import good_sequence
+from AllenTesting.utils import good_sequence
 
 seq_dir = os.path.expandvars("${ALLEN_INSTALL_DIR}/constants")
 tck_script = os.path.expandvars("${ALLENROOT}/scripts/create_hlt1_tck.py")

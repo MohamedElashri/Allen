@@ -1,0 +1,221 @@
+stdout: |-
+  HLTControlFlowMgr                      INFO Start initialization
+  HLTControlFlowMgr                      INFO Will not use an EventSelector.
+  HLTControlFlowMgr                      INFO Concurrency level information:
+  HLTControlFlowMgr                      INFO  o Number of events slots: 1
+  HLTControlFlowMgr                      INFO  o TBB thread pool size:  'ThreadPoolSize':1
+  ApplicationMgr                         INFO Application Manager Initialized successfully
+  Using 3 input slices.
+    rate_validator
+    global_decision
+    make_selected_object_lists
+    make_subbanks
+    make_selreps
+    host_routingbits_writer
+  ApplicationMgr                         INFO Application Manager Started successfully
+  HLTControlFlowMgr                      INFO Will measure time between events 0 and 0 (stop might be some events later)
+  HLTControlFlowMgr                      INFO Starting loop on events
+  DeviceFTGeometry                       INFO Conditions DB is compatible with FT bank version 7 and 8.
+  Starting timer for throughput measurement
+  Input complete
+  error_bank_filter                      INFO Booked 3 Histogram(s) : 1D=3 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
+  gather_selections                      INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
+  pv_beamline_cleanup                    INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
+  scifi_consolidate_seeds_matching       INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
+  velo_consolidate_tracks                INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
+  ApplicationMgr                         INFO Application Manager Stopped successfully
+  HLTControlFlowMgr                      INFO
+  HLTControlFlowMgr                      INFO StateTree: CFNode   #executed  #passed
+  NONLAZY_OR: allen_non_event_data               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+   AllenODINProducer/AllenODINProducer_e608fece  #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+   DumpBeamline/DeviceBeamline                   #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+   DumpVPGeometry/DeviceVPGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+   DumpUTGeometry/DeviceUTGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+   DumpUTLookupTables/DeviceUTLookupTables       #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+   DumpCaloGeometry/DeviceCaloGeometry           #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+   DumpMagneticField/DeviceMagneticField         #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+   DumpFTGeometry/DeviceFTGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+   DumpMuonGeometry/DeviceMuonGeometry           #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+   DumpMuonTable/DeviceMuonTable                 #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  HLTControlFlowMgr                      INFO Histograms converted successfully according to request.
+  ApplicationMgr                         INFO Application Manager Finalized successfully
+  ApplicationMgr                         INFO Application Manager Terminated successfully
+histos:
+  error_bank_filter:
+    1D:
+      ODIN_banks:
+        ID: ODIN_banks
+        Title: '"ODIN_banks"'
+        '#': '10000'
+        Mean: '0'
+        RMS: '0.0000'
+        Skewness: '0'
+        Kurtosis: '0'
+      Plume_banks:
+        ID: Plume_banks
+        Title: '"Plume_banks"'
+        '#': '40000'
+        Mean: '0'
+        RMS: '0.0000'
+        Skewness: '0'
+        Kurtosis: '0'
+      n_data_banks:
+        ID: n_data_banks
+        Title: '"n_data_banks"'
+        '#': '50000'
+        Mean: '8.4'
+        RMS: '3.2000'
+        Skewness: '-1.5'
+        Kurtosis: '0.25'
+    header:
+      1D: 3
+      2D: 0
+      3D: 0
+      1DProf: 0
+      2DProf: 0
+      3DProf: 0
+      Total: 3
+  gather_selections:
+    1D:
+      line_passes:
+        ID: line_passes
+        Title: '"line passes"'
+        '#': '10001'
+        Mean: '58.5'
+        RMS: '0.039996'
+        Skewness: '99.99'
+        Kurtosis: '9996'
+      line_rates:
+        ID: line_rates
+        Title: '"line rates"'
+        '#': '10001'
+        Mean: '58.5'
+        RMS: '0.039996'
+        Skewness: '99.99'
+        Kurtosis: '9996'
+    header:
+      1D: 2
+      2D: 0
+      3D: 0
+      1DProf: 0
+      2DProf: 0
+      3DProf: 0
+      Total: 2
+  pv_beamline_cleanup:
+    1D:
+      n_pvs_event:
+        ID: n_pvs_event
+        Title: '"n_pvs_event"'
+        '#': '10000'
+        Mean: '0'
+        RMS: '0.0000'
+        Skewness: '0'
+        Kurtosis: '0'
+      n_smog2_PVs:
+        ID: n_smog2_PVs
+        Title: '"n_smog2_PVs"'
+        '#': '10000'
+        Mean: '0'
+        RMS: '0.0000'
+        Skewness: '0'
+        Kurtosis: '0'
+    header:
+      1D: 2
+      2D: 0
+      3D: 0
+      1DProf: 0
+      2DProf: 0
+      3DProf: 0
+      Total: 2
+  scifi_consolidate_seeds_matching:
+    1D:
+      n_scifi_seeds_event:
+        ID: n_scifi_seeds_event
+        Title: '"n_scifi_seeds_event"'
+        '#': '10000'
+        Mean: '0'
+        RMS: '0.0000'
+        Skewness: '0'
+        Kurtosis: '0'
+    header:
+      1D: 1
+      2D: 0
+      3D: 0
+      1DProf: 0
+      2DProf: 0
+      3DProf: 0
+      Total: 1
+  velo_consolidate_tracks:
+    1D:
+      n_velo_tracks_event:
+        ID: n_velo_tracks_event
+        Title: '"n_velo_tracks_event"'
+        '#': '10000'
+        Mean: '0'
+        RMS: '0.0000'
+        Skewness: '0'
+        Kurtosis: '0'
+    header:
+      1D: 1
+      2D: 0
+      3D: 0
+      1DProf: 0
+      2DProf: 0
+      3DProf: 0
+      Total: 1
+ttrees: {}
+counters:
+  HLTControlFlowMgr:
+    set: HLTControlFlowMgr
+    total_counters: 1
+    Processed events:
+      binomial: false
+      name: Processed events
+      count: 1
+  gather_selections:
+    set: gather_selections
+    total_counters: 4
+    Hlt1ODINCalibPass:
+      binomial: false
+      name: Hlt1ODINCalibPass
+      count: 10000
+    Hlt1ODINCalibRate:
+      binomial: false
+      name: Hlt1ODINCalibRate
+      count: 10000
+    Hlt1PassthroughPass:
+      binomial: false
+      name: Hlt1PassthroughPass
+      count: 1
+    Hlt1PassthroughRate:
+      binomial: false
+      name: Hlt1PassthroughRate
+      count: 1
+  pv_beamline_cleanup:
+    set: pv_beamline_cleanup
+    total_counters: 1
+    n_PVs:
+      binomial: false
+      name: n_PVs
+      count: 10000
+      sum: 0.0
+      mean/eff^*: 0.0
+  scifi_consolidate_seeds_matching:
+    set: scifi_consolidate_seeds_matching
+    total_counters: 1
+    n_seed_tracks:
+      binomial: false
+      name: n_seed_tracks
+      count: 10000
+      sum: 0.0
+      mean/eff^*: 0.0
+  velo_consolidate_tracks:
+    set: velo_consolidate_tracks
+    total_counters: 1
+    n_velo_tracks:
+      binomial: false
+      name: n_velo_tracks
+      count: 10000
+      sum: 0.0
+      mean/eff^*: 0.0
+stderr: ''
