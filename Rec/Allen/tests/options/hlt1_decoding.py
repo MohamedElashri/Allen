@@ -9,7 +9,7 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from PyConf.application import ApplicationOptions, configure_input, configure
-from PyConf.application import default_raw_event, default_raw_banks, configured_ann_svc
+from PyConf.application import default_raw_event, default_raw_banks, configured_ann_svc, make_odin
 from PyConf.control_flow import CompositeNode, NodeLogic
 from PyConf.Algorithms import (HltSelReportsDecoder, HltDecReportsDecoder,
                                HltDecReportsMonitor, HltRoutingBitsMonitor)
@@ -36,7 +36,8 @@ def monitor(dec_reports):
         name="HltDecReportsMonitor", Input=dec_reports)
     rb_monitor = HltRoutingBitsMonitor(
         name="HltRoutingBitsMonitor",
-        RawBanks=default_raw_banks("HltRoutingBits"))
+        RawBanks=default_raw_banks("HltRoutingBits"),
+        ODIN=make_odin())
     return [dr_monitor, rb_monitor]
 
 
