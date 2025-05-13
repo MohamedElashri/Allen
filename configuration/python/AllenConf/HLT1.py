@@ -260,7 +260,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                     enable_trigger=False),
                 make_BuSca_line(  # BuSca HLT1 High Mass Line / Trigger disabled
                     reconstructed_objects[
-                        'downstream_combined_hadronic_and_leptonic_same_sign_secondary_vertices'],
+                        'downstream_combined_hadronic_and_leptonic_secondary_vertices'],
                     name="Hlt1DownstreamBuScaHighMassLine",
                     line_type="monitoring",
                     histogram_ks_fd_min=500,
@@ -284,7 +284,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                     enable_trigger=False),
                 make_BuSca_line(  # BuSca HLT1 MuMu High Mass Line / Trigger disabled
                     reconstructed_objects[
-                        'downstream_combined_hadronic_and_leptonic_same_sign_secondary_vertices'],
+                        'downstream_combined_hadronic_and_leptonic_secondary_vertices'],
                     name="Hlt1DownstreamBuScaMuMuHighMassLine",
                     line_type="muon",
                     histogram_ks_fd_min=500,
