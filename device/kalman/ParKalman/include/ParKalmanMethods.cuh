@@ -76,7 +76,7 @@ __device__ inline float SciFi_yMin(const Allen::Views::SciFi::Consolidated::Trac
   // of endPointY being smaller or larger than 50 mm, this also works for tilted mats.
   constexpr float min_beamhole_clearance = 50.f;
   float y_inner = track.hit(hit_counter).endPointY();
-  bool isBeamHole = abs(y_inner) > min_beamhole_clearance;
+  bool isBeamHole = fabsf(y_inner) > min_beamhole_clearance;
   return y_inner - track.hit(hit_counter).isBottom() * (Approx_dy - isBeamHole * Approx_BeamHole_dy);
 }
 
@@ -86,7 +86,7 @@ __device__ inline float SciFi_dy(const Allen::Views::SciFi::Consolidated::Track&
   // for more explanation see above.
   constexpr float min_beamhole_clearance = 50.f;
   float y_inner = track.hit(hit_counter).endPointY();
-  bool isBeamHole = abs(y_inner) > min_beamhole_clearance;
+  bool isBeamHole = fabsf(y_inner) > min_beamhole_clearance;
   return Approx_dy - isBeamHole * Approx_BeamHole_dy;
 }
 
