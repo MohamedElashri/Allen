@@ -36,6 +36,8 @@ namespace ParKalmanFilter {
 
     KalmanFloat m_Lastz;
 
+    KalmanFloat m_polarity;
+
     // Chi2s.
     KalmanFloat m_chi2T;
     KalmanFloat m_chi2V;
@@ -90,21 +92,6 @@ __device__ inline float SciFi_dy(const Allen::Views::SciFi::Consolidated::Track&
   return Approx_dy - isBeamHole * Approx_BeamHole_dy;
 }
 
-__device__ inline KalmanFloat scattering_qop(const KalmanFloat& tx, const KalmanFloat& ty, const KalmanFloat& qop)
-{
-  // TODO: updates to the parametrisation should make this obsolete ASAP.
-  // Implementation of the scattering qop
-  // This enforces a lower limit on the qop used for Q
-  // These parameters are determined by looking at the mean extrapolation error that exceeds the multiple
-  // scattering error. See https://indico.cern.ch/event/1492027/ for more detail.
-  constexpr float scaling_factor = 2500.;           // Comes from the inital observation that very misbehaved track have
-                                                    // par. error on the scale of a well-behaved track with p=2.5 GeV
-  constexpr float offset = -0.02f / scaling_factor; // Since the paramter fitter overcorrected in the central
-                                                    // region, we have a small negative offset
-  constexpr float tx_factor = 0.7f / scaling_factor; // Scaling of the mean parametrsiation error with tx
-  constexpr float ty_factor = 2.7f / scaling_factor; // Scaling of the mean parametrsiation error with ty
-  return fabsf(fabsf(qop) + (offset + tx_factor * fabsf(tx) + ty_factor * fabsf(ty)));
-}
 ////////////////////////////////////////////////////////////////////////
 // Functions for doing the extrapolation.
 __device__ inline void
@@ -113,13 +100,11 @@ ExtrapolateInV(const float* dev_pars, KalmanFloat zTo, Vector5& x, Matrix2x2& F,
   // step size in z
   KalmanFloat dz = zTo - tI.m_Lastz;
   if (dz == 0) return;
-  // do not update if there is nothing to update
-
   // which set of parameters should be used
   unsigned index_offset = (dz > 0 ? 0 : 6);
 
-  float par =
-    (dev_pars[index_offset + 2] * ((KalmanFloat) 1.0e-5) * dz *
+  KalmanFloat par =
+    (tI.m_polarity * dev_pars[index_offset + 2] * ((KalmanFloat) 1.0e-5) * dz *
      ((dz > 0 ? tI.m_Lastz : zTo) + dev_pars[index_offset + 3] * ((KalmanFloat) 1.0e3)));
 
   // parametrizations for state extrapolation
@@ -129,13 +114,15 @@ ExtrapolateInV(const float* dev_pars, KalmanFloat zTo, Vector5& x, Matrix2x2& F,
   x[1] += x[3] * dz;
 
   // determine the Jacobian
+  // NB: F is *not* the standard definition of f_ij = del f_i / del x_j
+  // would be F(0,2), F(1,3)
   F(0, 0) = dz;
   F(0, 1) = dz;
 
-  // tx
+  // would be F(2, 4)
   F(1, 0) = par;
 
-  // x
+  // would be F(0,4)
   F(1, 1) = ((KalmanFloat) 0.5) * dz * F(1, 0);
 
   // Set noise matrix
@@ -160,7 +147,8 @@ ExtrapolateVUT(const float* dev_pars, KalmanFloat zTo, Vector5& x, Matrix5x5& F,
 {
 
   // cache the old state
-  Vector5 x_old = x;
+  KalmanFloat tx_old = x[2];
+  KalmanFloat ty_old = x[3];
   // step size in z
   KalmanFloat zFrom = tI.m_Lastz;
   KalmanFloat dz = zTo - zFrom;
@@ -168,67 +156,78 @@ ExtrapolateVUT(const float* dev_pars, KalmanFloat zTo, Vector5& x, Matrix5x5& F,
   // extrapolate the current state and define noise
 
   // ty
-  float par = dev_pars[0];
-  x[3] = x_old[3] + par * std::copysign((KalmanFloat) 1.0, x[1]) * x_old[4] * x_old[2];
+  float par = tI.m_polarity * dev_pars[0];
+  x[3] += par * std::copysign((KalmanFloat) 1.0, x[1]) * x[4] * tx_old;
 
   // calculate jacobian
   // ty
-  F(3, 2) = par * x_old[4];
-  F(3, 4) = par * x_old[2];
+  F(3, 2) = par * x[4];
+  F(3, 4) = par * tx_old;
   // y
   par = dev_pars[3];
+  x[1] += (par * ty_old + (((KalmanFloat) 1.0) - par) * x[3]) * dz;
   KalmanFloat DyDty = (((KalmanFloat) 1.0) - par) * dz;
   F(1, 2) = DyDty * F(3, 2);
   F(1, 3) = dz;
   F(1, 4) = DyDty * F(3, 4);
 
-  // y
-  x[1] = x_old[1] + (par * x_old[3] + (((KalmanFloat) 1.0) - par) * x[3]) * dz;
-
   // tx
-  par = dev_pars[7];
-  KalmanFloat coeff = dev_pars[5] * ((KalmanFloat) 1e1) + dev_pars[6] * ((KalmanFloat) 1e-2) * zFrom +
-                      par * ((KalmanFloat) 1e2) * x_old[3] * x_old[3];
+  par = tI.m_polarity * dev_pars[7];
+  KalmanFloat coeff = tI.m_polarity * dev_pars[5] * ((KalmanFloat) 1e1) +
+                      tI.m_polarity * dev_pars[6] * ((KalmanFloat) 1e-2) * zFrom +
+                      par * ((KalmanFloat) 1e2) * ty_old * ty_old;
 
-  KalmanFloat a = x_old[2] / sqrtf(((KalmanFloat) 1.0) + x_old[2] * x_old[2] + x_old[3] * x_old[3]) - x_old[4] * coeff;
-  KalmanFloat sqrtTmp = sqrtf((((KalmanFloat) 1.0) - a * a) * (((KalmanFloat) 1.0) + x[3] * x[3]));
+  KalmanFloat a = x[4] * coeff;
+  KalmanFloat t = ((KalmanFloat) 1.0) + tx_old * tx_old + ty_old * ty_old;
+  KalmanFloat b = a * a * t + ((KalmanFloat) 2.0) * a * tx_old * sqrtf(t);
+  KalmanFloat c = b - ty_old * ty_old - ((KalmanFloat) 1.0);
+  c = fabsf(c) < ((KalmanFloat) 1e-10) ? std::copysign((KalmanFloat) 1e-10, c) : c;
+  KalmanFloat sqroot_term = -(x[3] * x[3] + ((KalmanFloat) 1.0)) * (b + tx_old * tx_old) * c;
+  sqroot_term =
+    sqroot_term > ((KalmanFloat) 0.0) ? sqroot_term : ((KalmanFloat) 0.0); // happens with very low |tx| tracks
+  KalmanFloat sqroot = sqrtf(sqroot_term);
 
-  // Check that the track is not deflected
-  if (fabsf(a) >= 1) return;
+  x[2] += (tx_old * c + std::copysign((KalmanFloat) 1.0, tx_old) * sqroot) / c;
 
-  x[2] = a / sqrtTmp;
+  KalmanFloat daDty = par * ((KalmanFloat) 2e2) * ty_old * x[4];
+  KalmanFloat dadqop = coeff;
 
-  // tx
-  KalmanFloat DtxDty = a * x[3] * ((KalmanFloat) 1.0) / sqrtTmp;
-  KalmanFloat DtxDa = sqrtTmp / ((a * a - ((KalmanFloat) 1.0)) * (a * a - ((KalmanFloat) 1.0)));
-  sqrtTmp = sqrtf(((KalmanFloat) 1.0) + x_old[2] * x_old[2] + x_old[3] * x_old[3]);
-  F(2, 2) = DtxDa * (((KalmanFloat) 1.0) + x_old[3] * x_old[3]) /
-              (sqrtTmp * (((KalmanFloat) 1.0) + x_old[2] * x_old[2] + x_old[3] * x_old[3])) +
-            DtxDty * F(3, 2);
-  F(2, 3) = DtxDa * (-x_old[2] * x_old[3] / (sqrtTmp * (1 + x_old[2] * x_old[2] + x_old[3] * x_old[3])) -
-                     x_old[4] * 2 * par * ((KalmanFloat) 1e2) * x_old[3]) +
-            DtxDty * F(3, 3);
-  F(2, 4) = DtxDa * (-coeff) + DtxDty * F(3, 4);
+  KalmanFloat dtDtx = ((KalmanFloat) 2.) * tx_old;
+  KalmanFloat dtDty = ((KalmanFloat) 2.) * ty_old;
+
+  KalmanFloat dbDtx = ((KalmanFloat) 2.) * a;
+  KalmanFloat dbda = ((KalmanFloat) 2.) * (a * t + tx_old);
+  KalmanFloat dbdt = a * a + ((KalmanFloat) 0.5) / sqrtf(t);
+
+  // KalmanFloat dcdb = 1;
+  KalmanFloat dcDty = ((KalmanFloat) -2.) * ty_old;
+
+  KalmanFloat dtxDtx = ((KalmanFloat) 1.0) + tx_old * tx_old * sqroot / (b + tx_old * tx_old) + sqroot;
+  KalmanFloat dtxdb = tx_old * sqroot / (((KalmanFloat) 2.0) * (b + tx_old * tx_old));
+  KalmanFloat dtxdc = tx_old * sqroot / (((KalmanFloat) 2.0) * c);
+  KalmanFloat dtxdnty = x[3] * tx_old * sqroot / (x[3] * x[3] + 1);
+
+  F(2, 2) = dtxDtx + dtxdb * (dbDtx + dbdt * dtDtx) + dtxdnty * F(3, 2);                                // DtxDtx
+  F(2, 3) = dtxdb * dbda * (daDty + dbdt * dtDty) + dtxdc * (dbda * daDty + dcDty) + dtxdnty * F(3, 3); // DtxDy
+  F(2, 4) = dtxdb * dbda * dadqop + dtxdc * dbda * dadqop + dtxdnty * F(3, 4);                          // DtxDqop
 
   par = dev_pars[12];
   // x
-  KalmanFloat zmag = dev_pars[9] * ((KalmanFloat) 1e3) + dev_pars[10] * zFrom +
-                     dev_pars[11] * ((KalmanFloat) 1e-5) * zFrom * zFrom +
-                     par * ((KalmanFloat) 1e3) * x_old[3] * x_old[3];
+  KalmanFloat zmag = dev_pars[9] * ((KalmanFloat) 1e3) + dev_pars[10] * ((KalmanFloat) 1e-3) * zFrom +
+                     dev_pars[11] * ((KalmanFloat) 1e-5) * zFrom * zFrom + par * ((KalmanFloat) 1e3) * ty_old * ty_old;
 
-  x[0] = x_old[0] + (zmag - zFrom) * x_old[2] + (zTo - zmag) * x[2];
+  x[0] += (zmag - zFrom) * tx_old + (zTo - zmag) * x[2];
 
   // x
   F(0, 2) = (zmag - zFrom) + (zTo - zmag) * F(2, 2);
-  F(0, 3) = (zTo - zmag) * F(2, 3) + (x_old[2] - x[2]) * ((KalmanFloat) 2.0) * par * ((KalmanFloat) 1e3) * x_old[3];
+  F(0, 3) = (zTo - zmag) * F(2, 3) + (tx_old - x[2]) * ((KalmanFloat) 2.0) * par * ((KalmanFloat) 1e3) * ty_old;
   F(0, 4) = (zTo - zmag) * F(2, 4);
 
   // add noise
-  KalmanFloat tyErr = dev_pars[1] * fabsf(x_old[4]);
-  KalmanFloat yErr = dev_pars[4] * fabsf(dz * x_old[4]);
-  KalmanFloat s_qop = scattering_qop(tI.m_RefStateForwardV[2], tI.m_RefStateForwardV[3], x_old[4]);
-  KalmanFloat txErr = dev_pars[8] * s_qop;
-  KalmanFloat xErr = dev_pars[13] * fabsf(dz * s_qop);
+  KalmanFloat tyErr = dev_pars[1] * fabsf(x[4]);
+  KalmanFloat yErr = dev_pars[4] * fabsf(dz * x[4]);
+  KalmanFloat txErr = dev_pars[8] * fabsf(x[4]);
+  KalmanFloat xErr = dev_pars[13] * fabsf(dz * x[4]);
 
   Q(0, 0) = xErr * xErr;
   Q(0, 2) = dev_pars[2] * xErr * txErr;
@@ -255,11 +254,11 @@ __device__ inline void ExtrapolateInUT(
   KalmanFloat dz = zTo - tI.m_Lastz;
   tI.m_Lastz = zTo;
   // which set of parameters should be used (0-3 are forward) (0 -> from 0 to 1)
-  unsigned offset = (layer - 1) * 18;
+  unsigned offset = (layer - 1) * 12;
 
-  float par = dev_pars[offset + 7];
-  float par1 = dev_pars[offset + 5];
-  float par2 = dev_pars[offset + 6];
+  float par = dev_pars[offset + 6] * tI.m_polarity;
+  float par1 = dev_pars[offset + 4] * tI.m_polarity;
+  float par2 = dev_pars[offset + 5] * tI.m_polarity;
 
   x[2] += dz * (par1 * ((KalmanFloat) 1.e-1) * x[4] + par2 * ((KalmanFloat) 1.e3) * x[4] * x[4] * x[4] +
                 par * ((KalmanFloat) 1e-7) * x[1] * x[1] * x[4]);
@@ -267,10 +266,10 @@ __device__ inline void ExtrapolateInUT(
   F(2, 4) = dz * (par1 * ((KalmanFloat) 1.e-1) + ((KalmanFloat) 3.0) * par2 * ((KalmanFloat) 1.e3) * x[4] * x[4] +
                   par * ((KalmanFloat) 1e-7) * old_y * old_y);
 
-  par1 = dev_pars[offset + 10];
+  par1 = dev_pars[offset + 7] * tI.m_polarity;
   x[3] += par1 * x[4] * x[2] * std::copysign((KalmanFloat) 1.0, x[1]);
 
-  par = dev_pars[offset + 3];
+  par = dev_pars[offset + 2];
   x[1] += dz * (par * old_ty + (((KalmanFloat) 1.0) - par) * x[3]);
 
   par = dev_pars[offset + 0];
@@ -280,25 +279,24 @@ __device__ inline void ExtrapolateInUT(
   F(0, 4) = dz * (((KalmanFloat) 1.0) - par) * F(2, 4);
 
   F(3, 2) = par1 * x[4] * std::copysign((KalmanFloat) 1.0, x[1]);
-  F(3, 3) = (KalmanFloat) 1.0;
   F(3, 4) = par1 * x[2] * std::copysign((KalmanFloat) 1.0, x[1]);
 
-  par = dev_pars[offset + 3];
+  par = dev_pars[offset + 2];
   F(1, 2) = dz * (((KalmanFloat) 1.0) - par) * F(3, 2);
   F(1, 3) = dz;
   F(1, 4) = dz * (((KalmanFloat) 1.0) - par) * F(3, 4);
 
   // Define noise
-  KalmanFloat xErr = dev_pars[offset + 2] * fabsf(dz * x[4]);
-  KalmanFloat yErr = dev_pars[offset + 4] * fabsf(dz * x[4]);
-  KalmanFloat txErr = dev_pars[offset + 12] * fabsf(x[4]);
-  KalmanFloat tyErr = dev_pars[offset + 15] * fabsf(x[4]);
+  KalmanFloat xErr = dev_pars[offset + 1] * fabsf(dz * x[4]);
+  KalmanFloat yErr = dev_pars[offset + 3] * fabsf(dz * x[4]);
+  KalmanFloat txErr = dev_pars[offset + 8] * fabsf(x[4]);
+  KalmanFloat tyErr = dev_pars[offset + 10] * fabsf(x[4]);
 
   // Add noise
   Q(0, 0) = xErr * xErr;
-  Q(0, 2) = dev_pars[offset + 14] * xErr * txErr;
+  Q(0, 2) = dev_pars[offset + 9] * xErr * txErr;
   Q(1, 1) = yErr * yErr;
-  Q(1, 3) = dev_pars[offset + 17] * yErr * tyErr;
+  Q(1, 3) = dev_pars[offset + 11] * yErr * tyErr;
   Q(2, 2) = txErr * txErr;
   Q(3, 3) = tyErr * tyErr;
 }
@@ -310,10 +308,11 @@ __device__ inline void extrapUTT(
   KalmanFloat& y,
   KalmanFloat& tx,
   KalmanFloat& ty,
-  KalmanFloat qop,
+  KalmanFloat qOp,
   KalmanFloat* der_tx,
   KalmanFloat* der_ty,
-  KalmanFloat* der_qop)
+  KalmanFloat* der_qop,
+  trackInfo& tI)
 {
   // Definitons of the dev_UTT_META indices
   // 00 ZINI
@@ -337,6 +336,8 @@ __device__ inline void extrapUTT(
   // 18 DEGY2
   // Xmax = ZINI * Txmax;
   // Ymax = ZINI * Tymax;
+
+  KalmanFloat qop = qOp * tI.m_polarity;
 
   KalmanFloat xx(0), yy(0), dx, dy, ux, uy;
   int ix, iy;
@@ -469,6 +470,11 @@ __device__ inline void extrapUTT(
   der_ty[1] += zf - zi;
   der_tx[2] += 1;
   der_ty[3] += 1;
+
+  der_qop[0] = tI.m_polarity * der_qop[0];
+  der_qop[1] = tI.m_polarity * der_qop[1];
+  der_qop[2] = tI.m_polarity * der_qop[2];
+  der_qop[3] = tI.m_polarity * der_qop[3];
 }
 
 __device__ inline void ExtrapolateUTT(
@@ -477,7 +483,8 @@ __device__ inline void ExtrapolateUTT(
   const KalmanParametrizations* kalman_params,
   Vector5& x,
   Matrix5x5& F,
-  SymMatrix5x5& Q)
+  SymMatrix5x5& Q,
+  trackInfo& tI)
 {
   // extrapolating from last UT layer (z=2642.5) to fixed z in T (z=7855)
 
@@ -493,7 +500,7 @@ __device__ inline void ExtrapolateUTT(
   KalmanFloat der_ty[4];
   KalmanFloat der_qop[4];
   // do the actual extrapolation
-  extrapUTT(kalman_params, dev_UTT_META, x[0], x[1], x[2], x[3], qopHere, der_tx, der_ty, der_qop);
+  extrapUTT(kalman_params, dev_UTT_META, x[0], x[1], x[2], x[3], qopHere, der_tx, der_ty, der_qop, tI);
 
   F(0, 4) = der_qop[0];
   F(1, 4) = der_qop[1];
@@ -524,17 +531,17 @@ __device__ inline void ExtrapolateUTT(
   F(2, 4) += ((KalmanFloat) 2.0) * fabsf(x[4]) * par;
   F(0, 4) += ((KalmanFloat) 2.0) * fabsf(x[4]) * par;
 
-  par = dev_pars[0];
+  par = dev_pars[0] * tI.m_polarity;
   F(3, 4) += par + ((KalmanFloat) 2.0) * dev_pars[1] * x[4] * ((KalmanFloat) 1e5) +
-             ((KalmanFloat) 3.0) * dev_pars[2] * x[4] * x[4] * ((KalmanFloat) 1e8);
+             ((KalmanFloat) 3.0) * dev_pars[2] * tI.m_polarity * x[4] * x[4] * ((KalmanFloat) 1e8);
   x[3] += par * x[4];
 
-  par = dev_pars[3];
+  par = dev_pars[3] * tI.m_polarity;
   F(1, 4) += par * ((KalmanFloat) 1e2) + ((KalmanFloat) 2.0) * dev_pars[4] * x[4] * ((KalmanFloat) 1e5) +
-             ((KalmanFloat) 3.0) * dev_pars[5] * x[4] * x[4] * ((KalmanFloat) 1e8);
+             ((KalmanFloat) 3.0) * dev_pars[5] * tI.m_polarity * x[4] * x[4] * ((KalmanFloat) 1e8);
   x[1] += par * x[4] * ((KalmanFloat) 1e2);
 
-  par = dev_pars[6];
+  par = dev_pars[6] * tI.m_polarity;
   F(2, 4) += par;
   x[2] += par * x[4];
 
@@ -542,11 +549,11 @@ __device__ inline void ExtrapolateUTT(
   F(2, 4) += ((KalmanFloat) 2.0) * par;
   x[2] += par * x[4];
 
-  par = dev_pars[8] * x[4] * x[4] * ((KalmanFloat) 1e8);
+  par = dev_pars[8] * tI.m_polarity * x[4] * x[4] * ((KalmanFloat) 1e8);
   F(2, 4) += ((KalmanFloat) 3.0) * par;
   x[2] += par * x[4];
 
-  par = dev_pars[9] * ((KalmanFloat) 1e2);
+  par = dev_pars[9] * tI.m_polarity * ((KalmanFloat) 1e2);
   F(0, 4) += par;
   x[0] += par * x[4];
 
@@ -554,7 +561,7 @@ __device__ inline void ExtrapolateUTT(
   F(0, 4) += ((KalmanFloat) 2.0) * par;
   x[0] += par * x[4];
 
-  par = dev_pars[11] * x[4] * x[4] * ((KalmanFloat) 1e10);
+  par = dev_pars[11] * tI.m_polarity * x[4] * x[4] * ((KalmanFloat) 1e10);
   F(0, 4) += ((KalmanFloat) 3.0) * par;
   x[0] += par * x[4];
 
@@ -598,41 +605,36 @@ __device__ inline void ExtrapolateInT(
   // ∧  |  |  |  |     |  |  |  |     |  |  |  |
   // |   1  3  5    7   9  11 13   15  17 19 21
   // --> z
-  // Reminder: backward T station label is different for the offset definition
-  // 44 42 40 38     36 34 32 30    28 26 24
-  //|  |  |  |      |  |  |  |     |  |  |  |
-  //|  |  |  |      |  |  |  |     |  |  |  |
-  // 45 43 41 39     37 35 33 31    29 27 25
   int offset = 2 * (layer - 1);
   if (x[1] < 0) offset += 1;
-  offset *= 18;
+  offset *= 12;
   // predict state
   // tx
-  x[2] += dz * dev_pars[offset + 5] * ((KalmanFloat) 1.e-1) * x[4];
-  x[2] += dz * dev_pars[offset + 6] * ((KalmanFloat) 1.e3) * x[4] * x[4] * x[4];
-  x[2] += dz * dev_pars[offset + 7] * ((KalmanFloat) 1e-7) * x[1] * x[1] * x[4];
+  x[2] += dz * tI.m_polarity * dev_pars[offset + 4] * ((KalmanFloat) 1.e-1) * x[4];
+  x[2] += dz * tI.m_polarity * dev_pars[offset + 5] * ((KalmanFloat) 1.e3) * x[4] * x[4] * x[4];
+  x[2] += dz * tI.m_polarity * dev_pars[offset + 6] * ((KalmanFloat) 1e-7) * x[1] * x[1] * x[4];
 
   // ty
-  float par = dev_pars[offset + 10] * x[4];
+  float par = dev_pars[offset + 7] * x[4];
   x[3] += par * x[4] * x[1];
   F(3, 4) = ((KalmanFloat) 2.0) * par;
 
   // y
-  par = dev_pars[offset + 3];
+  par = dev_pars[offset + 2];
   x[1] += dz * (par * old_x3 + (((KalmanFloat) 1.0) - par) * x[3]);
   F(1, 4) = dz * (((KalmanFloat) 1.0) - par) * F(3, 4);
 
   // calculate jacobian
-  KalmanFloat dtxddz = dev_pars[offset + 5] * ((KalmanFloat) 1.e-1) * x[4];
-  dtxddz += dev_pars[offset + 6] * ((KalmanFloat) 1.e3) * x[4] * x[4] * x[4];
-  dtxddz += dev_pars[offset + 7] * ((KalmanFloat) 1e-7) * x[1] * x[1] * x[4];
+  KalmanFloat dtxddz = tI.m_polarity * dev_pars[offset + 4] * ((KalmanFloat) 1.e-1) * x[4];
+  dtxddz += tI.m_polarity * dev_pars[offset + 5] * ((KalmanFloat) 1.e3) * x[4] * x[4] * x[4];
+  dtxddz += tI.m_polarity * dev_pars[offset + 6] * ((KalmanFloat) 1e-7) * x[1] * x[1] * x[4];
 
-  F(2, 1) = ((KalmanFloat) 2.0) * dz * dev_pars[offset + 7] * ((KalmanFloat) 1e-7) * old_x1 * x[4];
+  F(2, 1) = ((KalmanFloat) 2.0) * dz * tI.m_polarity * dev_pars[offset + 6] * ((KalmanFloat) 1e-7) * old_x1 * x[4];
   F(2, 1) += dtxddz * DzDy;
   F(2, 3) = dtxddz * DzDty;
-  F(2, 4) = dz * dev_pars[offset + 5] * ((KalmanFloat) 1.e-1);
-  F(2, 4) += dz * ((KalmanFloat) 3.0) * dev_pars[offset + 6] * ((KalmanFloat) 1.e3) * x[4] * x[4];
-  F(2, 4) += dz * dev_pars[offset + 7] * ((KalmanFloat) 1e-7) * old_x1 * old_x1;
+  F(2, 4) = dz * tI.m_polarity * dev_pars[offset + 4] * ((KalmanFloat) 1.e-1);
+  F(2, 4) += dz * ((KalmanFloat) 3.0) * tI.m_polarity * dev_pars[offset + 5] * ((KalmanFloat) 1.e3) * x[4] * x[4];
+  F(2, 4) += dz * tI.m_polarity * dev_pars[offset + 6] * ((KalmanFloat) 1e-7) * old_x1 * old_x1;
 
   // x
   par = dev_pars[offset + 0];
@@ -647,15 +649,15 @@ __device__ inline void ExtrapolateInT(
   F(1, 3) = dz;
 
   // Define noise
-  KalmanFloat xErr = dev_pars[offset + 2] * fabsf(dz * x[4]);
-  KalmanFloat yErr = dev_pars[offset + 4] * fabsf(dz * x[4]);
-  KalmanFloat txErr = dev_pars[offset + 12] * fabsf(x[4]);
-  KalmanFloat tyErr = dev_pars[offset + 15] * fabsf(x[4]);
+  KalmanFloat xErr = dev_pars[offset + 1] * fabsf(dz * x[4]);
+  KalmanFloat yErr = dev_pars[offset + 3] * fabsf(dz * x[4]);
+  KalmanFloat txErr = dev_pars[offset + 8] * fabsf(x[4]);
+  KalmanFloat tyErr = dev_pars[offset + 10] * fabsf(x[4]);
 
   Q(0, 0) = xErr * xErr;
-  Q(0, 2) = dev_pars[offset + 14] * xErr * txErr;
+  Q(0, 2) = dev_pars[offset + 9] * xErr * txErr;
   Q(1, 1) = yErr * yErr;
-  Q(1, 3) = dev_pars[offset + 17] * yErr * tyErr;
+  Q(1, 3) = dev_pars[offset + 11] * yErr * tyErr;
   Q(2, 2) = txErr * txErr;
   Q(3, 3) = tyErr * tyErr;
 
@@ -670,12 +672,12 @@ __device__ inline void ExtrapolateTFT(const float* dev_pars, KalmanFloat& zTo, V
 
   // do the extrapolation of the state vector
   // tx
-  float par = dev_pars[1];
+  float par = dev_pars[1] * tI.m_polarity;
 
   x[2] += par * x[4] * dz;
   F(2, 4) = par * dz;
 
-  par = dev_pars[2];
+  par = dev_pars[2] * tI.m_polarity;
   x[2] += ((KalmanFloat) 1e4) * par * x[4] * dz * x[4] * dz * x[4] * dz;
   F(2, 4) += ((KalmanFloat) 3.0) * ((KalmanFloat) 1e4) * par * dz * dz * dz * x[4] * x[4];
 
@@ -923,7 +925,7 @@ __device__ inline void PredictStateUTT(
   Vector5 xtmp = xref;
 
   // Transportation and noise matrices.
-  ExtrapolateUTT(dev_pars_UTTF, dev_UTT_META, kalman_params, xref, F, Q);
+  ExtrapolateUTT(dev_pars_UTTF, dev_UTT_META, kalman_params, xref, F, Q, tI);
 
   // Save reference state/jacobian after this intermediate extrapolation.
   x = xref + F * (x - xtmp); // TODO: This step could be optimized.

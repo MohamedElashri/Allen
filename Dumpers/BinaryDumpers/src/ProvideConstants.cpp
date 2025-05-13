@@ -97,25 +97,18 @@ StatusCode ProvideConstants::initialize()
 
   // Kalman Filter Parameters
   std::unique_ptr<ParKalmanReader> parKalmanFilter_reader;
-  parKalmanFilter_reader = std::make_unique<ParKalmanReader>(geometry_path + "/ParametrizedKalmanFit/24v0/params.json");
+  parKalmanFilter_reader = std::make_unique<ParKalmanReader>(geometry_path + "/ParametrizedKalmanFit/25v0/params.json");
 
   m_constants.initialize_kalman_pars_constants(
-    parKalmanFilter_reader->VP_pars(-1),
-    parKalmanFilter_reader->VPUT_pars(-1),
-    parKalmanFilter_reader->UT_pars(-1),
-    parKalmanFilter_reader->T_pars(-1),
-    parKalmanFilter_reader->UTTF_pars(-1),
-    parKalmanFilter_reader->TFT_pars(-1),
-    parKalmanFilter_reader->VP_pars(1),
-    parKalmanFilter_reader->VPUT_pars(1),
-    parKalmanFilter_reader->UT_pars(1),
-    parKalmanFilter_reader->T_pars(1),
-    parKalmanFilter_reader->UTTF_pars(1),
-    parKalmanFilter_reader->TFT_pars(1),
+    parKalmanFilter_reader->VP_pars(),
+    parKalmanFilter_reader->VPUT_pars(),
+    parKalmanFilter_reader->UT_pars(),
+    parKalmanFilter_reader->T_pars(),
+    parKalmanFilter_reader->UTTF_pars(),
+    parKalmanFilter_reader->TFT_pars(),
     parKalmanFilter_reader->UT_layer(),
     parKalmanFilter_reader->T_layer(),
-    parKalmanFilter_reader->UTT_META(-1),
-    parKalmanFilter_reader->UTT_META(1));
+    parKalmanFilter_reader->UTT_META());
 
   // Allen Consumers
   std::unordered_set<BankTypes> subdetectors;

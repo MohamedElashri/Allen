@@ -19,11 +19,6 @@
 #include <sstream>
 
 namespace ParKalmanFilter {
-
-  //----------------------------------------------------------------------
-  // Class for storing polarity.
-  enum class Polarity { Up, Down };
-
   //----------------------------------------------------------------------
   // Structure for storing parameters and performing extrapolations.
   struct KalmanParametrizations {
@@ -45,7 +40,6 @@ namespace ParKalmanFilter {
     int DEGX1, DEGX2, DEGY1, DEGY2;
 
     // Keep track of polarity and whether or not parameters have been loaded.
-    Polarity m_Polarity = Polarity::Up;
     bool paramsLoaded = false;
 
     __device__ __host__ inline float UTTExtrEndZ() const;
@@ -106,41 +100,18 @@ namespace ParKalmanFilter {
 
     //----------------------------------------------------------------------
     // Set parameters.
-    __host__ void SetParameters(std::string param_file_location, Polarity polarity)
+    __host__ void SetParameters(std::string param_file_location)
     {
-
       // Get polarity.
-      if ((m_Polarity == polarity) && paramsLoaded) return;
+      if (paramsLoaded) return;
       std::string ParamFileLocation;
-      if (polarity == Polarity::Up) {
-        ParamFileLocation = param_file_location + "/ParametrizedKalmanFit/24v0/" + "MagUp";
-      }
-      else if (polarity == Polarity::Down) {
-        ParamFileLocation = param_file_location + "/ParametrizedKalmanFit/24v0/" + "MagDown";
-      }
-      else {
-        throw StrException("Failed to set the magnet polarity in Kalman Parametrisation ");
-      }
-
+      ParamFileLocation = param_file_location + "/ParametrizedKalmanFit/25v0/";
       read_params_UTT(ParamFileLocation + "/params_UTT_v0.tab");
-      m_Polarity = polarity;
       paramsLoaded = true;
     }
   }; // End KalmanParametrizations
 
   // We need to load both parametrisation at this point, based on the condition only the right polarity will be used.
-  struct KalmanParametrizationsStruct {
-    // Up and Down parameters
-    KalmanParametrizations par_up;
-    KalmanParametrizations par_down;
-
-    // passthrough the Setup
-    __host__ void SetParameters(std::string param_file_location)
-    {
-      par_up.SetParameters(param_file_location, Polarity::Up);
-      par_down.SetParameters(param_file_location, Polarity::Down);
-    }
-  }; // End KalmanParametrizationsStruct
 
 } // namespace ParKalmanFilter
 
