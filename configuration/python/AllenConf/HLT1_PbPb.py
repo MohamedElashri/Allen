@@ -646,8 +646,6 @@ def setup_hlt1_node(withMCChecking=False,
         monitoring_lines += default_bgi_activity_lines(
             reconstructed_objects["pvs"],
             reconstructed_objects["velo_states"],
-            decoded_velo=decode_velo(),
-            decoded_calo=decoded_calo,
             prefilter=(prefilter_upc_bgi if mini else prefilters_bgi),
             enableBGI_full=False,
             PbPb_collision=True)
