@@ -774,17 +774,11 @@ def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name,
 
 def alignment_monitoring_lines(reconstructed_objects,
                                prefilters_bx,
-                               prefilters_odin_err,
-                               thresholds,
                                chi2_cuts,
                                with_muon=True):
 
-    velo_tracks = reconstructed_objects["velo_tracks"]
-    material_interaction_tracks = reconstructed_objects[
-        "material_interaction_tracks"]
     long_tracks = reconstructed_objects["long_tracks"]
     long_track_particles = reconstructed_objects["long_track_particles"]
-    velo_states = reconstructed_objects["velo_states"]
     dihadrons = reconstructed_objects["dihadron_secondary_vertices"]
     dileptons = reconstructed_objects["dilepton_secondary_vertices"]
     dstars = reconstructed_objects["dstars"]
@@ -837,40 +831,86 @@ def alignment_monitoring_lines(reconstructed_objects,
     with line_maker.bind(prefilter=prefilters_bx):
         lines = [line_maker(line) for line in lines]
 
-    with line_maker.bind(
-            prefilter=prefilters_bx +
-        [make_prescaler(5e-4, "Hlt1MaterialVertexSeedsDownstreamz")]):
+    return lines
+
+
+@configurable
+def velo_tomography_lines(reconstructed_objects,
+                          prefilters_odin_err,
+                          prefilters_bx,
+                          full_velo_tomography=False):
+
+    material_interaction_tracks = reconstructed_objects[
+        "material_interaction_tracks"]
+
+    # VELO tomography lines need different pre-filters during special trigger configurations
+    # Only apply an ODIN error filter if the full VELO tomography is enabled
+    #   Otherwise it will be ODIN error + BX + VeloClosed + SciFiGEC
+    tomography_prefilters = prefilters_odin_err if full_velo_tomography else prefilters_bx
+
+    lines = [
+        line_maker(
+            make_z_range_materialvertex_seed_line(
+                material_interaction_tracks,
+                min_z_materialvertex_seed=300,
+                max_z_materialvertex_seed=1000,
+                name="Hlt1MaterialVertexSeedsDownstreamz"),
+            prefilter=tomography_prefilters + [
+                make_prescaler(0.5 if full_velo_tomography else 5e-4,
+                               "Hlt1MaterialVertexSeedsDownstreamz")
+            ]),
+        line_maker(
+            make_z_range_materialvertex_seed_line(
+                material_interaction_tracks,
+                min_z_materialvertex_seed=700,
+                max_z_materialvertex_seed=1000,
+                name="Hlt1MaterialVertexSeeds_DWFS"),
+            prefilter=tomography_prefilters + [
+                make_prescaler(1 if full_velo_tomography else 0.1,
+                               "Hlt1MaterialVertexSeeds_DWFS")
+            ]),
+    ]
+    if full_velo_tomography:
+        # Add an integrated VELO tomography line if full lines are enabled
         lines += [
             line_maker(
                 make_z_range_materialvertex_seed_line(
                     material_interaction_tracks,
-                    min_z_materialvertex_seed=300,
+                    min_z_materialvertex_seed=-550,
                     max_z_materialvertex_seed=1000,
-                    name="Hlt1MaterialVertexSeedsDownstreamz",
-                    pre_scaler=5e-4))
+                    name="Hlt1MaterialVertexSeeds_zIntegrated"),
+                prefilter=tomography_prefilters +
+                [make_prescaler(1e-2, "Hlt1MaterialVertexSeeds_zIntegrated")])
         ]
 
-    with line_maker.bind(
-            prefilter=prefilters_bx +
-        [make_prescaler(0.1, "Hlt1MaterialVertexSeeds_DWFS")]):
-        lines += [
-            line_maker(
-                make_z_range_materialvertex_seed_line(
-                    material_interaction_tracks,
-                    min_z_materialvertex_seed=700,
-                    max_z_materialvertex_seed=1000,
-                    name="Hlt1MaterialVertexSeeds_DWFS",
-                    pre_scaler=0.1))
-        ]
+    return lines
 
-    with line_maker.bind(prefilter=prefilters_odin_err):
-        lines += [
+
+@configurable
+def velo_micro_bias_lines(reconstructed_objects,
+                          odin_err_filter,
+                          velo_micro_bias_post_scaler=1e-3):
+    velo_tracks = reconstructed_objects["velo_tracks"]
+    with line_maker.bind(prefilter=odin_err_filter):
+        lines = [
             line_maker(
                 make_velo_micro_bias_line(
                     velo_tracks,
                     name="Hlt1VeloMicroBias",
-                    pre_scaler=1.,
-                    post_scaler=1.e-3))
+                    pre_scaler=1.0,
+                    post_scaler=velo_micro_bias_post_scaler,
+                ))
+        ]
+
+    velo_open_event = make_event_type(event_type="VeloOpen")
+    with line_maker.bind(prefilter=odin_err_filter + [velo_open_event]):
+        lines += [
+            line_maker(
+                make_velo_micro_bias_line(
+                    velo_tracks,
+                    name="Hlt1VeloMicroBiasVeloClosing",
+                    post_scaler=3.0e-3,
+                ))
         ]
 
     return lines
@@ -1060,8 +1100,6 @@ def default_SMOG2_lines(reconstructed_objects,
 @configurable
 def default_bgi_activity_lines(pvs,
                                velo_states,
-                               decoded_velo,
-                               decoded_calo,
                                enableBGI_full=False,
                                PbPb_collision=False,
                                prefilter=[]):
@@ -1144,7 +1182,7 @@ def default_bgi_activity_lines(pvs,
             make_beam_line(
                 name="Hlt1BGIPseudoPVsDownBeamBeam",
                 beam_crossing_type=3,
-                pre_scaler=0.05,
+                pre_scaler=1. if enableBGI_full else 0.05,
                 post_scaler=1.),
             prefilter=prefilter + [velo_states_z_down])
     ]
@@ -1226,14 +1264,6 @@ def default_bgi_activity_lines(pvs,
                 post_scaler=1.),
             prefilter=prefilter + [pvs_z_down])
     ]
-
-    pvs_z_ir = make_checkCylPV(
-        pvs,
-        name="BGIPVsCylIR",
-        min_vtx_z=-250.,
-        max_vtz_z=250.,
-        max_vtx_rho_sq=max_cyl_rad_sq,
-        min_vtx_nTracks=28.)
     return lines
 
 
@@ -1297,7 +1327,6 @@ def setup_hlt1_node(enablePhysics=True,
     odin_err_filter = [odin_error_filter("odin_error_filter")
                        ] if with_odin_filter else []
     beam_beam_filter = [make_bxtype(bx_type=3)]
-    velo_open_event = make_event_type(event_type="VeloOpen")
     velo_closed = [
         make_event_type(
             name="ODIN_EvenType_VeloClosed",
@@ -1354,15 +1383,6 @@ def setup_hlt1_node(enablePhysics=True,
                 make_passthrough_line(name="Hlt1ErrorBank", pre_scaler=0.0001))
         ]
 
-    with line_maker.bind(prefilter=odin_err_filter + [velo_open_event]):
-        monitoring_lines += [
-            line_maker(
-                make_velo_micro_bias_line(
-                    reconstructed_objects["velo_tracks"],
-                    name="Hlt1VeloMicroBiasVeloClosing",
-                    post_scaler=3.e-3))
-        ]
-
     if EnableGEC:
         with line_maker.bind(prefilter=odin_err_filter + gec):
             physics_lines += [
@@ -1374,13 +1394,16 @@ def setup_hlt1_node(enablePhysics=True,
         physics_lines += default_bgi_activity_lines(
             reconstructed_objects["pvs"],
             reconstructed_objects["velo_states"],
-            decode_velo(),
-            decode_calo(),
             prefilter=bgi_prefilters)
 
     monitoring_lines += alignment_monitoring_lines(
-        reconstructed_objects, prefilters, odin_err_filter, threshold_settings,
-        chi2_cuts, with_muon)
+        reconstructed_objects, prefilters, chi2_cuts, with_muon)
+
+    monitoring_lines += velo_tomography_lines(reconstructed_objects,
+                                              odin_err_filter, prefilters)
+
+    monitoring_lines += velo_micro_bias_lines(reconstructed_objects,
+                                              odin_err_filter)
 
     bx_BE = make_bxtype(bx_type=1)
     with line_maker.bind(
