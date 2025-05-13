@@ -99,8 +99,6 @@ find_package(cppgsl REQUIRED)
 # std::filesytem detection
 find_package(Filesystem REQUIRED)
 
-find_package(umesimd REQUIRED)
-
 find_package(PkgConfig)
 pkg_check_modules(zmq libzmq REQUIRED IMPORTED_TARGET)
 pkg_check_modules(sodium libsodium REQUIRED IMPORTED_TARGET)

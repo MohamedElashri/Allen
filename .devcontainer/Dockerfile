@@ -28,7 +28,6 @@ RUN curl -L https://boostorg.jfrog.io/artifactory/main/release/1.82.0/source/boo
     ./b2 -j 4 &&\
     ./b2 install
 
-RUN git clone https://github.com/edanor/umesimd.git
 RUN git clone https://gitlab.cern.ch/lhcb/Gaudi.git
 RUN git clone https://gitlab.cern.ch/lhcb/LHCb.git
 RUN git clone https://gitlab.cern.ch/lhcb-datapkg/ParamFiles.git

@@ -12,7 +12,6 @@
 #include "ClusteringDefinitions.cuh"
 #include "SearchByTriplet.cuh"
 #include "VeloTools.cuh"
-#include "Vector.h"
 #include <cstdio>
 #include <array>
 #include <algorithm>
