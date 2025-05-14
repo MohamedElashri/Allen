@@ -109,6 +109,9 @@ rb_map = {
     # RB 17 physics for CalibMon
     'Hlt1(Dst2D0Pi|DetJpsiToMuMuPosTagLine|DetJpsiToMuMuNegTagLine)':
     17,
+    # RB 21 HLT1 physics for NZS
+    'Hlt1NonZeroSuppress':
+    21,
     # RB 25 error banks
     'Hlt1ErrorBank':
     25,
@@ -167,6 +170,9 @@ rb_map_PbPb = {
     # RB 17 physics for CalibMon
     'Hlt1(Dst2D0Pi|DetJpsiToMuMuPosTagLine|DetJpsiToMuMuNegTagLine)':
     17,
+    # RB 21 HLT1 physics for NZS
+    'Hlt1NonZeroSuppress':
+    21,
     # RB 25 error banks
     'Hlt1ErrorBank':
     25,
