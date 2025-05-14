@@ -9,8 +9,9 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from AllenCore.algorithms import (odin_provider_t, odin_beamcrossingtype_t,
-                                  host_odin_error_filter_t, host_tae_filter_t,
-                                  odin_eventtype_t, odin_orbitnumber_t)
+                                  odin_nzsfilter_t, host_odin_error_filter_t,
+                                  host_tae_filter_t, odin_eventtype_t,
+                                  odin_orbitnumber_t)
 from AllenCore.generator import make_algorithm
 from AllenConf.utils import mep_layout, initialize_number_of_events
 from PyConf.tonic import configurable
@@ -31,6 +32,19 @@ def decode_odin():
         "host_event_list": odin_banks.host_event_list_t,
         "dev_event_mask": odin_banks.dev_event_mask_t
     }
+
+
+@configurable
+def make_nzs_filter(name="ODIN_NonZSFilter", nzsfilter=True):
+    number_of_events = initialize_number_of_events()
+    odin = decode_odin()
+
+    return make_algorithm(
+        odin_nzsfilter_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_odin_data_t=odin['dev_odin_data'],
+        nzs_bit=nzsfilter)
 
 
 @configurable
