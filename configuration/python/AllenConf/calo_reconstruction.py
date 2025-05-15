@@ -153,7 +153,8 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states, long_tracks,
         dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
         dev_offsets_long_tracks_t=long_tracks["dev_offsets_long_tracks"],
         dev_brem_E_t=brem_recovery.dev_brem_E_t,
-        dev_brem_ET_t=brem_recovery.dev_brem_ET_t)
+        dev_brem_ET_t=brem_recovery.dev_brem_ET_t,
+        dev_track_Eop_t=track_digit_selective_matching.dev_track_Eop_t)
 
     return {
         "dev_region":
