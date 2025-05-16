@@ -13,15 +13,17 @@ from AllenCore.generator import generate
 from AllenConf.enum_types import TrackingType
 from AllenConf.get_thresholds import get_thresholds
 from AllenConf.matching_reconstruction import make_velo_scifi_matches
+from AllenConf.velo_reconstruction import make_pr_velo_tracks
 
-with make_velo_scifi_matches.bind(ghost_killer_threshold=0.8):
+with make_velo_scifi_matches.bind(
+        ghost_killer_threshold=0.8), make_pr_velo_tracks.bind(
+            missing_modules=[21]):
     hlt1_node = setup_hlt1_node(
         tracking_type=TrackingType.FORWARD_THEN_MATCHING,
         threshold_settings=get_thresholds(
             f"forward_then_matching_and_downstream_with_parkf_tuned_mu5p3_1300kHz"
         ),
         with_ut=True,
-        enableTupling=True,
         enableDownstream=True,
         with_fullKF=True,
     )
