@@ -19,8 +19,6 @@ with (make_velo_scifi_matches.bind(ghost_killer_threshold=0.8),\
       make_pr_velo_tracks.bind(missing_modules=[21])):
     hlt1_node = setup_hlt1_node(
         tracking_type=TrackingType.FORWARD_THEN_MATCHING,
-        threshold_settings=get_thresholds(
-            "forward_then_matching_tuned_mu5p3_1200KHz"),
         with_ut=True,
         with_fullKF=True,
         enableDownstream=False,  # Downstream not used in technical lines
