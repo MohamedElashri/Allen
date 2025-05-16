@@ -20,10 +20,9 @@ with (make_velo_scifi_matches.bind(ghost_killer_threshold=0.8),\
       velo_micro_bias_lines.bind(velo_micro_bias_post_scaler=1.0)): # Fully enable VELO micro bias
     hlt1_node = setup_hlt1_node(
         tracking_type=TrackingType.FORWARD_THEN_MATCHING,
-        threshold_settings=get_thresholds(
-            "forward_then_matching_tuned_mu5p3_1200KHz"),
         with_ut=True,
         with_fullKF=True,
+        enableAlignment=False,  # Disable alignment during magnet off
         enableDownstream=False,  # Downstream not used in technical lines
         enablePhysics=False,  # Only enable technical lines
         withSMOG2=False)  # Only enable technical lines

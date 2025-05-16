@@ -1148,7 +1148,7 @@ def default_bgi_activity_lines(pvs,
             make_beam_line(
                 name="Hlt1BGIPseudoPVsBeamTwo",
                 beam_crossing_type=2,
-                pre_scaler=1.,
+                pre_scaler=1. if enableBGI_full else 6.5e-2,
                 post_scaler=1.),
             prefilter=prefilter + [bx_NoBB, velo_states_z_all])
     ]
@@ -1282,6 +1282,7 @@ def setup_hlt1_node(enablePhysics=True,
                     with_rich=False,
                     with_AC_split=False,
                     enableBGI=True,
+                    enableAlignment=True,
                     velo_open=False,
                     enableDownstream=False,
                     tracking_type=TrackingType.FORWARD,
@@ -1407,8 +1408,11 @@ def setup_hlt1_node(enablePhysics=True,
             reconstructed_objects["velo_states"],
             prefilter=bgi_prefilters)
 
-    monitoring_lines += alignment_monitoring_lines(
-        reconstructed_objects, prefilters, chi2_cuts, with_muon)
+    # Alignment lines have momentum cuts, whose rate might explode
+    #   during magnet off as straight tracks are given high momentum
+    if enableAlignment:
+        monitoring_lines += alignment_monitoring_lines(
+            reconstructed_objects, prefilters, chi2_cuts, with_muon)
 
     monitoring_lines += velo_tomography_lines(reconstructed_objects,
                                               odin_err_filter, prefilters)

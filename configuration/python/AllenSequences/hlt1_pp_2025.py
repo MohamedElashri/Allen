@@ -23,6 +23,7 @@ with make_velo_scifi_matches.bind(
         threshold_settings=get_thresholds(
             "forward_then_matching_and_downstream_with_parkf_tuned_mu5p3_1200kHz"
         ),
+        with_fullKF=True,
         with_ut=True,
         enableDownstream=True)
 

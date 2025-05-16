@@ -20,8 +20,6 @@ with (make_velo_scifi_matches.bind(ghost_killer_threshold=0.8),\
       velo_tomography_lines.bind(full_velo_tomography=True)): # Special configuration for VELO tomography
     hlt1_node = setup_hlt1_node(
         tracking_type=TrackingType.FORWARD_THEN_MATCHING,
-        threshold_settings=get_thresholds(
-            "forward_then_matching_tuned_mu5p3_1200KHz"),
         with_ut=True,
         with_fullKF=True,
         enableDownstream=False,  # Downstream not used in technical lines
