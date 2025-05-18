@@ -54,22 +54,25 @@ void build_cone_jets::build_cone_jets_t::operator()(
   Allen::memset_async<dev_neutral_masks_t>(arguments, -1, context);
   Allen::memset_async<dev_jet_data_t>(arguments, 0, context);
   Allen::memset_async<dev_jet_clusters_t>(arguments, 0, context);
-  Allen::memset_async<dev_jet_offsets_t>(arguments, 0, context);
+  Allen::memset_async<dev_jet_offsets_t>(arguments, 0, context); // initialize to 0, in case event_list size == 0
+  data<host_number_of_jets_t>(arguments)[0] = 0;                 // initialize to 0, in case event_list size == 0
   global_function(build_jets)(dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x), context)(
-    arguments, m_n_max_jets, m_cone_radius);
-
-  PrefixSum::prefix_sum<dev_jet_offsets_t, host_number_of_jets_t>(*this, arguments, context);
+    arguments, m_n_max_jets, m_cone_radius, data<host_number_of_jets_t>(arguments));
+  Allen::synchronize(context); // sync needed for host_number_of_jets
 }
 
-__global__ void
-build_cone_jets::build_jets(build_cone_jets::Parameters parameters, const unsigned n_max_jets, const float cone_radius)
+__global__ void build_cone_jets::build_jets(
+  build_cone_jets::Parameters parameters,
+  const unsigned n_max_jets,
+  const float cone_radius,
+  unsigned* host_number_of_jets)
 {
-  // memset_async only sets single bytes, so we have to set the number of jets
-  // per event by hand.
-  if (threadIdx.x == 0 && blockIdx.x == 0) {
-    for (unsigned i_event = 0; i_event < parameters.dev_number_of_events[0]; i_event++) {
-      parameters.dev_jet_offsets[i_event] = n_max_jets;
-    }
+  for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i <= parameters.dev_number_of_events[0];
+       i += blockDim.x * gridDim.x) {
+    parameters.dev_jet_offsets[i] = i * n_max_jets;
+  }
+  if (blockIdx.x == 0 && threadIdx.x == 0) {
+    *host_number_of_jets = parameters.dev_number_of_events[0] * n_max_jets;
   }
 
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -88,11 +91,9 @@ build_cone_jets::build_jets(build_cone_jets::Parameters parameters, const unsign
   // Create jets until no seed tracks are available or the maximum number of
   // jets is reached.
   unsigned i_jet = 0;
-  __shared__ float max_pt;
-  __shared__ int max_pt_idx;
-  __shared__ bool found_seed;
   while (i_jet < n_max_jets) {
 
+    __shared__ int max_pt_idx;
     __shared__ unsigned fixed_pt_sum;
     __shared__ unsigned fixed_eta_sum;
     __shared__ int fixed_phi_sum;
@@ -100,9 +101,8 @@ build_cone_jets::build_jets(build_cone_jets::Parameters parameters, const unsign
     // Find the seed track for this iteration.
     if (threadIdx.x == 0) {
 
-      max_pt = 0.f;
-      max_pt_idx = 0;
-      found_seed = false;
+      float max_pt = 0.f;
+      max_pt_idx = -1;
       for (int i_track = 0; i_track < n_tracks; i_track++) {
 
         // Skip used tracks.
@@ -112,23 +112,23 @@ build_cone_jets::build_jets(build_cone_jets::Parameters parameters, const unsign
         if (track.state().pt() > max_pt) {
           max_pt = track.state().pt();
           max_pt_idx = i_track;
-          found_seed = true;
-          fixed_pt_sum = 0;
-          fixed_eta_sum = 0;
-          fixed_phi_sum = 0;
         }
       }
 
       // Mask the seed track.
-      if (found_seed) {
+      if (max_pt_idx != -1) {
         event_track_masks[max_pt_idx] = i_jet;
       }
+
+      fixed_pt_sum = 0;
+      fixed_eta_sum = 0;
+      fixed_phi_sum = 0;
     }
 
     __syncthreads();
     // If no seed track was found, then we're out of tracks, so we can
     // exit the loop.
-    if (!found_seed) break;
+    if (max_pt_idx == -1) break;
 
     __shared__ Jets::Jet jet;
 
