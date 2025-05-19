@@ -16,12 +16,12 @@ INSTANTIATE_ALGORITHM(build_cone_jets::build_cone_jets_t)
 
 __host__ __device__ float deltaPhi(const float phi1, const float phi2)
 {
+  // Normalize to the range [-pi, pi]
   float dphi = phi1 - phi2;
-  while (dphi >= Allen::constants::pi_f_float)
-    dphi -= 2 * Allen::constants::pi_f_float;
-  while (dphi < -Allen::constants::pi_f_float)
-    dphi += 2 * Allen::constants::pi_f_float;
-  return dphi;
+  if (!std::isfinite(dphi)) return std::numeric_limits<float>::quiet_NaN();
+  dphi = fmodf(dphi + Allen::constants::pi_f_float, 2 * Allen::constants::pi_f_float);
+  if (dphi < 0) dphi += 2 * Allen::constants::pi_f_float;
+  return dphi - Allen::constants::pi_f_float;
 }
 
 __host__ __device__ float deltaR(const float eta1, const float phi1, const float eta2, const float phi2)
