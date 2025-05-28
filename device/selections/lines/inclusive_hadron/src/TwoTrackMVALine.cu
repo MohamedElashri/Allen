@@ -66,7 +66,7 @@ __device__ void two_track_mva_line::two_track_mva_line_t::monitor(
   }
 }
 
-__device__ void two_track_mva_line::two_track_mva_line_t::fill_tuples(
+__device__ bool two_track_mva_line::two_track_mva_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
@@ -79,4 +79,5 @@ __device__ void two_track_mva_line::two_track_mva_line_t::fill_tuples(
     parameters.mva[index] = std::get<1>(input);
     parameters.maxChildGhostProb[index] = std::max(a->track().ghost_probability(), b->track().ghost_probability());
   }
+  return sel;
 }

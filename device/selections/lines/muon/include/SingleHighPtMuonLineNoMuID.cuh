@@ -44,7 +44,7 @@ namespace single_high_pt_muon_no_muid_line {
     __device__ static bool
     select(const Parameters&, const DeviceProperties&, std::tuple<const Allen::Views::Physics::BasicParticle> input);
 
-    __device__ static void fill_tuples(
+    __device__ static bool fill_tuples(
       const Parameters& parameters,
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::BasicParticle> input,

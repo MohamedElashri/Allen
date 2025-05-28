@@ -63,7 +63,7 @@ __device__ bool track_muon_mva_line::track_muon_mva_line_t::select(
   return decision;
 }
 
-__device__ void track_muon_mva_line::track_muon_mva_line_t::fill_tuples(
+__device__ bool track_muon_mva_line::track_muon_mva_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::BasicParticle, const unsigned> input,
@@ -80,4 +80,5 @@ __device__ void track_muon_mva_line::track_muon_mva_line_t::fill_tuples(
     parameters.muonchi2[index] = chi2corr;
     parameters.muon_nn[index] = nn;
   }
+  return sel;
 }

@@ -74,7 +74,7 @@ namespace SMOG2_displaced_di_muon_line {
       unsigned index,
       bool sel);
 
-    __device__ void static fill_tuples(
+    __device__ static bool fill_tuples(
       const Parameters& parameters,
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,

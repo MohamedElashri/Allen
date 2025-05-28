@@ -51,7 +51,7 @@ __device__ bool xi_omega_lll_line::xi_omega_lll_line_t::select(
          XimOmm->drho() > properties.BPVVDRHO_min;
 }
 
-__device__ void xi_omega_lll_line::xi_omega_lll_line_t::fill_tuples(
+__device__ bool xi_omega_lll_line::xi_omega_lll_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -131,6 +131,7 @@ __device__ void xi_omega_lll_line::xi_omega_lll_line_t::fill_tuples(
     parameters.L_BPVVDRHO[index] = Lambda->drho();
     parameters.L_BPVDIRA[index] = Lambda->dira();
   }
+  return sel;
 }
 
 __device__ void xi_omega_lll_line::xi_omega_lll_line_t::monitor(

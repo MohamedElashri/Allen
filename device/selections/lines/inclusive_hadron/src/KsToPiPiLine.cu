@@ -54,7 +54,7 @@ __device__ void kstopipi_line::kstopipi_line_t::monitor(
   }
 }
 
-__device__ void kstopipi_line::kstopipi_line_t::fill_tuples(
+__device__ bool kstopipi_line::kstopipi_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -67,4 +67,5 @@ __device__ void kstopipi_line::kstopipi_line_t::fill_tuples(
     parameters.pt[index] = ks.vertex().pt();
     parameters.mipchi2[index] = ks.minipchi2();
   }
+  return sel;
 }

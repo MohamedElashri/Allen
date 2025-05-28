@@ -94,7 +94,7 @@ __device__ void dst_d2kpi_line::dst_d2kpi_line_t::monitor(
   }
 }
 
-__device__ void dst_d2kpi_line::dst_d2kpi_line_t::fill_tuples(
+__device__ bool dst_d2kpi_line::dst_d2kpi_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -109,4 +109,5 @@ __device__ void dst_d2kpi_line::dst_d2kpi_line_t::fill_tuples(
     parameters.min_ip[index] = d0->minip(); // This should range in [0.06, 0.15]
     parameters.D0_ct[index] = d0->ctau(Allen::mDz);
   }
+  return sel;
 }

@@ -66,7 +66,7 @@ namespace single_calo_cluster_line {
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::NeutralBasicParticle, const unsigned> input);
 
-    __device__ static void fill_tuples(
+    __device__ static bool fill_tuples(
       const Parameters& parameters,
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::NeutralBasicParticle, const unsigned> input,

@@ -53,7 +53,7 @@ __device__ void downstream_gammatoee_line::downstream_gammatoee_line_t::monitor(
   }
 }
 
-__device__ void downstream_gammatoee_line::downstream_gammatoee_line_t::fill_tuples(
+__device__ bool downstream_gammatoee_line::downstream_gammatoee_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,
@@ -66,4 +66,5 @@ __device__ void downstream_gammatoee_line::downstream_gammatoee_line_t::fill_tup
     // Use the following variable in bandwidth division
     parameters.gamma_pt[index] = gamma.vertex().pt();
   }
+  return sel;
 }

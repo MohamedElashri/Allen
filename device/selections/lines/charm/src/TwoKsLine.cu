@@ -42,7 +42,7 @@ __device__ float two_ks_line::two_ks_line_t::m(
   return sqrtf(Dz_E * Dz_E - Dz_px * Dz_px - Dz_py * Dz_py - Dz_pz * Dz_pz);
 }
 
-__device__ void two_ks_line::two_ks_line_t::fill_tuples(
+__device__ bool two_ks_line::two_ks_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -139,6 +139,7 @@ __device__ void two_ks_line::two_ks_line_t::fill_tuples(
 
     parameters.dev_decision[index] = sel;
   }
+  return sel;
 }
 
 __device__ bool two_ks_line::two_ks_line_t::select(

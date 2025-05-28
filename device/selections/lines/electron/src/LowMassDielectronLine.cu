@@ -102,7 +102,7 @@ __device__ bool lowmass_dielectron_line::lowmass_dielectron_line_t::select(
   return decision;
 }
 
-__device__ void lowmass_dielectron_line::lowmass_dielectron_line_t::fill_tuples(
+__device__ bool lowmass_dielectron_line::lowmass_dielectron_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, unsigned> input,
@@ -150,4 +150,5 @@ __device__ void lowmass_dielectron_line::lowmass_dielectron_line_t::fill_tuples(
     parameters.dev_e_minpt_bremcorr[index] = brem_corrected_minpt;
     parameters.dev_electron_nn[index] = min(nn_track1, nn_track2);
   }
+  return sel;
 }

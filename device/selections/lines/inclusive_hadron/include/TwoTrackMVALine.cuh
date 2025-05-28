@@ -82,7 +82,7 @@ namespace two_track_mva_line {
       unsigned,
       bool);
 
-    __device__ static void fill_tuples(
+    __device__ static bool fill_tuples(
       const Parameters&,
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float>,

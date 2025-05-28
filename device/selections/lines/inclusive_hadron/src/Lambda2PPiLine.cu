@@ -47,7 +47,7 @@ __device__ bool lambda2ppi_line::lambda2ppi_line_t::select(
          Lambda.dira() > properties.L_BPVDIRA_min;
 }
 
-__device__ void lambda2ppi_line::lambda2ppi_line_t::fill_tuples(
+__device__ bool lambda2ppi_line::lambda2ppi_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -99,6 +99,7 @@ __device__ void lambda2ppi_line::lambda2ppi_line_t::fill_tuples(
     parameters.L_BPVDIRA[index] = Lambda.dira();
     parameters.L_VZ[index] = Lambda.vertex().z();
   }
+  return sel;
 }
 
 __device__ void lambda2ppi_line::lambda2ppi_line_t::monitor(

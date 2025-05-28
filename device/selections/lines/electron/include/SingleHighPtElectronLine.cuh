@@ -50,7 +50,7 @@ namespace single_high_pt_electron_line {
     __device__ static std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float>
     get_input(const Parameters&, const unsigned, const unsigned);
 
-    __device__ static void fill_tuples(
+    __device__ static bool fill_tuples(
       const Parameters&,
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float>,

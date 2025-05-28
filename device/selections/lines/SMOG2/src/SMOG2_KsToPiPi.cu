@@ -48,7 +48,7 @@ __device__ void SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::monitor(
   }
 }
 
-__device__ void SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::fill_tuples(
+__device__ bool SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -70,4 +70,5 @@ __device__ void SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::fill_tuples(
     parameters.pvz[index] = particle.pv().position.z;
     parameters.pt[index] = particle.vertex().pt();
   }
+  return sel;
 }
