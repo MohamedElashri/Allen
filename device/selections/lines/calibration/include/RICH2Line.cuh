@@ -77,7 +77,7 @@ namespace rich_2_line {
     // Stuff for monitoring hists
     void init_tuples(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
 
-    __device__ static void fill_tuples(
+    __device__ static bool fill_tuples(
       const Parameters&,
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::BasicParticle> input,

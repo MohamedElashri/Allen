@@ -80,7 +80,7 @@ namespace SMOG2_dimuon_highmass_line {
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
       unsigned index,
       bool sel);
-    __device__ static void fill_tuples(
+    __device__ static bool fill_tuples(
       const Parameters& parameters,
       const DeviceProperties& properties,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,

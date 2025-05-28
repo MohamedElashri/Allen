@@ -86,7 +86,7 @@ __device__ void SMOG2_displaced_di_muon_line::SMOG2_displaced_di_muon_line_t::mo
   }
 }
 
-__device__ void SMOG2_displaced_di_muon_line::SMOG2_displaced_di_muon_line_t::fill_tuples(
+__device__ bool SMOG2_displaced_di_muon_line::SMOG2_displaced_di_muon_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,
@@ -109,4 +109,5 @@ __device__ void SMOG2_displaced_di_muon_line::SMOG2_displaced_di_muon_line_t::fi
     parameters.muonchi2[index] = max(chi2corr1, chi2corr2);
     parameters.muon_nn[index] = min(nn1, nn2);
   }
+  return sel;
 }

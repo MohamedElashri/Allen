@@ -49,7 +49,7 @@ __device__ void det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::monitor(
   }
 }
 
-__device__ void det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::fill_tuples(
+__device__ bool det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -67,7 +67,6 @@ __device__ void det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::fill_tuples(
                                            (track1->state().charge() > 0 ? track1 : track2);
 
   if (sel) {
-
     parameters.decision[index] = sel;
     parameters.jpsi_mass[index] = jpsi.mdimu();
     parameters.jpsi_dira[index] = jpsi.dira();
@@ -105,4 +104,6 @@ __device__ void det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::fill_tuples(
     parameters.mutag_eta[index] = mutag->state().eta();
     parameters.muprobe_eta[index] = muprobe->state().eta();
   }
+
+  return sel;
 }

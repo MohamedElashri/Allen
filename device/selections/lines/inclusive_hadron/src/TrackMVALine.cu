@@ -47,7 +47,7 @@ __device__ void track_mva_line::track_mva_line_t::monitor(
   }
 }
 
-__device__ void track_mva_line::track_mva_line_t::fill_tuples(
+__device__ bool track_mva_line::track_mva_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::BasicParticle> input,
@@ -60,4 +60,5 @@ __device__ void track_mva_line::track_mva_line_t::fill_tuples(
     parameters.pt[index] = track.state().pt();
     parameters.ghostProb[index] = track.track().ghost_probability();
   }
+  return sel;
 }

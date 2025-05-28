@@ -53,7 +53,7 @@ SMOG2_single_muon_line::SMOG2_single_muon_line_t::get_input(
   return std::forward_as_tuple(track, event_number);
 }
 
-__device__ void SMOG2_single_muon_line::SMOG2_single_muon_line_t::fill_tuples(
+__device__ bool SMOG2_single_muon_line::SMOG2_single_muon_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::BasicParticle, const unsigned> input,
@@ -70,4 +70,5 @@ __device__ void SMOG2_single_muon_line::SMOG2_single_muon_line_t::fill_tuples(
     parameters.muonchi2[index] = chi2corr;
     parameters.muon_nn[index] = nn;
   }
+  return sel;
 }

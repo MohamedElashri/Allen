@@ -59,7 +59,7 @@ __device__ bool track_electron_mva_line::track_electron_mva_line_t::select(
   return decision;
 }
 
-__device__ void track_electron_mva_line::track_electron_mva_line_t::fill_tuples(
+__device__ bool track_electron_mva_line::track_electron_mva_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::BasicParticle, const unsigned> input,
@@ -78,4 +78,5 @@ __device__ void track_electron_mva_line::track_electron_mva_line_t::fill_tuples(
     parameters.pt_corrected[index] = corrected_pt;
     parameters.electron_nn[index] = nn;
   }
+  return sel;
 }

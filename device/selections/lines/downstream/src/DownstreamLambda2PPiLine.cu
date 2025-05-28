@@ -56,7 +56,7 @@ __device__ void downstream_lambdatoppi_line::downstream_lambdatoppi_line_t::moni
   }
 }
 
-__device__ void downstream_lambdatoppi_line::downstream_lambdatoppi_line_t::fill_tuples(
+__device__ bool downstream_lambdatoppi_line::downstream_lambdatoppi_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,
@@ -79,4 +79,5 @@ __device__ void downstream_lambdatoppi_line::downstream_lambdatoppi_line_t::fill
     parameters.mva_l0_detached[index] = detached_l0_mva;
     parameters.mva_l0_prompt[index] = l0_mva;
   }
+  return sel;
 }

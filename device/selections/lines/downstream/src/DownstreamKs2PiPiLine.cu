@@ -46,7 +46,7 @@ __device__ void downstream_kstopipi_line::downstream_kstopipi_line_t::monitor(
   }
 }
 
-__device__ void downstream_kstopipi_line::downstream_kstopipi_line_t::fill_tuples(
+__device__ bool downstream_kstopipi_line::downstream_kstopipi_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,
@@ -63,4 +63,5 @@ __device__ void downstream_kstopipi_line::downstream_kstopipi_line_t::fill_tuple
     parameters.mva_ks_detached[index] = detached_ks_mva;
     parameters.mva_ks_prompt[index] = ks_mva;
   }
+  return sel;
 }

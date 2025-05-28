@@ -28,7 +28,7 @@ __device__ bool single_high_pt_muon_no_muid_line::single_high_pt_muon_no_muid_li
   return decision;
 }
 
-__device__ void single_high_pt_muon_no_muid_line::single_high_pt_muon_no_muid_line_t::fill_tuples(
+__device__ bool single_high_pt_muon_no_muid_line::single_high_pt_muon_no_muid_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::BasicParticle> input,
@@ -36,4 +36,5 @@ __device__ void single_high_pt_muon_no_muid_line::single_high_pt_muon_no_muid_li
   bool sel)
 {
   if (sel) parameters.pt[index] = std::get<0>(input).state().pt();
+  return sel;
 }

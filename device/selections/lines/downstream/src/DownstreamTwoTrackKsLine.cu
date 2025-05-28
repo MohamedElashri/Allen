@@ -59,7 +59,7 @@ __device__ void downstream_two_track_ks_line::downstream_two_track_ks_line_t::mo
   }
 }
 
-__device__ void downstream_two_track_ks_line::downstream_two_track_ks_line_t::fill_tuples(
+__device__ bool downstream_two_track_ks_line::downstream_two_track_ks_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -105,4 +105,5 @@ __device__ void downstream_two_track_ks_line::downstream_two_track_ks_line_t::fi
 
     parameters.dev_decision[index] = sel;
   }
+  return sel;
 }

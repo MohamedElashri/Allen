@@ -87,7 +87,7 @@ __device__ void SMOG2jpsitomumu_tap_line::SMOG2jpsitomumu_tap_line_t::monitor(
 }
 
 // tupling
-__device__ void SMOG2jpsitomumu_tap_line::SMOG2jpsitomumu_tap_line_t::fill_tuples(
+__device__ bool SMOG2jpsitomumu_tap_line::SMOG2jpsitomumu_tap_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,
@@ -114,4 +114,5 @@ __device__ void SMOG2jpsitomumu_tap_line::SMOG2jpsitomumu_tap_line_t::fill_tuple
     parameters.maxchi2corr[index] = max(chi2corr_1, chi2corr_2);
     parameters.min_muon_nn[index] = min(nn_1, nn_2);
   }
+  return sel;
 }

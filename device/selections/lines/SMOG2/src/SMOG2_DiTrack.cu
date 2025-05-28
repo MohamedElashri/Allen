@@ -70,7 +70,7 @@ __device__ bool SMOG2_ditrack_line::SMOG2_ditrack_line_t::select(
   return decision;
 }
 
-__device__ void SMOG2_ditrack_line::SMOG2_ditrack_line_t::fill_tuples(
+__device__ bool SMOG2_ditrack_line::SMOG2_ditrack_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -84,12 +84,12 @@ __device__ void SMOG2_ditrack_line::SMOG2_ditrack_line_t::fill_tuples(
   if (sel) {
     parameters.sv_masses_m21[index] = particle.m12(properties.m2, properties.m1);
     parameters.sv_masses_m12[index] = particle.m12(properties.m1, properties.m2);
+    parameters.track1pt[index] = track1->state().pt();
+    parameters.track2pt[index] = track2->state().pt();
+    parameters.minipchi2[index] = particle.minipchi2();
+    parameters.ip[index] = particle.ip();
   }
-
-  parameters.track1pt[index] = track1->state().pt();
-  parameters.track2pt[index] = track2->state().pt();
-  parameters.minipchi2[index] = particle.minipchi2();
-  parameters.ip[index] = particle.ip();
+  return sel;
 }
 
 __device__ void SMOG2_ditrack_line::SMOG2_ditrack_line_t::monitor(

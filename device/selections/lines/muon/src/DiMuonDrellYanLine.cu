@@ -80,7 +80,7 @@ __device__ void di_muon_drell_yan_line::di_muon_drell_yan_line_t::monitor(
   }
 }
 
-__device__ void di_muon_drell_yan_line::di_muon_drell_yan_line_t::fill_tuples(
+__device__ bool di_muon_drell_yan_line::di_muon_drell_yan_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,
@@ -105,4 +105,5 @@ __device__ void di_muon_drell_yan_line::di_muon_drell_yan_line_t::fill_tuples(
     parameters.chi2muon[index] = max(chi2corr1, chi2corr2);
     parameters.muon_nn[index] = min(nn1, nn2);
   }
+  return sel;
 }

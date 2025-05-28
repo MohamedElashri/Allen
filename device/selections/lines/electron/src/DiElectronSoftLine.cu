@@ -72,7 +72,7 @@ __device__ bool di_electron_soft_line::di_electron_soft_line_t::select(
   return decision;
 }
 
-__device__ void di_electron_soft_line::di_electron_soft_line_t::fill_tuples(
+__device__ bool di_electron_soft_line::di_electron_soft_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float, const float> input,
@@ -93,4 +93,5 @@ __device__ void di_electron_soft_line::di_electron_soft_line_t::fill_tuples(
     parameters.sv_pt[index] = vertex.vertex().pt();
     parameters.minpt_uncorr[index] = vertex.minpt();
   }
+  return sel;
 }

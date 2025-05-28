@@ -76,7 +76,7 @@ namespace di_muon_mass_line {
       std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,
       unsigned index,
       bool sel);
-    __device__ static void fill_tuples(
+    __device__ static bool fill_tuples(
       const Parameters& parameters,
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,

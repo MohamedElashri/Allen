@@ -49,7 +49,7 @@ __device__ bool lambda_ll_detached_track_line::lambda_ll_detached_track_line_t::
          Lt.drho() > properties.BPVVDRHO_min && L_vx.pt() + companion_state.pt() > properties.SUMPT_min;
 }
 
-__device__ void lambda_ll_detached_track_line::lambda_ll_detached_track_line_t::fill_tuples(
+__device__ bool lambda_ll_detached_track_line::lambda_ll_detached_track_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -110,6 +110,7 @@ __device__ void lambda_ll_detached_track_line::lambda_ll_detached_track_line_t::
     parameters.L_BPVVDRHO[index] = Lambda->drho();
     parameters.L_BPVDIRA[index] = Lambda->dira();
   }
+  return sel;
 }
 
 __device__ void lambda_ll_detached_track_line::lambda_ll_detached_track_line_t::monitor(

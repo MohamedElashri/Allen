@@ -50,7 +50,7 @@ __device__ bool two_calo_clusters_line::two_calo_clusters_line_t::select(
   return decision;
 }
 
-__device__ void two_calo_clusters_line::two_calo_clusters_line_t::fill_tuples(
+__device__ bool two_calo_clusters_line::two_calo_clusters_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned, const unsigned> input,
@@ -83,6 +83,7 @@ __device__ void two_calo_clusters_line::two_calo_clusters_line_t::fill_tuples(
     parameters.necalclusters[index] = n_caloclusters;
     parameters.npvs[index] = n_pvs;
   }
+  return sel;
 }
 
 void two_calo_clusters_line::two_calo_clusters_line_t::init()
