@@ -30,7 +30,6 @@ target_include_directories(AllenRuntime INTERFACE
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Backend>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_compile_definitions(AllenRuntime INTERFACE ${TARGET_DEFINITION})
-target_link_libraries(AllenRuntime INTERFACE umesimd::umesimd)
 
 # Backend library
 allen_add_host_library(Backend STATIC ${backend_sources})
@@ -47,8 +46,7 @@ foreach(header
     CPUID.h
     CUDABackend.h
     HIPBackend.h
-    PinnedVector.h
-    Vector.h)
+    PinnedVector.h)
   list(APPEND BackendHeaders include/${header})
 endforeach()
 

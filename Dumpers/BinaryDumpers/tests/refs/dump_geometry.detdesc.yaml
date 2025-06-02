@@ -1,0 +1,126 @@
+stdout: |-
+  HLTControlFlowMgr                      INFO Start initialization
+  HLTControlFlowMgr                      INFO Will not use an EventSelector.
+  RootIOAlg                              INFO DATAFILE='root://eoslhcb.cern.ch//eos/lhcb/wg/rta/samples/mc/Jira_LHCBGAUSS-2635/Minbias_MagDown_Boole_lhcbhead3379_dddb-20220705_sim-20220705-vc-md100_lumi0.xdigi'
+  HLTControlFlowMgr                      INFO Concurrency level information:
+  HLTControlFlowMgr                      INFO  o Number of events slots: 1
+  HLTControlFlowMgr                      INFO  o TBB thread pool size:  'ThreadPoolSize':1
+  ApplicationMgr                         INFO Application Manager Initialized successfully
+  ApplicationMgr                         INFO Application Manager Started successfully
+  HLTControlFlowMgr                      INFO Will measure time between events 0 and 0 (stop might be some events later)
+  HLTControlFlowMgr                      INFO Starting loop on events
+  DeviceFTGeometry                       INFO Conditions DB is compatible with FT bank version 7 and 8.
+  RootIOAlg                           SUCCESS Reading Event record 1 within root://eoslhcb.cern.ch//eos/lhcb/wg/rta/samples/mc/Jira_LHCBGAUSS-2635/Minbias_MagDown_Boole_lhcbhead3379_dddb-20220705_sim-20220705-vc-md100_lumi0.xdigi
+  ApplicationMgr                         INFO Application Manager Stopped successfully
+  HLTControlFlowMgr                      INFO
+  HLTControlFlowMgr                      INFO StateTree: CFNode   #executed  #passed
+  NONLAZY_OR: allen_reconstruction               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+   NONLAZY_OR: allen_non_event_data              #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+    DumpBeamline/DeviceBeamline                  #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+    DumpVPGeometry/DeviceVPGeometry              #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+    DumpCrossingAngles/DeviceCrossingAngles      #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+    DumpUTGeometry/DeviceUTGeometry              #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+    DumpUTLookupTables/DeviceUTLookupTables      #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+    DumpCaloGeometry/DeviceCaloGeometry          #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+    DumpMagneticField/DeviceMagneticField        #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+    DumpFTGeometry/DeviceFTGeometry              #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+    DumpMuonGeometry/DeviceMuonGeometry          #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+    DumpMuonTable/DeviceMuonTable                #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+    DumpRichPDMDBMapping/DeviceRichPDMDBMapping  #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+    DumpRichCableMapping/DeviceRichCableMapping  #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+   NONLAZY_OR: dump_geometry                     #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+    createODIN/Decode_ODIN                       #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  HLTControlFlowMgr                      INFO Histograms converted successfully according to request.
+  ApplicationMgr                         INFO Application Manager Finalized successfully
+  ApplicationMgr                         INFO Application Manager Terminated successfully
+histos: {}
+ttrees: {}
+counters:
+  DeviceBeamline:
+    set: DeviceBeamline
+    total_counters: 1
+    BytesWritten_Beamline:
+      binomial: false
+      name: BytesWritten_Beamline
+      count: 48
+  DeviceCaloGeometry:
+    set: DeviceCaloGeometry
+    total_counters: 1
+    BytesWritten_EcalGeometry:
+      binomial: false
+      name: BytesWritten_EcalGeometry
+      count: 202524
+  DeviceFTGeometry:
+    set: DeviceFTGeometry
+    total_counters: 1
+    BytesWritten_SciFiGeometry:
+      binomial: false
+      name: BytesWritten_SciFiGeometry
+      count: 3249928
+  DeviceMagneticField:
+    set: DeviceMagneticField
+    total_counters: 1
+    BytesWritten_MagneticField:
+      binomial: false
+      name: BytesWritten_MagneticField
+      count: 4
+  DeviceMuonGeometry:
+    set: DeviceMuonGeometry
+    total_counters: 1
+    BytesWritten_MuonGeometry:
+      binomial: false
+      name: BytesWritten_MuonGeometry
+      count: 211468
+  DeviceMuonTable:
+    set: DeviceMuonTable
+    total_counters: 1
+    BytesWritten_MuonLookupTables:
+      binomial: false
+      name: BytesWritten_MuonLookupTables
+      count: 1052980
+  DeviceRichCableMapping:
+    set: DeviceRichCableMapping
+    total_counters: 1
+    BytesWritten_RichCableMapping:
+      binomial: false
+      name: BytesWritten_RichCableMapping
+      count: 462600
+  DeviceRichPDMDBMapping:
+    set: DeviceRichPDMDBMapping
+    total_counters: 1
+    BytesWritten_RichPDMDBMapping:
+      binomial: false
+      name: BytesWritten_RichPDMDBMapping
+      count: 9296
+  DeviceUTGeometry:
+    set: DeviceUTGeometry
+    total_counters: 2
+    BytesWritten_UTBoards:
+      binomial: false
+      name: BytesWritten_UTBoards
+      count: 84688
+    BytesWritten_UTGeometry:
+      binomial: false
+      name: BytesWritten_UTGeometry
+      count: 46116
+  DeviceUTLookupTables:
+    set: DeviceUTLookupTables
+    total_counters: 1
+    BytesWritten_UTLookupTables:
+      binomial: false
+      name: BytesWritten_UTLookupTables
+      count: 15544
+  DeviceVPGeometry:
+    set: DeviceVPGeometry
+    total_counters: 1
+    BytesWritten_VeloGeometry:
+      binomial: false
+      name: BytesWritten_VeloGeometry
+      count: 16376
+  HLTControlFlowMgr:
+    set: HLTControlFlowMgr
+    total_counters: 1
+    Processed events:
+      binomial: false
+      name: Processed events
+      count: 1
