@@ -77,7 +77,7 @@ namespace kplus_to_three_tracks_line {
       const DeviceProperties& properties,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input);
 
-    __device__ static void fill_tuples(
+    __device__ static bool fill_tuples(
       const Parameters& parameters,
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,

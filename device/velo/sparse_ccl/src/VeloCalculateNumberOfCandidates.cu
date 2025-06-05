@@ -18,7 +18,9 @@ INSTANTIATE_ALGORITHM(velo_calculate_number_of_candidates::velo_calculate_number
 template<int decoding_version, bool mep_layout>
 __global__ void velo_count_sp_per_sensor(
   velo_calculate_number_of_candidates::Parameters parameters,
-  const unsigned event_start)
+  const unsigned event_start,
+  bool check_velo_rawbank,
+  [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType n_unexpected_velo_rawbank)
 {
   const auto event_number = parameters.dev_event_list[blockIdx.x];
   const auto velo_raw_event = Velo::RawEvent<decoding_version, mep_layout> {parameters.dev_velo_raw_input,
@@ -33,6 +35,7 @@ __global__ void velo_count_sp_per_sensor(
 
     unsigned* superpixels_offsets = parameters.dev_superpixels_offsets + event_number * Velo::Constants::n_sensors;
 
+    if (check_velo_rawbank && raw_bank.type == LHCb::RawBank::VPRetinaCluster) n_unexpected_velo_rawbank.increment();
     if (raw_bank.type != LHCb::RawBank::VP && raw_bank.type != LHCb::RawBank::Velo) continue;
 
     if constexpr (decoding_version == 2 || decoding_version == 3) {
@@ -195,7 +198,10 @@ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t:
                                                       global_function(velo_partition_superpixels<4, false>));
 
   count_fn(dim3(size<dev_event_list_t>(arguments)), dim3(16, 16), context)(
-    arguments, std::get<0>(runtime_options.event_interval));
+    arguments,
+    std::get<0>(runtime_options.event_interval),
+    m_check_velo_rawbank,
+    m_n_unexpected_velo_rawbank.data(context));
 
   PrefixSum::prefix_sum<dev_superpixels_offsets_t, host_total_number_of_superpixels_t>(*this, arguments, context);
 

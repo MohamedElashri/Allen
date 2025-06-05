@@ -44,7 +44,8 @@ namespace build_cone_jets {
     DEVICE_OUTPUT(dev_neutral_masks_t, int) dev_neutral_masks;
   };
 
-  __global__ void build_jets(Parameters parameters, const unsigned n_max_jets, const float cone_radius);
+  __global__ void
+  build_jets(Parameters parameters, const unsigned n_max_jets, const float cone_radius, unsigned* host_number_of_jets);
 
   struct build_cone_jets_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;

@@ -58,7 +58,7 @@ __device__ void diproton_highmass_line::diproton_highmass_line_t::monitor(
   }
 }
 
-__device__ void diproton_highmass_line::diproton_highmass_line_t::fill_tuples(
+__device__ bool diproton_highmass_line::diproton_highmass_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -76,4 +76,5 @@ __device__ void diproton_highmass_line::diproton_highmass_line_t::fill_tuples(
     parameters.p_p[index] = track1->state().p();
     parameters.ptasym[index] = std::fabs((track1->state().pt() - track2->state().pt()) / pp.vertex().pt());
   }
+  return sel;
 }

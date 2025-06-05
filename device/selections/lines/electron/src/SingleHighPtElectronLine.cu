@@ -50,7 +50,7 @@ __device__ bool single_high_pt_electron_line::single_high_pt_electron_line_t::se
   return decision;
 }
 
-__device__ void single_high_pt_electron_line::single_high_pt_electron_line_t::fill_tuples(
+__device__ bool single_high_pt_electron_line::single_high_pt_electron_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input,
@@ -58,4 +58,5 @@ __device__ void single_high_pt_electron_line::single_high_pt_electron_line_t::fi
   bool sel)
 {
   if (sel) parameters.pt_corrected[index] = std::get<2>(input);
+  return sel;
 }

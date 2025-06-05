@@ -12,22 +12,21 @@
 
 INSTANTIATE_ALGORITHM(kalman_filter::kalman_filter_t)
 
-namespace kalman_filter { // [nSets * nPars + 2]
-  __constant__ float dev_UT_lay[1 * 4 + 2];
-  __constant__ float dev_T_lay[4 * 12 + 2];
-  __constant__ float dev_UTT_META[1 * 19 + 2];
+namespace kalman_filter { // [nSets * nPars]
+  __constant__ float dev_UT_lay[1 * 4];
+  __constant__ float dev_T_lay[4 * 12];
+  __constant__ float dev_UTT_META[1 * 19];
 
-  __constant__ float dev_V_pars[2 * 6 + 2];
-  __constant__ float dev_VUT_pars[1 * 15 + 2];
-  __constant__ float dev_UT_pars[6 * 18 + 2];
-  __constant__ float dev_UTTF_pars[1 * 20 + 2];
-  __constant__ float dev_T_pars[44 * 18 + 2];
-  __constant__ float dev_TFT_pars[1 * 4 + 2];
+  __constant__ float dev_V_pars[2 * 6];
+  __constant__ float dev_VUT_pars[15];
+  __constant__ float dev_UT_pars[3 * 12];
+  __constant__ float dev_UTTF_pars[1 * 20];
+  __constant__ float dev_T_pars[22 * 12];
+  __constant__ float dev_TFT_pars[1 * 4];
 } // namespace kalman_filter
 
 void kalman_filter::kalman_filter_t::update(const Constants& constants) const
 {
-
   struct BeamlinePVConstants::Common::Beamline host_beamline;
 
   host_beamline.pos.x = constants.host_beamline[0];
@@ -61,34 +60,19 @@ void kalman_filter::kalman_filter_t::update(const Constants& constants) const
   host_beamline.tx_SMOG.x = beamlineTx + CrossingAngleh;
   host_beamline.tx_SMOG.y = beamlineTy + CrossingAnglev;
   Allen::memcpyToSymbol(dev_beamline, &host_beamline, sizeof(struct BeamlinePVConstants::Common::Beamline));
-
-  Allen::memcpyToSymbol(dev_UT_lay, constants.host_UT_Layers, (1 * 4 + 2) * sizeof(float));
-  Allen::memcpyToSymbol(dev_T_lay, constants.host_T_Layers, (4 * 12 + 2) * sizeof(float));
-  if (constants.host_magnet_polarity.empty()) {
-    throw std::runtime_error("host_magnet_polarity is empty");
+  // load ParKF parameters
+  if (constants.host_UT_Layers == nullptr) {
+    throw std::runtime_error("host_UT_Layers is empty and thus likely all constant ParKF parameters are empty");
   }
-  const float magSign = constants.host_magnet_polarity[0];
-  if (magSign == 0.0f) {
-    throw std::runtime_error("host_magnet_polarity is zero");
-  }
-  if (magSign > 0.f) {
-    Allen::memcpyToSymbol(dev_V_pars, constants.host_VP_pars_MU, (2 * 6 + 2) * sizeof(float));
-    Allen::memcpyToSymbol(dev_VUT_pars, constants.host_VPUT_pars_MU, (1 * 15 + 2) * sizeof(float));
-    Allen::memcpyToSymbol(dev_UT_pars, constants.host_UT_pars_MU, (6 * 18 + 2) * sizeof(float));
-    Allen::memcpyToSymbol(dev_UTTF_pars, constants.host_UTTF_pars_MU, (1 * 20 + 2) * sizeof(float));
-    Allen::memcpyToSymbol(dev_T_pars, constants.host_T_pars_MU, (44 * 18 + 2) * sizeof(float));
-    Allen::memcpyToSymbol(dev_TFT_pars, constants.host_TFT_pars_MU, (1 * 4 + 2) * sizeof(float));
-    Allen::memcpyToSymbol(dev_UTT_META, constants.host_UTT_META_MU, (1 * 19 + 2) * sizeof(float));
-  }
-  else {
-    Allen::memcpyToSymbol(dev_V_pars, constants.host_VP_pars_MD, (2 * 6 + 2) * sizeof(float));
-    Allen::memcpyToSymbol(dev_VUT_pars, constants.host_VPUT_pars_MD, (1 * 15 + 2) * sizeof(float));
-    Allen::memcpyToSymbol(dev_UT_pars, constants.host_UT_pars_MD, (6 * 18 + 2) * sizeof(float));
-    Allen::memcpyToSymbol(dev_UTTF_pars, constants.host_UTTF_pars_MD, (1 * 20 + 2) * sizeof(float));
-    Allen::memcpyToSymbol(dev_T_pars, constants.host_T_pars_MD, (44 * 18 + 2) * sizeof(float));
-    Allen::memcpyToSymbol(dev_TFT_pars, constants.host_TFT_pars_MD, (1 * 4 + 2) * sizeof(float));
-    Allen::memcpyToSymbol(dev_UTT_META, constants.host_UTT_META_MD, (1 * 19 + 2) * sizeof(float));
-  }
+  Allen::memcpyToSymbol(dev_UT_lay, constants.host_UT_Layers, (1 * 4) * sizeof(float));
+  Allen::memcpyToSymbol(dev_T_lay, constants.host_T_Layers, (4 * 12) * sizeof(float));
+  Allen::memcpyToSymbol(dev_UTT_META, constants.host_UTT_META, (1 * 19) * sizeof(float));
+  Allen::memcpyToSymbol(dev_V_pars, constants.host_VP_pars, (2 * 6) * sizeof(float));
+  Allen::memcpyToSymbol(dev_VUT_pars, constants.host_VPUT_pars, (1 * 15) * sizeof(float));
+  Allen::memcpyToSymbol(dev_UT_pars, constants.host_UT_pars, (3 * 12) * sizeof(float));
+  Allen::memcpyToSymbol(dev_UTTF_pars, constants.host_UTTF_pars, (1 * 20) * sizeof(float));
+  Allen::memcpyToSymbol(dev_T_pars, constants.host_T_pars, (22 * 12) * sizeof(float));
+  Allen::memcpyToSymbol(dev_TFT_pars, constants.host_TFT_pars, (1 * 4) * sizeof(float));
 }
 
 void kalman_filter::kalman_filter_t::set_arguments_size(
@@ -168,11 +152,13 @@ namespace ParKalmanFilter {
     const float* dev_UTTF_pars,
     const float* dev_T_pars,
     const float* dev_TFT_pars,
-    const float* dev_UTT_META)
+    const float* dev_UTT_META,
+    const KalmanFloat magSign)
   {
     // Fit information.
     trackInfo tI;
     tI.m_BestMomEst = init_qop;
+    tI.m_polarity = magSign;
 
     // Get Velo Hits
     const unsigned n_velo_hits = velo_track.number_of_hits();
@@ -378,16 +364,9 @@ set_result(const unsigned track_number, const ParKalmanFilter::FittedTrack& trac
 __global__ void kalman_filter::kalman_filter(
   kalman_filter::Parameters parameters,
   const float* dev_magnet_polarity,
-  const ParKalmanFilter::KalmanParametrizationsStruct* dev_kalman_params)
+  const ParKalmanFilter::KalmanParametrizations* dev_kalman_params)
 {
-  const auto magSign = dev_magnet_polarity[0];
-  const ParKalmanFilter::KalmanParametrizations* kalman_params;
-  if (magSign > 0.f) {
-    kalman_params = &(dev_kalman_params->par_up);
-  }
-  else {
-    kalman_params = &(dev_kalman_params->par_down);
-  }
+  const KalmanFloat magSign = dev_magnet_polarity[0];
 
   // Base pointer for the list of all tracks (contiguous in memory), regardless of events boundaries
   const Allen::Views::Physics::LongTrack* track_base = &(parameters.dev_long_tracks_view->container(0).track(0));
@@ -411,7 +390,7 @@ __global__ void kalman_filter::kalman_filter(
       ut_track,
       scifi_track,
       init_qop,
-      kalman_params,
+      dev_kalman_params,
       kalman_track,
       dev_UT_lay,
       dev_T_lay,
@@ -421,7 +400,8 @@ __global__ void kalman_filter::kalman_filter(
       dev_UTTF_pars,
       dev_T_pars,
       dev_TFT_pars,
-      dev_UTT_META);
+      dev_UTT_META,
+      magSign);
     set_result(track_id, kalman_track, kalman_states);
     parameters.dev_kf_tracks[track_id] = kalman_track;
   }

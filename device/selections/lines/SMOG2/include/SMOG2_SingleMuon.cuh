@@ -61,7 +61,7 @@ namespace SMOG2_single_muon_line {
       const Parameters& parameters,
       const unsigned event_number,
       const unsigned i);
-    __device__ static void fill_tuples(
+    __device__ static bool fill_tuples(
       const Parameters&,
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::BasicParticle, const unsigned>,

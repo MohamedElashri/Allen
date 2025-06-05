@@ -136,7 +136,7 @@ __device__ void tautophimu_line::tautophimu_line_t::monitor(
   }
 }
 
-__device__ void tautophimu_line::tautophimu_line_t::fill_tuples(
+__device__ bool tautophimu_line::tautophimu_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -181,4 +181,5 @@ __device__ void tautophimu_line::tautophimu_line_t::fill_tuples(
     parameters.K1_ismuon[index] = phi_K1->is_muon();
     parameters.K2_ismuon[index] = phi_K2->is_muon();
   }
+  return sel;
 }

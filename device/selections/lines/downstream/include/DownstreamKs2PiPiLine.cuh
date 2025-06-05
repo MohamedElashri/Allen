@@ -67,7 +67,7 @@ namespace downstream_kstopipi_line {
       unsigned index,
       bool sel);
 
-    __device__ static void fill_tuples(
+    __device__ static bool fill_tuples(
       const Parameters&,
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,

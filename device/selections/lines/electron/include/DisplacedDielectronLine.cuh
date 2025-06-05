@@ -62,7 +62,7 @@ namespace displaced_dielectron_line {
     __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
-    __device__ static void fill_tuples(
+    __device__ static bool fill_tuples(
       const Parameters&,
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,

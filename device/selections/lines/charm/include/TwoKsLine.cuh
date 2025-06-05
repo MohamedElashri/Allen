@@ -183,7 +183,7 @@ namespace two_ks_line {
       evtNo_t,
       runNo_t>;
 
-    __device__ static void fill_tuples(
+    __device__ static bool fill_tuples(
       const Parameters&,
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,

@@ -36,7 +36,7 @@ __device__ bool single_calo_cluster_line::single_calo_cluster_line_t::select(
   return decision;
 }
 
-__device__ void single_calo_cluster_line::single_calo_cluster_line_t::fill_tuples(
+__device__ bool single_calo_cluster_line::single_calo_cluster_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::NeutralBasicParticle, const unsigned> input,
@@ -65,4 +65,5 @@ __device__ void single_calo_cluster_line::single_calo_cluster_line_t::fill_tuple
     parameters.clusters_Eta[index] = eta;
     parameters.clusters_Phi[index] = phi;
   }
+  return sel;
 }

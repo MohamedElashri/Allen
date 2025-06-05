@@ -170,7 +170,7 @@ __device__ void d2kshh_line::d2kshh_line_t::monitor(
   }
 }
 
-__device__ void d2kshh_line::d2kshh_line_t::fill_tuples(
+__device__ bool d2kshh_line::d2kshh_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -226,4 +226,5 @@ __device__ void d2kshh_line::d2kshh_line_t::fill_tuples(
       }
     }
   }
+  return sel;
 }

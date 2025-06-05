@@ -22,7 +22,7 @@ __device__ bool cone_jet_line::cone_jet_line_t::select(
   return decision;
 }
 
-__device__ void cone_jet_line::cone_jet_line_t::fill_tuples(
+__device__ bool cone_jet_line::cone_jet_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::NeutralBasicParticle> input,
@@ -33,4 +33,5 @@ __device__ void cone_jet_line::cone_jet_line_t::fill_tuples(
   parameters.jet_pt[index] = jet.et();
   parameters.jet_eta[index] = jet.eta();
   parameters.jet_phi[index] = jet.phi();
+  return true;
 }

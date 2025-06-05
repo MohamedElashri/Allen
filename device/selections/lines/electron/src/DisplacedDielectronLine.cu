@@ -57,7 +57,7 @@ __device__ bool displaced_dielectron_line::displaced_dielectron_line_t::select(
   return decision;
 }
 
-__device__ void displaced_dielectron_line::displaced_dielectron_line_t::fill_tuples(
+__device__ bool displaced_dielectron_line::displaced_dielectron_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,
@@ -79,4 +79,5 @@ __device__ void displaced_dielectron_line::displaced_dielectron_line_t::fill_tup
     parameters.pt[index] = brem_corrected_minpt;
     parameters.electron_nn[index] = min(nn1, nn2);
   }
+  return sel;
 }

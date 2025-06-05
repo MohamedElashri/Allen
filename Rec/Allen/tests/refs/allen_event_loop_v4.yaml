@@ -21,7 +21,6 @@ stdout: |-
   error_bank_filter                      INFO Booked 3 Histogram(s) : 1D=3 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
   gather_selections                      INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
   pv_beamline_cleanup                    INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-  scifi_consolidate_seeds_matching       INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
   velo_consolidate_tracks                INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
   ApplicationMgr                         INFO Application Manager Stopped successfully
   HLTControlFlowMgr                      INFO
@@ -127,24 +126,6 @@ histos:
       2DProf: 0
       3DProf: 0
       Total: 2
-  scifi_consolidate_seeds_matching:
-    1D:
-      n_scifi_seeds_event:
-        ID: n_scifi_seeds_event
-        Title: '"n_scifi_seeds_event"'
-        '#': '10000'
-        Mean: '0'
-        RMS: '0.0000'
-        Skewness: '0'
-        Kurtosis: '0'
-    header:
-      1D: 1
-      2D: 0
-      3D: 0
-      1DProf: 0
-      2DProf: 0
-      3DProf: 0
-      Total: 1
   velo_consolidate_tracks:
     1D:
       n_velo_tracks_event:
@@ -197,15 +178,6 @@ counters:
     n_PVs:
       binomial: false
       name: n_PVs
-      count: 10000
-      sum: 0.0
-      mean/eff^*: 0.0
-  scifi_consolidate_seeds_matching:
-    set: scifi_consolidate_seeds_matching
-    total_counters: 1
-    n_seed_tracks:
-      binomial: false
-      name: n_seed_tracks
       count: 10000
       sum: 0.0
       mean/eff^*: 0.0

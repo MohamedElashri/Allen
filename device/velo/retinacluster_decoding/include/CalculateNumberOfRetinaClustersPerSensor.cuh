@@ -12,6 +12,7 @@
 
 #include "AlgorithmTypes.cuh"
 #include "ClusteringDefinitions.cuh"
+#include "AllenMonitoring.h"
 
 namespace calculate_number_of_retinaclusters_each_sensor_pair {
   struct Parameters {
@@ -39,5 +40,7 @@ namespace calculate_number_of_retinaclusters_each_sensor_pair {
   private:
     Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
     Allen::Property<uint64_t> m_masked_modules {this, "masked_modules", 0, "masked modules bitmask"};
+    Allen::Property<bool> m_check_velo_rawbank {this, "check_velo_rawbank", true, "check velo raw bank"};
+    Allen::Monitoring::Counter<> m_n_unexpected_velo_rawbank {this, "n_unexpected_velo_rawbank"};
   };
 } // namespace calculate_number_of_retinaclusters_each_sensor_pair

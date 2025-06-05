@@ -30,7 +30,6 @@ stdout: |-
   Hlt1DiMuonHighMass                     INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
   Hlt1DiMuonNoIP                         INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
   Hlt1DiMuonNoIP_SS                      INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-  Hlt1DiProtonHighMass                   INFO Booked 6 Histogram(s) : 1D=6 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
   Hlt1Dst2D0Pi                           INFO Booked 3 Histogram(s) : 1D=3 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
   Hlt1Dst2D0PiAlignment                  INFO Booked 3 Histogram(s) : 1D=3 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
   Hlt1KsToPiPi                           INFO Booked 4 Histogram(s) : 1D=4 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
@@ -48,6 +47,7 @@ stdout: |-
   is_muon                                INFO Booked 3 Histogram(s) : 1D=3 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
   make_long_track_particles              INFO Booked 4 Histogram(s) : 1D=4 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
   matching_consolidate_tracks_matc...    INFO Booked 6 Histogram(s) : 1D=6 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
+  momentum_brem_correction_2d722be7      INFO Booked 3 Histogram(s) : 1D=3 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
   pv_beamline_cleanup                    INFO Booked 5 Histogram(s) : 1D=5 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
   scifi_consolidate_seeds_matching       INFO Booked 5 Histogram(s) : 1D=5 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
   velo_consolidate_tracks                INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
@@ -261,19 +261,19 @@ histos:
       dielectron_mass_counts:
         ID: dielectron_mass_counts
         Title: '"dielectron masses"'
-        '#': '174'
-        Mean: '1177.5'
-        RMS: '406.66'
-        Skewness: '-1.9027'
-        Kurtosis: '2.4695'
+        '#': '93'
+        Mean: '1150.1'
+        RMS: '426.73'
+        Skewness: '-1.7207'
+        Kurtosis: '1.8625'
       dielectron_mass_counts_brem:
         ID: dielectron_mass_counts_brem
         Title: '"dielectron masses with brem"'
-        '#': '149'
-        Mean: '1168.5'
-        RMS: '422.51'
-        Skewness: '-1.7683'
-        Kurtosis: '1.881'
+        '#': '78'
+        Mean: '1123.9'
+        RMS: '449.46'
+        Skewness: '-1.5836'
+        Kurtosis: '1.2427'
     header:
       1D: 2
       2D: 0
@@ -287,19 +287,19 @@ histos:
       dielectron_mass_counts:
         ID: dielectron_mass_counts
         Title: '"dielectron masses"'
-        '#': '704'
-        Mean: '1259.3'
-        RMS: '306.79'
-        Skewness: '-2.5073'
-        Kurtosis: '6.2986'
+        '#': '508'
+        Mean: '1239.2'
+        RMS: '338.69'
+        Skewness: '-2.2572'
+        Kurtosis: '4.6246'
       dielectron_mass_counts_brem:
         ID: dielectron_mass_counts_brem
         Title: '"dielectron masses with brem"'
-        '#': '599'
-        Mean: '1266.3'
-        RMS: '315.47'
-        Skewness: '-2.4376'
-        Kurtosis: '5.7425'
+        '#': '423'
+        Mean: '1237.4'
+        RMS: '349.76'
+        Skewness: '-2.1579'
+        Kurtosis: '4.0251'
     header:
       1D: 2
       2D: 0
@@ -313,19 +313,19 @@ histos:
       dielectron_mass_counts:
         ID: dielectron_mass_counts
         Title: '"dielectron masses"'
-        '#': '238'
-        Mean: '875.01'
-        RMS: '552.29'
-        Skewness: '-0.35963'
-        Kurtosis: '-1.5741'
+        '#': '139'
+        Mean: '682.58'
+        RMS: '545.07'
+        Skewness: '0.25417'
+        Kurtosis: '-1.5917'
       dielectron_mass_counts_brem:
         ID: dielectron_mass_counts_brem
         Title: '"dielectron masses with brem"'
-        '#': '217'
-        Mean: '858.51'
-        RMS: '551.15'
-        Skewness: '-0.27416'
-        Kurtosis: '-1.6115'
+        '#': '130'
+        Mean: '669.4'
+        RMS: '530.79'
+        Skewness: '0.31928'
+        Kurtosis: '-1.486'
     header:
       1D: 2
       2D: 0
@@ -339,19 +339,19 @@ histos:
       dielectron_mass_counts:
         ID: dielectron_mass_counts
         Title: '"dielectron masses"'
-        '#': '764'
-        Mean: '1079.2'
-        RMS: '474.34'
-        Skewness: '-1.1705'
-        Kurtosis: '-0.12861'
+        '#': '587'
+        Mean: '1032'
+        RMS: '502.55'
+        Skewness: '-0.94107'
+        Kurtosis: '-0.69772'
       dielectron_mass_counts_brem:
         ID: dielectron_mass_counts_brem
         Title: '"dielectron masses with brem"'
-        '#': '683'
-        Mean: '1069.8'
-        RMS: '483.63'
-        Skewness: '-1.0812'
-        Kurtosis: '-0.35775'
+        '#': '530'
+        Mean: '1023.4'
+        RMS: '509.58'
+        Skewness: '-0.86304'
+        Kurtosis: '-0.84686'
     header:
       1D: 2
       2D: 0
@@ -365,11 +365,11 @@ histos:
       Jpsi_mass:
         ID: Jpsi_mass
         Title: '"m(J/Psi)"'
-        '#': '15'
-        Mean: '3055.5'
-        RMS: '115.47'
-        Skewness: '0.54457'
-        Kurtosis: '-0.71704'
+        '#': '2'
+        Mean: '3102'
+        RMS: '108.00'
+        Skewness: '0'
+        Kurtosis: '-2'
     header:
       1D: 1
       2D: 0
@@ -414,64 +414,6 @@ histos:
       2DProf: 0
       3DProf: 0
       Total: 1
-  Hlt1DiProtonHighMass:
-    1D:
-      p_p:
-        ID: p_p
-        Title: '"p(p)"'
-        '#': '2'
-        Mean: '79500'
-        RMS: '3000.0'
-        Skewness: '0'
-        Kurtosis: '-2'
-      p_pt:
-        ID: p_pt
-        Title: '"pT(p)"'
-        '#': '2'
-        Mean: '4400'
-        RMS: '350.00'
-        Skewness: '0'
-        Kurtosis: '-2'
-      pp_mass:
-        ID: pp_mass
-        Title: '"m(pp)"'
-        '#': '2'
-        Mean: '8900'
-        RMS: '75.000'
-        Skewness: '0'
-        Kurtosis: '-2'
-      pp_pt:
-        ID: pp_pt
-        Title: '"pT(pp)"'
-        '#': '2'
-        Mean: '5600'
-        RMS: '300.00'
-        Skewness: '0'
-        Kurtosis: '-2'
-      track1_ghost_prob:
-        ID: track1_ghost_prob
-        Title: '"track1 GhostProb"'
-        '#': '2'
-        Mean: '0.02'
-        RMS: '0.0050000'
-        Skewness: '1.3553e-14'
-        Kurtosis: '-2'
-      track2_ghost_prob:
-        ID: track2_ghost_prob
-        Title: '"track2 GhostProb"'
-        '#': '2'
-        Mean: '0.01'
-        RMS: '0.0050000'
-        Skewness: '0'
-        Kurtosis: '-2'
-    header:
-      1D: 6
-      2D: 0
-      3D: 0
-      1DProf: 0
-      2DProf: 0
-      3DProf: 0
-      Total: 6
   Hlt1Dst2D0Pi:
     1D:
       d0_mass:
@@ -882,10 +824,10 @@ histos:
         ID: number_of_svs
         Title: '"NSVs"'
         '#': '10000'
-        Mean: '17.503'
-        RMS: '34.589'
-        Skewness: '6.2476'
-        Kurtosis: '84.32'
+        Mean: '15.586'
+        RMS: '30.885'
+        Skewness: '6.4419'
+        Kurtosis: '89.344'
     header:
       1D: 1
       2D: 0
@@ -935,19 +877,19 @@ histos:
       line_passes:
         ID: line_passes
         Title: '"line passes"'
-        '#': '17515'
-        Mean: '80.809'
-        RMS: '19.950'
-        Skewness: '-0.82633'
-        Kurtosis: '-0.32801'
+        '#': '17359'
+        Mean: '81.202'
+        RMS: '19.483'
+        Skewness: '-0.79146'
+        Kurtosis: '-0.45978'
       line_rates:
         ID: line_rates
         Title: '"line rates"'
-        '#': '759'
-        Mean: '70.732'
-        RMS: '31.077'
-        Skewness: '-0.84461'
-        Kurtosis: '-1.036'
+        '#': '651'
+        Mean: '75.299'
+        RMS: '29.474'
+        Skewness: '-1.2124'
+        Kurtosis: '-0.28802'
     header:
       1D: 2
       2D: 0
@@ -1090,6 +1032,40 @@ histos:
       2DProf: 0
       3DProf: 0
       Total: 6
+  momentum_brem_correction_2d722be7:
+    1D:
+      BremEoverP:
+        ID: BremEoverP
+        Title: '"BremE/ ( BremE + P (track) )"'
+        '#': '186530'
+        Mean: '0.12112'
+        RMS: '0.14722'
+        Skewness: '1.9867'
+        Kurtosis: '4.0941'
+      EoverP:
+        ID: EoverP
+        Title: '"E (Ecal) / P (track)"'
+        '#': '376583'
+        Mean: '0.34706'
+        RMS: '0.30051'
+        Skewness: '1.3464'
+        Kurtosis: '2.2545'
+      EoverP_hasbrem:
+        ID: EoverP_hasbrem
+        Title: '"E (Ecal) / P (track) (with HasBrem)"'
+        '#': '89615'
+        Mean: '0.40963'
+        RMS: '0.34320'
+        Skewness: '1.1587'
+        Kurtosis: '1.3166'
+    header:
+      1D: 3
+      2D: 0
+      3D: 0
+      1DProf: 0
+      2DProf: 0
+      3DProf: 0
+      Total: 3
   pv_beamline_cleanup:
     1D:
       n_pvs_event:
@@ -1310,15 +1286,7 @@ counters:
       mean/eff^*: 49.474
   gather_selections:
     set: gather_selections
-    total_counters: 90
-    Hlt1BGIPseudoPVsIRBeamBeamPass:
-      binomial: false
-      name: Hlt1BGIPseudoPVsIRBeamBeamPass
-      count: 8
-    Hlt1BGIPseudoPVsIRBeamBeamRate:
-      binomial: false
-      name: Hlt1BGIPseudoPVsIRBeamBeamRate
-      count: 8
+    total_counters: 79
     Hlt1ConeJet100GeVPass:
       binomial: false
       name: Hlt1ConeJet100GeVPass
@@ -1378,19 +1346,11 @@ counters:
     Hlt1DiElectronDisplacedPass:
       binomial: false
       name: Hlt1DiElectronDisplacedPass
-      count: 30
+      count: 25
     Hlt1DiElectronDisplacedRate:
       binomial: false
       name: Hlt1DiElectronDisplacedRate
-      count: 30
-    Hlt1DiElectronHighMass_SSPass:
-      binomial: false
-      name: Hlt1DiElectronHighMass_SSPass
-      count: 1
-    Hlt1DiElectronHighMass_SSRate:
-      binomial: false
-      name: Hlt1DiElectronHighMass_SSRate
-      count: 1
+      count: 25
     Hlt1DiElectronLowMass_DisplacedPass:
       binomial: false
       name: Hlt1DiElectronLowMass_DisplacedPass
@@ -1402,19 +1362,19 @@ counters:
     Hlt1DiElectronLowMass_NoIPNormPass:
       binomial: false
       name: Hlt1DiElectronLowMass_NoIPNormPass
-      count: 58
+      count: 50
     Hlt1DiElectronLowMass_NoIPPass:
       binomial: false
       name: Hlt1DiElectronLowMass_NoIPPass
-      count: 18
+      count: 11
     Hlt1DiElectronLowMass_NoIPRate:
       binomial: false
       name: Hlt1DiElectronLowMass_NoIPRate
-      count: 18
+      count: 11
     Hlt1DiElectronLowMass_SS_DisplacedPass:
       binomial: false
       name: Hlt1DiElectronLowMass_SS_DisplacedPass
-      count: 25
+      count: 20
     Hlt1DiElectronLowMass_SS_DisplacedRate:
       binomial: false
       name: Hlt1DiElectronLowMass_SS_DisplacedRate
@@ -1422,7 +1382,7 @@ counters:
     Hlt1DiElectronLowMass_SS_NoIPNormPass:
       binomial: false
       name: Hlt1DiElectronLowMass_SS_NoIPNormPass
-      count: 148
+      count: 122
     Hlt1DiElectronLowMass_SS_NoIPNormRate:
       binomial: false
       name: Hlt1DiElectronLowMass_SS_NoIPNormRate
@@ -1430,19 +1390,19 @@ counters:
     Hlt1DiElectronLowMass_SS_NoIPPass:
       binomial: false
       name: Hlt1DiElectronLowMass_SS_NoIPPass
-      count: 76
+      count: 63
     Hlt1DiElectronLowMass_SS_NoIPRate:
       binomial: false
       name: Hlt1DiElectronLowMass_SS_NoIPRate
-      count: 2
+      count: 1
     Hlt1DiMuonDisplacedPass:
       binomial: false
       name: Hlt1DiMuonDisplacedPass
-      count: 17
+      count: 4
     Hlt1DiMuonDisplacedRate:
       binomial: false
       name: Hlt1DiMuonDisplacedRate
-      count: 17
+      count: 4
     Hlt1DiMuonDisplacedSoftPTPass:
       binomial: false
       name: Hlt1DiMuonDisplacedSoftPTPass
@@ -1454,19 +1414,11 @@ counters:
     Hlt1DiMuonHighMassPass:
       binomial: false
       name: Hlt1DiMuonHighMassPass
-      count: 46
+      count: 7
     Hlt1DiMuonHighMassRate:
       binomial: false
       name: Hlt1DiMuonHighMassRate
-      count: 46
-    Hlt1DiMuonNoIPNormPass:
-      binomial: false
-      name: Hlt1DiMuonNoIPNormPass
-      count: 2
-    Hlt1DiMuonNoIPNormRate:
-      binomial: false
-      name: Hlt1DiMuonNoIPNormRate
-      count: 2
+      count: 7
     Hlt1DiMuonNoIPPass:
       binomial: false
       name: Hlt1DiMuonNoIPPass
@@ -1495,14 +1447,6 @@ counters:
       binomial: false
       name: Hlt1DiPhotonHighMassRate
       count: 33
-    Hlt1DiProtonHighMassPass:
-      binomial: false
-      name: Hlt1DiProtonHighMassPass
-      count: 2
-    Hlt1DiProtonHighMassRate:
-      binomial: false
-      name: Hlt1DiProtonHighMassRate
-      count: 2
     Hlt1Dst2D0PiAlignmentPass:
       binomial: false
       name: Hlt1Dst2D0PiAlignmentPass
@@ -1559,22 +1503,10 @@ counters:
       binomial: false
       name: Hlt1LambdaLLDetachedTrackRate
       count: 1
-    Hlt1MaterialVertexSeedsDownstreamzPass:
-      binomial: false
-      name: Hlt1MaterialVertexSeedsDownstreamzPass
-      count: 4
-    Hlt1MaterialVertexSeedsDownstreamzRate:
-      binomial: false
-      name: Hlt1MaterialVertexSeedsDownstreamzRate
-      count: 4
     Hlt1OneMuonTrackLinePass:
       binomial: false
       name: Hlt1OneMuonTrackLinePass
       count: 5724
-    Hlt1OneMuonTrackLineRate:
-      binomial: false
-      name: Hlt1OneMuonTrackLineRate
-      count: 3
     Hlt1RICH1AlignmentPass:
       binomial: false
       name: Hlt1RICH1AlignmentPass
@@ -1594,19 +1526,19 @@ counters:
     Hlt1SingleHighPtElectronPass:
       binomial: false
       name: Hlt1SingleHighPtElectronPass
-      count: 12
+      count: 11
     Hlt1SingleHighPtElectronRate:
       binomial: false
       name: Hlt1SingleHighPtElectronRate
-      count: 12
+      count: 11
     Hlt1SingleHighPtMuonNoMuIDPass:
       binomial: false
       name: Hlt1SingleHighPtMuonNoMuIDPass
-      count: 19
+      count: 8
     Hlt1SingleHighPtMuonNoMuIDRate:
       binomial: false
       name: Hlt1SingleHighPtMuonNoMuIDRate
-      count: 19
+      count: 8
     Hlt1SingleHighPtMuonPass:
       binomial: false
       name: Hlt1SingleHighPtMuonPass
@@ -1618,11 +1550,11 @@ counters:
     Hlt1TrackElectronMVAPass:
       binomial: false
       name: Hlt1TrackElectronMVAPass
-      count: 61
+      count: 50
     Hlt1TrackElectronMVARate:
       binomial: false
       name: Hlt1TrackElectronMVARate
-      count: 61
+      count: 50
     Hlt1TrackMVAPass:
       binomial: false
       name: Hlt1TrackMVAPass

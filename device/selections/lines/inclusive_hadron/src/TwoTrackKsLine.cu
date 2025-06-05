@@ -44,7 +44,7 @@ __device__ bool two_track_line_ks::two_track_line_ks_t::select(
   return decision;
 }
 
-__device__ void two_track_line_ks::two_track_line_ks_t::fill_tuples(
+__device__ bool two_track_line_ks::two_track_line_ks_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -64,4 +64,5 @@ __device__ void two_track_line_ks::two_track_line_ks_t::fill_tuples(
     parameters.min_p[index] = particle.minp();
     parameters.mass[index] = particle.m12(Allen::mPi, Allen::mPi);
   }
+  return sel;
 }

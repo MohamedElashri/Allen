@@ -84,7 +84,7 @@ namespace di_electron_soft_line {
     __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float, const float>
     get_input(const Parameters&, const unsigned, const unsigned i);
 
-    __device__ static void fill_tuples(
+    __device__ static bool fill_tuples(
       const Parameters&,
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float, const float> input,

@@ -34,7 +34,7 @@ namespace LookingForward {
   struct Constants;
 }
 namespace ParKalmanFilter {
-  struct KalmanParametrizationsStruct;
+  struct KalmanParametrizations;
 }
 namespace MatchUpstreamMuon {
   struct MuonChambers;
@@ -133,24 +133,17 @@ struct Constants {
   TrackMatchingConsts::MagnetParametrization* dev_magnet_parametrization = nullptr;
 
   // Kalman filter
-  ParKalmanFilter::KalmanParametrizationsStruct* dev_kalman_params = nullptr;
+  ParKalmanFilter::KalmanParametrizations* dev_kalman_params = nullptr;
 
-  float* host_VP_pars_MD = nullptr;
-  float* host_VPUT_pars_MD = nullptr;
-  float* host_UT_pars_MD = nullptr;
-  float* host_T_pars_MD = nullptr;
-  float* host_TFT_pars_MD = nullptr;
-  float* host_UTTF_pars_MD = nullptr;
-  float* host_VP_pars_MU = nullptr;
-  float* host_VPUT_pars_MU = nullptr;
-  float* host_UT_pars_MU = nullptr;
-  float* host_T_pars_MU = nullptr;
-  float* host_UTT_META_MU = nullptr;
-  float* host_TFT_pars_MU = nullptr;
-  float* host_UTTF_pars_MU = nullptr;
+  float* host_VP_pars = nullptr;
+  float* host_VPUT_pars = nullptr;
+  float* host_UT_pars = nullptr;
+  float* host_T_pars = nullptr;
+  float* host_TFT_pars = nullptr;
+  float* host_UTTF_pars = nullptr;
   float* host_UT_Layers = nullptr;
   float* host_T_Layers = nullptr;
-  float* host_UTT_META_MD = nullptr;
+  float* host_UTT_META = nullptr;
 
   // Rich
   std::vector<char> host_rich_pdmdb_mapping;
@@ -187,20 +180,13 @@ struct Constants {
   void initialize_ut_decoding_constants(const std::vector<char>& ut_geometry);
 
   void initialize_kalman_pars_constants(
-    const std::vector<float>& VP_pars_MD,
-    const std::vector<float>& VPUT_pars_MD,
-    const std::vector<float>& UT_pars_MD,
-    const std::vector<float>& T_pars_MD,
-    const std::vector<float>& TFT_pars_MD,
-    const std::vector<float>& UTTF_pars_MD,
-    const std::vector<float>& VP_pars_MU,
-    const std::vector<float>& VPUT_pars_MU,
-    const std::vector<float>& UT_pars_MU,
-    const std::vector<float>& T_pars_MU,
-    const std::vector<float>& TFT_pars_MU,
-    const std::vector<float>& UTTF_pars_MU,
+    const std::vector<float>& VP_pars,
+    const std::vector<float>& VPUT_pars,
+    const std::vector<float>& UT_pars,
+    const std::vector<float>& T_pars,
+    const std::vector<float>& TFT_pars,
+    const std::vector<float>& UTTF_pars,
     const std::vector<float>& UT_Layers,
     const std::vector<float>& T_Layers,
-    const std::vector<float>& UTT_META_MD,
-    const std::vector<float>& UTT_META_MU);
+    const std::vector<float>& UTT_META);
 };

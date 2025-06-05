@@ -61,7 +61,7 @@ namespace track_electron_mva_line {
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::BasicParticle, const unsigned>);
 
-    __device__ static void fill_tuples(
+    __device__ static bool fill_tuples(
       const Parameters&,
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::BasicParticle, const unsigned>,

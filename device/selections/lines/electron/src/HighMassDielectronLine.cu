@@ -101,7 +101,7 @@ __device__ void highmass_dielectron_line::highmass_dielectron_line_t::monitor(
   }
 }
 
-__device__ void highmass_dielectron_line::highmass_dielectron_line_t::fill_tuples(
+__device__ bool highmass_dielectron_line::highmass_dielectron_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::
@@ -114,4 +114,5 @@ __device__ void highmass_dielectron_line::highmass_dielectron_line_t::fill_tuple
     const auto& m = std::get<4>(input);
     parameters.mass[index] = m;
   }
+  return sel;
 }

@@ -231,8 +231,6 @@ int allen(
 
   number_of_buffers = number_of_threads + 1;
 
-  std::unique_ptr<ParKalmanReader> parKalmanFilter_reader;
-
   // items for 0MQ to poll
   std::vector<zmq::pollitem_t> items;
   items.resize(number_of_threads + n_io + n_agg + !control_connection.empty());
@@ -275,29 +273,23 @@ int allen(
   // Initialize detector constants on GPU
   Constants constants;
 
-  // MuonID Model
+  // ParKF constants
+  std::unique_ptr<ParKalmanReader> parKalmanFilter_reader;
   parKalmanFilter_reader =
-    std::make_unique<ParKalmanReader>(folder_parameters + "/ParametrizedKalmanFit/24v0/params.json");
+    std::make_unique<ParKalmanReader>(folder_parameters + "/ParametrizedKalmanFit/25v0/params.json");
 
   constants.reserve_and_initialize(muon_field_of_interest_params, folder_parameters);
 
   constants.initialize_kalman_pars_constants(
-    parKalmanFilter_reader->VP_pars(-1),
-    parKalmanFilter_reader->VPUT_pars(-1),
-    parKalmanFilter_reader->UT_pars(-1),
-    parKalmanFilter_reader->T_pars(-1),
-    parKalmanFilter_reader->UTTF_pars(-1),
-    parKalmanFilter_reader->TFT_pars(-1),
-    parKalmanFilter_reader->VP_pars(1),
-    parKalmanFilter_reader->VPUT_pars(1),
-    parKalmanFilter_reader->UT_pars(1),
-    parKalmanFilter_reader->T_pars(1),
-    parKalmanFilter_reader->UTTF_pars(1),
-    parKalmanFilter_reader->TFT_pars(1),
+    parKalmanFilter_reader->VP_pars(),
+    parKalmanFilter_reader->VPUT_pars(),
+    parKalmanFilter_reader->UT_pars(),
+    parKalmanFilter_reader->T_pars(),
+    parKalmanFilter_reader->UTTF_pars(),
+    parKalmanFilter_reader->TFT_pars(),
     parKalmanFilter_reader->UT_layer(),
     parKalmanFilter_reader->T_layer(),
-    parKalmanFilter_reader->UTT_META(-1),
-    parKalmanFilter_reader->UTT_META(1));
+    parKalmanFilter_reader->UTT_META());
 
   // Register all consumers
   register_consumers(updater, constants, config_reader.configured_bank_types());

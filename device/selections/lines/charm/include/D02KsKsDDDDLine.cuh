@@ -185,7 +185,7 @@ namespace d02ksks_DDDD_line {
       evtNo_t,
       runNo_t>;
 
-    __device__ static void fill_tuples(
+    __device__ static bool fill_tuples(
       const Parameters&,
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -206,7 +206,7 @@ namespace d02ksks_DDDD_line {
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 20.f, "maxVertexChi2 description"};
     Allen::Property<float> m_minComboPt_Ks {this,
                                             "minComboPt_Ks",
-                                            1500.f * Gaudi::Units::MeV,
+                                            1200.f * Gaudi::Units::MeV,
                                             "minComboPt_Ks description"};
     Allen::Property<float> m_minEta_Ks {this, "minEta_Ks", 2.f, "minEta_Ks description"};
     Allen::Property<float> m_maxEta_Ks {this, "maxEta_Ks", 4.2f, "maxEta_Ks description"};
@@ -218,7 +218,7 @@ namespace d02ksks_DDDD_line {
                                              "minTrackP_piKs",
                                              3000.f * Gaudi::Units::MeV,
                                              "minTrackP_piKs description"};
-    Allen::Property<float> m_minTrackIP_piKs {this, "minTrackIP_piKs", 110.f, "minTrackIP_piKs description"};
+    Allen::Property<float> m_minTrackIP_piKs {this, "minTrackIP_piKs", 1.f, "minTrackIP_piKs description"};
     Allen::Property<float> m_minM_Ks {this, "minM_Ks", 400.0f * Gaudi::Units::MeV, "minM_Ks description"};
     Allen::Property<float> m_maxM_Ks {this, "maxM_Ks", 600.0f * Gaudi::Units::MeV, "maxM_Ks description"};
     Allen::Property<float> m_minM_D0 {this, "minM_D0", 1650.0f * Gaudi::Units::MeV, "minM_D0 description"};

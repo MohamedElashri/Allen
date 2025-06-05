@@ -30,10 +30,20 @@ void momentum_brem_correction::momentum_brem_correction_t::operator()(
   Allen::memset_async<dev_brem_corrected_p_t>(arguments, 0, context);
   Allen::memset_async<dev_brem_corrected_pt_t>(arguments, 0, context);
 
-  global_function(momentum_brem_correction)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(arguments);
+  auto dev_hist_Eop = m_hist_Eop.data(context);
+  auto dev_hist_Eop_hasBrem = m_hist_Eop_hasBrem.data(context);
+  auto dev_hist_brem = m_hist_brem.data(context);
+
+  global_function(momentum_brem_correction)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
+    arguments, min_bremeop, dev_hist_Eop, dev_hist_Eop_hasBrem, dev_hist_brem);
 }
 
-__global__ void momentum_brem_correction::momentum_brem_correction(momentum_brem_correction::Parameters parameters)
+__global__ void momentum_brem_correction::momentum_brem_correction(
+  momentum_brem_correction::Parameters parameters,
+  const float min_bremeop,
+  Allen::Monitoring::Histogram<>::DeviceType hist_Eop,
+  Allen::Monitoring::Histogram<>::DeviceType hist_Eop_hasBrem,
+  Allen::Monitoring::Histogram<>::DeviceType hist_brem)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
@@ -50,6 +60,10 @@ __global__ void momentum_brem_correction::momentum_brem_correction(momentum_brem
     const auto track = event_tracks[i_track];
 
     const auto long_track = event_long_tracks.track(i_track);
+
+    const auto eop = parameters.dev_track_Eop[i_track + parameters.dev_track_offsets[event_number]];
+    hist_Eop.increment(eop);
+
     const auto velo_track = long_track.track_segment<Allen::Views::Physics::Track::segment::velo>();
     const auto velo_track_index_with_offset =
       velo_track.track_index() + parameters.dev_velo_tracks_offsets[event_number];
@@ -58,5 +72,13 @@ __global__ void momentum_brem_correction::momentum_brem_correction(momentum_brem
       track.p() + parameters.dev_brem_E[velo_track_index_with_offset];
     parameters.dev_brem_corrected_pt[i_track + parameters.dev_track_offsets[event_number]] =
       track.pt() + parameters.dev_brem_ET[velo_track_index_with_offset];
+
+    // E_brem / (E_brem + P_track)
+    const auto brem_frac =
+      1.f - 1.f / (fabsf(long_track.qop()) *
+                   parameters.dev_brem_corrected_p[i_track + parameters.dev_track_offsets[event_number]]);
+    hist_brem.increment(brem_frac);
+
+    if (brem_frac > min_bremeop) hist_Eop_hasBrem.increment(eop);
   }
 }

@@ -60,7 +60,8 @@ namespace ParKalmanFilter {
     const float* dev_UTTF_pars,
     const float* dev_T_par,
     const float* dev_TFT_par,
-    const float* dev_UTT_META);
+    const float* dev_UTT_META,
+    const KalmanFloat magSign);
 
 } // namespace ParKalmanFilter
 
@@ -96,7 +97,7 @@ namespace kalman_filter {
   __global__ void kalman_filter(
     Parameters,
     const float* dev_magnet_polarity,
-    const ParKalmanFilter::KalmanParametrizationsStruct* dev_kalman_params);
+    const ParKalmanFilter::KalmanParametrizations* dev_kalman_params);
 
   // Does this need to be reimplemented?
   __global__ void kalman_pv_ip(Parameters parameters);

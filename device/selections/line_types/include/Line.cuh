@@ -180,8 +180,10 @@ public:
   static __device__ void monitor(const Parameters&, U, T, unsigned, bool)
   {}
   template<typename T>
-  static __device__ void fill_tuples(const Parameters&, T, unsigned, bool)
-  {}
+  static __device__ bool fill_tuples(const Parameters&, T, unsigned, bool)
+  {
+    return false;
+  }
 
   template<std::size_t N, typename lv, typename rv>
   void set_equal(lv& l, const rv& r, std::size_t index) const
@@ -322,22 +324,25 @@ __device__ void process_line(
 
       if constexpr (Allen::has_monitoring_types<Derived>::value) {
         if (dev_line_data->enable_tupling) {
-          LHCb::ODIN odin {dev_odin_data[event_number]};
           unsigned index = Derived::offset(parameters, event_number) + i;
-          if constexpr (Allen::monitoring_has_evtNo<Parameters>::value) {
-            parameters.evtNo[index] = odin.eventNumber();
-          }
-          if constexpr (Allen::monitoring_has_runNo<Parameters>::value) {
-            parameters.runNo[index] = odin.runNumber();
-          }
+          bool do_fill;
           if constexpr (!std::is_same_v<
                           typename Line<Derived, Parameters>::DeviceProperties,
                           typename Derived::DeviceProperties>) {
             const auto properties = std::get<3>(type_casted_input);
-            Derived::fill_tuples(parameters, properties, input, index, decision);
+            do_fill = Derived::fill_tuples(parameters, properties, input, index, decision);
           }
           else {
-            Derived::fill_tuples(parameters, input, index, decision);
+            do_fill = Derived::fill_tuples(parameters, input, index, decision);
+          }
+          if (do_fill) {
+            LHCb::ODIN odin {dev_odin_data[event_number]};
+            if constexpr (Allen::monitoring_has_evtNo<Parameters>::value) {
+              parameters.evtNo[index] = odin.eventNumber();
+            }
+            if constexpr (Allen::monitoring_has_runNo<Parameters>::value) {
+              parameters.runNo[index] = odin.runNumber();
+            }
           }
         }
       }

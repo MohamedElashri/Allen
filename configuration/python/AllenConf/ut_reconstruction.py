@@ -424,7 +424,7 @@ def make_ut_tracks(decoded_ut,
         # Properties
         min_momentum_final=compass_ut_min_momentum_final,
         min_pt_final=compass_ut_min_pt_final,
-        min_ghost_prob_3_hit=0.5,
+        min_ghost_prob_3_hit=0.8,
         min_ghost_prob_4_hit=0.5,
     )
 

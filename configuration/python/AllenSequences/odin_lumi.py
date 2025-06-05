@@ -19,8 +19,6 @@ from AllenConf.validators import rate_validation
 from AllenConf.odin import odin_error_filter, make_event_type, make_odin_orbit, tae_filter
 from AllenConf.HLT1 import odin_monitoring_lines, default_bgi_activity_lines
 from AllenConf.lumi_reconstruction import lumi_reconstruction
-from AllenConf.velo_reconstruction import decode_velo
-from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.enum_types import TrackingType, includes_matching
 
 
@@ -60,8 +58,6 @@ def setup_hlt1_node(velo_open=False, enableBGI=True, enableBGI_full=False):
         lines += default_bgi_activity_lines(
             reconstructed_objects["pvs"],
             reconstructed_objects["velo_states"],
-            decode_velo(),
-            decode_calo(),
             enableBGI_full=enableBGI_full,
             prefilter=odin_err_filter)
 

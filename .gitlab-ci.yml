@@ -9,7 +9,7 @@ variables:
 
   ALLEN_DATA: "/scratch/allen_data"
 
-  LCG_VERSION: "LCG_105a"
+  LCG_VERSION: "LCG_106c"
   # LCG_PLATFORM = {LCG_SYSTEM}+{LCG_QUALIFIER}-{LCG_OPTIMIZATION}
   LCG_SYSTEM: "x86_64_v3-el9-gcc13"
   LCG_QUALIFIER: "cpu"

@@ -21,7 +21,9 @@ with decode_velo.bind(retina_decoding=False), make_velo_scifi_matches.bind(
     hlt1_node = setup_hlt1_node(
         tracking_type=TrackingType.FORWARD_THEN_MATCHING,
         threshold_settings=get_thresholds(
-            "forward_then_matching_tuned_mu5p3_1200KHz"),
+            "forward_then_matching_and_downstream_with_parkf_tuned_mu5p3_1200kHz"
+        ),
+        with_fullKF=True,
         with_ut=True,
         enableDownstream=True)
 

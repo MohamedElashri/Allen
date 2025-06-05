@@ -88,7 +88,7 @@ namespace di_muon_no_ip_line {
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float>,
       unsigned,
       bool);
-    __device__ static void fill_tuples(
+    __device__ static bool fill_tuples(
       const Parameters& parameters,
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,

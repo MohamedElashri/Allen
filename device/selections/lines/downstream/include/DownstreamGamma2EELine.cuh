@@ -64,7 +64,7 @@ namespace downstream_gammatoee_line {
       unsigned index,
       bool sel);
 
-    __device__ static void fill_tuples(
+    __device__ static bool fill_tuples(
       const Parameters&,
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,
@@ -74,7 +74,7 @@ namespace downstream_gammatoee_line {
   private:
     Allen::Property<float> m_minMass {this, "minMass", (0.0f) * Gaudi::Units::MeV, "Minimum invariant mass"};
     Allen::Property<float> m_maxMass {this, "maxMass", (100.0f) * Gaudi::Units::MeV, "Maximum invariat mass"};
-    Allen::Property<float> m_minPt {this, "minPt", (1500.0f) * Gaudi::Units::MeV, "Minimum pt"};
+    Allen::Property<float> m_minPt {this, "minPt", (1000.0f) * Gaudi::Units::MeV, "Minimum pt"};
     Allen::Property<float> m_maxArmenterosY {this, "maxArmenterosY", (60.0f), "Upper limit on Armenteros y"};
 
     Allen::Monitoring::Histogram<> m_histogram_gamma_mass {this, "gamma_mass", "m(ee)", {100u, 0.0f, 100.0f}};

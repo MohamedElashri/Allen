@@ -43,27 +43,24 @@ std::vector<char> GeometryReader::read_geometry(const std::string& filename) con
 ParKalmanReader::ParKalmanReader(const std::string& path)
 {
   if (!exists_test(path)) {
-    throw StrException("ParKalman parameter file " + path + " does not exist.");
+    throw StrException(
+      "ParKalman parameter file " + path +
+      " does not exist. Try updating the 'ParamFiles' folder. In Allen standalone builds under "
+      "'build/external/ParamFiles' in "
+      "full stack under 'PARAM/ParamFiles'");
   }
 
   std::ifstream i(path);
   nlohmann::json j;
   i >> j;
 
-  std::map<std::string, std::vector<float>*> key_to_member = {{"VParams_MagDown", &m_VP_pars_MD},
-                                                              {"VUTParams_MagDown", &m_VPUT_pars_MD},
-                                                              {"TParams_MagDown", &m_T_pars_MD},
-                                                              {"TFTParams_MagDown", &m_TFT_pars_MD},
-                                                              {"UTParams_MagDown", &m_UT_pars_MD},
-                                                              {"UTTFParams_MagDown", &m_UTTF_pars_MD},
-                                                              {"VParams_MagUp", &m_VP_pars_MU},
-                                                              {"VUTParams_MagUp", &m_VPUT_pars_MU},
-                                                              {"TParams_MagUp", &m_T_pars_MU},
-                                                              {"TFTParams_MagUp", &m_TFT_pars_MU},
-                                                              {"UTParams_MagUp", &m_UT_pars_MU},
-                                                              {"UTTFParams_MagUp", &m_UTTF_pars_MU},
-                                                              {"UTT_META_MagDown", &m_UTT_META_MD},
-                                                              {"UTT_META_MagUp", &m_UTT_META_MU},
+  std::map<std::string, std::vector<float>*> key_to_member = {{"VParams", &m_VP_pars},
+                                                              {"VUTParams", &m_VPUT_pars},
+                                                              {"TParams", &m_T_pars},
+                                                              {"TFTParams", &m_TFT_pars},
+                                                              {"UTParams", &m_UT_pars},
+                                                              {"UTTFParams", &m_UTTF_pars},
+                                                              {"UTT_META", &m_UTT_META},
                                                               {"UTLayer", &m_UT_layer},
                                                               {"TLayer", &m_T_layer}};
 

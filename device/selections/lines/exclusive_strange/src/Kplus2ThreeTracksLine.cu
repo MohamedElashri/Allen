@@ -86,7 +86,7 @@ __device__ void kplus_to_three_tracks_line::kplus_to_three_tracks_line_t::monito
   }
 }
 
-__device__ void kplus_to_three_tracks_line::kplus_to_three_tracks_line_t::fill_tuples(
+__device__ bool kplus_to_three_tracks_line::kplus_to_three_tracks_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -100,4 +100,5 @@ __device__ void kplus_to_three_tracks_line::kplus_to_three_tracks_line_t::fill_t
     parameters.min_pt[index] = particle.minpt(); // This should range in [250., 2000.]
     parameters.min_ip[index] = particle.minip(); // This should range in [0.06, 2.0]
   }
+  return sel;
 }

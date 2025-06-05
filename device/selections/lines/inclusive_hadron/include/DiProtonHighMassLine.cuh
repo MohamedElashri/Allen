@@ -33,6 +33,8 @@ namespace diproton_highmass_line {
     DEVICE_OUTPUT(p_pt_t, float) p_pt;
     DEVICE_OUTPUT(p_p_t, float) p_p;
     DEVICE_OUTPUT(ptasym_t, float) ptasym;
+    DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+    DEVICE_OUTPUT(runNo_t, unsigned) runNo;
   };
 
   struct diproton_highmass_line_t : public SelectionAlgorithm,
@@ -68,7 +70,7 @@ namespace diproton_highmass_line {
       {}
     };
 
-    using monitoring_types = std::tuple<pp_mass_t, pp_pt_t, pp_p_t, p_pt_t, p_p_t, ptasym_t>;
+    using monitoring_types = std::tuple<pp_mass_t, pp_pt_t, pp_p_t, p_pt_t, p_p_t, ptasym_t, evtNo_t, runNo_t>;
     __device__ static bool
     select(const Parameters&, const DeviceProperties&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
@@ -79,7 +81,7 @@ namespace diproton_highmass_line {
       unsigned index,
       bool sel);
 
-    __device__ static void fill_tuples(
+    __device__ static bool fill_tuples(
       const Parameters&,
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -87,14 +89,14 @@ namespace diproton_highmass_line {
       bool sel);
 
   private:
-    Allen::Property<float> m_minPT_p {this, "minPT_p", 4000.f * Gaudi::Units::MeV, "Minimum proton PT"};
-    Allen::Property<float> m_minP_p {this, "minP_p", 20000.f * Gaudi::Units::MeV, "Minimum proton P"};
-    Allen::Property<float> m_minPT_pp {this, "minPT_pp", 4000.f * Gaudi::Units::MeV, "Minimum DiProton PT"};
+    Allen::Property<float> m_minPT_p {this, "minPT_p", 5000.f * Gaudi::Units::MeV, "Minimum proton PT"};
+    Allen::Property<float> m_minP_p {this, "minP_p", 25000.f * Gaudi::Units::MeV, "Minimum proton P"};
+    Allen::Property<float> m_minPT_pp {this, "minPT_pp", 6000.f * Gaudi::Units::MeV, "Minimum DiProton PT"};
     Allen::Property<float> m_minP_pp {this, "minP_pp", 60000.f * Gaudi::Units::MeV, "Minimum DiProton P"};
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 16.0f, "Maximum vertex Chi2"};
     Allen::Property<float> m_minMass {this, "minMass", 8500.f * Gaudi::Units::MeV, "Minimum invariant mass"};
     Allen::Property<float> m_maxMass {this, "maxMass", 12500.f * Gaudi::Units::MeV, "Maximum invariat mass"};
-    Allen::Property<float> m_maxPtAsym {this, "maxPtAsym", 0.9f, "Maximum PT asymmetry daughters w.r.t. the mother"};
+    Allen::Property<float> m_maxPtAsym {this, "maxPtAsym", 0.7f, "Maximum PT asymmetry daughters w.r.t. the mother"};
     Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign proton combinations"};
     Allen::Property<float> m_maxGhostProb {this, "maxGhostProb", 0.5, "Maximum ghost probability of the tracks"};
 

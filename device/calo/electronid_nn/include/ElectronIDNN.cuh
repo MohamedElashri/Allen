@@ -55,7 +55,7 @@ namespace electronid_nn {
 
   private:
     Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimension"};
-    NeuralNetworkType electron_id_nn {"electron_id_nn", "/CaloPID/electron_mva_AllenMar2025.json"};
+    NeuralNetworkType electron_id_nn {"electron_id_nn", "/CaloPID/electron_mva_AllenApr2025.json"};
   };
 
 } // namespace electronid_nn

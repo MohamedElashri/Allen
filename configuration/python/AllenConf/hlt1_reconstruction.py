@@ -419,7 +419,7 @@ def hlt1_reconstruction(algorithm_name='',
             minTrackPtV1=300.,
             minTrackPV1=3000.,
             minTrackIPChi2V1=-999.,
-            minTrackIPV1=80,
+            minTrackIPV1=0.8,
             minMassV2=350.,
             maxMassV2=650.,
             minPtV2=750.,
@@ -429,7 +429,7 @@ def hlt1_reconstruction(algorithm_name='',
             minTrackPtV2=300.,
             minTrackPV2=3000.,
             minTrackIPChi2V2=-999.,
-            minTrackIPV2=80)
+            minTrackIPV2=0.8)
         v0dd_hh_pairs = make_generic_sv_pairs(
             v0s_dd,
             dihadrons,

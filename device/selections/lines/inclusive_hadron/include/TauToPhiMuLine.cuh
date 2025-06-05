@@ -134,7 +134,7 @@ namespace tautophimu_line {
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input);
 
-    __device__ static void fill_tuples(
+    __device__ static bool fill_tuples(
       const Parameters&,
       const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,

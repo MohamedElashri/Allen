@@ -61,7 +61,7 @@ void rich_1_line::rich_1_line_t::init_tuples(
 /*
  * Documented in ExampleOneTrackLine.cuh
  */
-__device__ void rich_1_line::rich_1_line_t::fill_tuples(
+__device__ bool rich_1_line::rich_1_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::BasicParticle> input,
@@ -79,6 +79,7 @@ __device__ void rich_1_line::rich_1_line_t::fill_tuples(
   parameters.dev_phi[index] = trackPhi(track);
 
   parameters.dev_decision[index] = sel;
+  return true;
 }
 
 void rich_1_line::rich_1_line_t::output_tuples(

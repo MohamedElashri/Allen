@@ -71,7 +71,7 @@ __device__ void SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::monito
   }
 }
 
-__device__ void SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::fill_tuples(
+__device__ bool SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
@@ -87,4 +87,5 @@ __device__ void SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::fill_t
     parameters.pt[index] = dimuon.vertex().pt();
     parameters.maxchi2corr[index] = std::get<1>(input);
   }
+  return sel;
 }

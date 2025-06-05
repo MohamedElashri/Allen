@@ -98,6 +98,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
         make_diproton_highmass_line(
             prompt_dihadrons,
             name="Hlt1DiProtonHighMass",
+            minPT_p=thresholds.DiProtonHighMass_P_minPt,
+            minPT_pp=thresholds.DiProtonHighMass_PP_minPt,
             pre_scaler=1.,
             enable_tupling=enable_tupling),
         make_kplus_to_piee_line(
@@ -118,7 +120,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 reconstructed_objects['downstream_tracks'],
                 reconstructed_objects['downstream_secondary_vertices'],
                 mva_ks_threshold=0.55,
-                mva_detached_ks_threshold=0.55,
+                mva_detached_ks_threshold=thresholds.
+                DownstreamKsToPiPi_minMVA_detached,
                 name="Hlt1DownstreamKsToPiPi",
                 enable_monitoring=True,
                 enable_tupling=enable_tupling),
@@ -126,7 +129,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 reconstructed_objects['downstream_tracks'],
                 reconstructed_objects['downstream_secondary_vertices'],
                 mva_l0_threshold=0.5,
-                mva_detached_l0_threshold=0.5,
+                mva_detached_l0_threshold=thresholds.
+                DownstreamLambdaToPPi_minMVA_detached,
                 name="Hlt1DownstreamLambdaToPPi",
                 enable_monitoring=True,
                 enable_tupling=enable_tupling),
@@ -151,8 +155,9 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
             make_downstream_gamma_line(
                 reconstructed_objects['downstream_tracks'],
                 reconstructed_objects['downstream_secondary_vertices'],
-                minPt=2500.,
+                minPt=thresholds.DownstreamGammaToEE_minPt,
                 name="Hlt1DownstreamGammaToEE",
+                post_scaler=0.2,
                 enable_monitoring=True,
                 enable_tupling=enable_tupling),
             make_BuSca_line(  # BuSca HLT1 Monitoring Line / Trigger disabled
@@ -217,19 +222,20 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 reconstructed_objects['downstream_tracks'],
                 reconstructed_objects['downstream_secondary_vertices'],
                 name='Hlt1DownstreamTwoTrackKs',
-                minTrackPt_piKs=475.0,
+                minTrackPt_piKs=thresholds.
+                DownstreamTwoTrackKs_minTrackPt_piKs,
                 enable_monitoring=True,
                 enable_tupling=enable_tupling),
         ]
         if 'downstream_sv_pairs' in reconstructed_objects:
             lines += [
-                make_d02ksks_DDDD_line(
-                    reconstructed_objects['downstream_tracks'],
-                    reconstructed_objects['downstream_sv_pairs'],
-                    name='Hlt1D02KsKsDDDD',
-                    minTrackPt_piKs=450.0,
-                    minComboPt_Ks=1500.0,
-                    enable_tupling=enable_tupling),
+                # make_d02ksks_DDDD_line(
+                #     reconstructed_objects['downstream_tracks'],
+                #     reconstructed_objects['downstream_sv_pairs'],
+                #     name='Hlt1D02KsKsDDDD',
+                #     minTrackPt_piKs=450.0,
+                #     minComboPt_Ks=1200.0,
+                #     enable_tupling=enable_tupling),
                 make_BuSca_line(  # BuSca HLT1 HH with PiPi mass hypo. with same sign reconstuction / Trigger disabled
                     reconstructed_objects[
                         'downstream_combined_hadronic_and_leptonic_same_sign_secondary_vertices'],
@@ -254,7 +260,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                     enable_trigger=False),
                 make_BuSca_line(  # BuSca HLT1 High Mass Line / Trigger disabled
                     reconstructed_objects[
-                        'downstream_combined_hadronic_and_leptonic_same_sign_secondary_vertices'],
+                        'downstream_combined_hadronic_and_leptonic_secondary_vertices'],
                     name="Hlt1DownstreamBuScaHighMassLine",
                     line_type="monitoring",
                     histogram_ks_fd_min=500,
@@ -278,7 +284,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                     enable_trigger=False),
                 make_BuSca_line(  # BuSca HLT1 MuMu High Mass Line / Trigger disabled
                     reconstructed_objects[
-                        'downstream_combined_hadronic_and_leptonic_same_sign_secondary_vertices'],
+                        'downstream_combined_hadronic_and_leptonic_secondary_vertices'],
                     name="Hlt1DownstreamBuScaMuMuHighMassLine",
                     line_type="muon",
                     histogram_ks_fd_min=500,
@@ -358,7 +364,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
         muonid = reconstructed_objects["muonID"]
         muon_nn_cuts = {
             'vloose':
-            0.01,  #equivalent to Chi2Corr 2.4 provided PT cuts are loosened too 
+            0.01,  #equivalent to Chi2Corr 2.4 provided PT cuts are loosened too
             'loose':
             0.03,  # equivalent to Chi2Corr 1.8 provided PT cuts are loosened too
             'displaced_soft_pt': 0.8,  #ad-hoc cut for the DP search
@@ -378,17 +384,17 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 maxChi2Ndof=chi2_cuts.Hlt1SingleHighPtMuonNoMuID_maxChi2Ndof,
                 name="Hlt1SingleHighPtMuonNoMuID",
                 enable_tupling=enable_tupling,
-                singleMinPt=thresholds.SingleHighPtLepton_pt),
+                singleMinPt=thresholds.SingleHighPtLepton_pt_noMuonID),
             make_di_muon_mass_line(
                 long_tracks,
                 dileptons,
                 muonid,
-                maxChi2Corr=thresholds.DiMuonHighMass_maxCorrChi2,
+                #maxChi2Corr=thresholds.DiMuonHighMass_maxCorrChi2,
                 name="Hlt1DiMuonHighMass",
                 enable_tupling=enable_tupling,
                 minHighMassTrackPt=thresholds.DiMuonHighMass_pt,
                 useMuonNN=True,
-                minMuonNN=muon_nn_cuts['loose']),
+                minMuonNN=thresholds.DiMuonHighMass_NN),
             make_di_muon_mass_line(
                 long_tracks,
                 dileptons,
@@ -401,7 +407,6 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 maxVertexChi2=25.,
                 minIPChi2=thresholds.DiMuonDisplaced_ipchi2,
                 enable_tupling=enable_tupling,
-                maxChi2Corr=thresholds.DiMuonDisplaced_maxCorrChi2,
                 minMuonNN=thresholds.DiMuonDisplaced_NN,
                 useMuonNN=True,
             ),
@@ -483,6 +488,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 maxVertexChi2=9,
                 minIPChi2=-1,
                 enable_tupling=enable_tupling,
+                minMuonNN=thresholds.DiMuonDisplacedSoftPT_NN,
                 useMuonNN=True,
                 vetoSharedHits=True,
                 pre_scaler=0.001),
@@ -600,7 +606,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 name="Hlt1TrackElectronMVA",
                 alpha=thresholds.TrackElectronMVA_alpha,
                 useNN=
-                False,  #it uses it implicitely per the definition of isElectron
+                True,  #it uses it implicitely per the definition of isElectron
                 minElectronNN=thresholds.TrackElectronMVA_NN,
                 enable_tupling=enable_tupling),
             make_single_high_pt_electron_line(
@@ -617,7 +623,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 calo_matching_objects,
                 electronid_nn,
                 useNN=
-                False,  #it uses it implicitely per the definition of isElectron
+                True,  #it uses it implicitely per the definition of isElectron
                 minElectronNN=thresholds.DiElectronDisplaced_NN,
                 name="Hlt1DiElectronDisplaced",
                 MinPT=thresholds.DiElectronDisplaced_pt,
@@ -697,7 +703,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 4,  # it will only be picked up by the displaced line the NoIP (aka prompt) won't trigger this cut
                 "selectPrompt": "NoIP" in subSample,
                 "useNN": True,
-                "nnCut": 0.94 if subSample == "NoIP" else 0.75,
+                "nnCut": 0.96 if subSample == "NoIP" else 0.73,
                 "enable_monitoring": True,
                 "enable_tupling": enable_tupling
             }
@@ -768,17 +774,11 @@ def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name,
 
 def alignment_monitoring_lines(reconstructed_objects,
                                prefilters_bx,
-                               prefilters_odin_err,
-                               thresholds,
                                chi2_cuts,
                                with_muon=True):
 
-    velo_tracks = reconstructed_objects["velo_tracks"]
-    material_interaction_tracks = reconstructed_objects[
-        "material_interaction_tracks"]
     long_tracks = reconstructed_objects["long_tracks"]
     long_track_particles = reconstructed_objects["long_track_particles"]
-    velo_states = reconstructed_objects["velo_states"]
     dihadrons = reconstructed_objects["dihadron_secondary_vertices"]
     dileptons = reconstructed_objects["dilepton_secondary_vertices"]
     dstars = reconstructed_objects["dstars"]
@@ -797,19 +797,7 @@ def alignment_monitoring_lines(reconstructed_objects,
             name="Hlt1RICH2Alignment"),
         make_d2kpi_align_line(
             long_tracks, dihadrons, name="Hlt1D2KPiAlignment"),
-        make_dst_line(dstars, name="Hlt1Dst2D0PiAlignment"),
-        make_z_range_materialvertex_seed_line(
-            material_interaction_tracks,
-            min_z_materialvertex_seed=300,
-            max_z_materialvertex_seed=1000,
-            name="Hlt1MaterialVertexSeedsDownstreamz",
-            pre_scaler=0.005),
-        make_z_range_materialvertex_seed_line(
-            material_interaction_tracks,
-            min_z_materialvertex_seed=700,
-            max_z_materialvertex_seed=1000,
-            name="Hlt1MaterialVertexSeeds_DWFS",
-            pre_scaler=0.1)
+        make_dst_line(dstars, name="Hlt1Dst2D0PiAlignment")
     ]
 
     if with_muon:
@@ -825,7 +813,7 @@ def alignment_monitoring_lines(reconstructed_objects,
                 muon_stubs["dev_muon_tracks_offsets"],
                 muon_stubs["host_muon_total_number_of_tracks"],
                 name="Hlt1OneMuonTrackLine",
-                post_scaler=0.001),
+                post_scaler=6e-5),
             make_di_muon_mass_align_line(
                 long_tracks,
                 dileptons,
@@ -834,7 +822,7 @@ def alignment_monitoring_lines(reconstructed_objects,
                 minHighMassTrackP=20000.,
                 name="Hlt1UpsilonAlignment",
                 minMass=8000.,
-                maxMass=12000.,
+                maxMass=150000.,
                 minFdChi2=-1.,
                 minIP=-1.,
                 minDira=0.9),
@@ -843,14 +831,86 @@ def alignment_monitoring_lines(reconstructed_objects,
     with line_maker.bind(prefilter=prefilters_bx):
         lines = [line_maker(line) for line in lines]
 
-    with line_maker.bind(prefilter=prefilters_odin_err):
+    return lines
+
+
+@configurable
+def velo_tomography_lines(reconstructed_objects,
+                          prefilters_odin_err,
+                          prefilters_bx,
+                          full_velo_tomography=False):
+
+    material_interaction_tracks = reconstructed_objects[
+        "material_interaction_tracks"]
+
+    # VELO tomography lines need different pre-filters during special trigger configurations
+    # Only apply an ODIN error filter if the full VELO tomography is enabled
+    #   Otherwise it will be ODIN error + BX + VeloClosed + SciFiGEC
+    tomography_prefilters = prefilters_odin_err if full_velo_tomography else prefilters_bx
+
+    lines = [
+        line_maker(
+            make_z_range_materialvertex_seed_line(
+                material_interaction_tracks,
+                min_z_materialvertex_seed=300,
+                max_z_materialvertex_seed=1000,
+                name="Hlt1MaterialVertexSeedsDownstreamz"),
+            prefilter=tomography_prefilters + [
+                make_prescaler(0.5 if full_velo_tomography else 5e-4,
+                               "Hlt1MaterialVertexSeedsDownstreamz")
+            ]),
+        line_maker(
+            make_z_range_materialvertex_seed_line(
+                material_interaction_tracks,
+                min_z_materialvertex_seed=700,
+                max_z_materialvertex_seed=1000,
+                name="Hlt1MaterialVertexSeeds_DWFS"),
+            prefilter=tomography_prefilters + [
+                make_prescaler(1 if full_velo_tomography else 0.1,
+                               "Hlt1MaterialVertexSeeds_DWFS")
+            ]),
+    ]
+    if full_velo_tomography:
+        # Add an integrated VELO tomography line if full lines are enabled
         lines += [
+            line_maker(
+                make_z_range_materialvertex_seed_line(
+                    material_interaction_tracks,
+                    min_z_materialvertex_seed=-550,
+                    max_z_materialvertex_seed=1000,
+                    name="Hlt1MaterialVertexSeeds_zIntegrated"),
+                prefilter=tomography_prefilters +
+                [make_prescaler(1e-2, "Hlt1MaterialVertexSeeds_zIntegrated")])
+        ]
+
+    return lines
+
+
+@configurable
+def velo_micro_bias_lines(reconstructed_objects,
+                          odin_err_filter,
+                          velo_micro_bias_post_scaler=1e-3):
+    velo_tracks = reconstructed_objects["velo_tracks"]
+    with line_maker.bind(prefilter=odin_err_filter):
+        lines = [
             line_maker(
                 make_velo_micro_bias_line(
                     velo_tracks,
                     name="Hlt1VeloMicroBias",
-                    pre_scaler=1.,
-                    post_scaler=1.e-3))
+                    pre_scaler=1.0,
+                    post_scaler=velo_micro_bias_post_scaler,
+                ))
+        ]
+
+    velo_open_event = make_event_type(event_type="VeloOpen")
+    with line_maker.bind(prefilter=odin_err_filter + [velo_open_event]):
+        lines += [
+            line_maker(
+                make_velo_micro_bias_line(
+                    velo_tracks,
+                    name="Hlt1VeloMicroBiasVeloClosing",
+                    post_scaler=3.0e-3,
+                ))
         ]
 
     return lines
@@ -1040,8 +1100,6 @@ def default_SMOG2_lines(reconstructed_objects,
 @configurable
 def default_bgi_activity_lines(pvs,
                                velo_states,
-                               decoded_velo,
-                               decoded_calo,
                                enableBGI_full=False,
                                PbPb_collision=False,
                                prefilter=[]):
@@ -1090,7 +1148,7 @@ def default_bgi_activity_lines(pvs,
             make_beam_line(
                 name="Hlt1BGIPseudoPVsBeamTwo",
                 beam_crossing_type=2,
-                pre_scaler=1.,
+                pre_scaler=1. if enableBGI_full else 6.5e-2,
                 post_scaler=1.),
             prefilter=prefilter + [bx_NoBB, velo_states_z_all])
     ]
@@ -1124,7 +1182,7 @@ def default_bgi_activity_lines(pvs,
             make_beam_line(
                 name="Hlt1BGIPseudoPVsDownBeamBeam",
                 beam_crossing_type=3,
-                pre_scaler=0.1,
+                pre_scaler=1. if enableBGI_full else 0.05,
                 post_scaler=1.),
             prefilter=prefilter + [velo_states_z_down])
     ]
@@ -1141,7 +1199,7 @@ def default_bgi_activity_lines(pvs,
             make_beam_line(
                 name="Hlt1BGIPseudoPVsIRBeamBeam",
                 beam_crossing_type=3,
-                pre_scaler=1. if enableBGI_full else 1e-3,
+                pre_scaler=1. if enableBGI_full else 4e-5,
                 post_scaler=1.),
             prefilter=prefilter + [velo_states_z_ir])
     ]
@@ -1206,14 +1264,6 @@ def default_bgi_activity_lines(pvs,
                 post_scaler=1.),
             prefilter=prefilter + [pvs_z_down])
     ]
-
-    pvs_z_ir = make_checkCylPV(
-        pvs,
-        name="BGIPVsCylIR",
-        min_vtx_z=-250.,
-        max_vtz_z=250.,
-        max_vtx_rho_sq=max_cyl_rad_sq,
-        min_vtx_nTracks=28.)
     return lines
 
 
@@ -1232,6 +1282,7 @@ def setup_hlt1_node(enablePhysics=True,
                     with_rich=False,
                     with_AC_split=False,
                     enableBGI=True,
+                    enableAlignment=True,
                     velo_open=False,
                     enableDownstream=False,
                     tracking_type=TrackingType.FORWARD,
@@ -1242,6 +1293,7 @@ def setup_hlt1_node(enablePhysics=True,
                     enableTupling=False,
                     data_quality=False,
                     with_fullKF=False,
+                    passthrough_pre_scaler=0.0001,
                     enabled_lines=[r'.*?'],
                     disabled_lines=[],
                     user_hooks=False):
@@ -1277,7 +1329,6 @@ def setup_hlt1_node(enablePhysics=True,
     odin_err_filter = [odin_error_filter("odin_error_filter")
                        ] if with_odin_filter else []
     beam_beam_filter = [make_bxtype(bx_type=3)]
-    velo_open_event = make_event_type(event_type="VeloOpen")
     velo_closed = [
         make_event_type(
             name="ODIN_EvenType_VeloClosed",
@@ -1301,7 +1352,10 @@ def setup_hlt1_node(enablePhysics=True,
                                              odin_err_filter, velo_closed)
 
     with line_maker.bind(prefilter=odin_err_filter):
-        physics_lines += [line_maker(make_passthrough_line())]
+        physics_lines += [
+            line_maker(
+                make_passthrough_line(pre_scaler=passthrough_pre_scaler))
+        ]
 
     if tae_passthrough:
         if tae_activity:
@@ -1341,15 +1395,6 @@ def setup_hlt1_node(enablePhysics=True,
                 make_passthrough_line(name="Hlt1ErrorBank", pre_scaler=0.0001))
         ]
 
-    with line_maker.bind(prefilter=odin_err_filter + [velo_open_event]):
-        monitoring_lines += [
-            line_maker(
-                make_velo_micro_bias_line(
-                    reconstructed_objects["velo_tracks"],
-                    name="Hlt1VeloMicroBiasVeloClosing",
-                    post_scaler=3.e-3))
-        ]
-
     if EnableGEC:
         with line_maker.bind(prefilter=odin_err_filter + gec):
             physics_lines += [
@@ -1361,13 +1406,19 @@ def setup_hlt1_node(enablePhysics=True,
         physics_lines += default_bgi_activity_lines(
             reconstructed_objects["pvs"],
             reconstructed_objects["velo_states"],
-            decode_velo(),
-            decode_calo(),
             prefilter=bgi_prefilters)
 
-    monitoring_lines += alignment_monitoring_lines(
-        reconstructed_objects, prefilters, odin_err_filter, threshold_settings,
-        chi2_cuts, with_muon)
+    # Alignment lines have momentum cuts, whose rate might explode
+    #   during magnet off as straight tracks are given high momentum
+    if enableAlignment:
+        monitoring_lines += alignment_monitoring_lines(
+            reconstructed_objects, prefilters, chi2_cuts, with_muon)
+
+    monitoring_lines += velo_tomography_lines(reconstructed_objects,
+                                              odin_err_filter, prefilters)
+
+    monitoring_lines += velo_micro_bias_lines(reconstructed_objects,
+                                              odin_err_filter)
 
     bx_BE = make_bxtype(bx_type=1)
     with line_maker.bind(

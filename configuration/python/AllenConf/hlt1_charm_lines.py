@@ -144,7 +144,7 @@ def make_d02ksks_DDDD_line(downstream_tracks,
                            pre_scaler_hash_string=None,
                            post_scaler_hash_string=None,
                            minTrackPt_piKs=450.0,
-                           minComboPt_Ks=1500.0,
+                           minComboPt_Ks=1200.0,
                            enable_tupling=False):
     number_of_events = initialize_number_of_events()
 

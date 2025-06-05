@@ -12,38 +12,20 @@ from AllenConf.HLT1 import setup_hlt1_node
 from AllenCore.generator import generate
 from AllenConf.enum_types import TrackingType
 from AllenConf.get_thresholds import get_thresholds
-from PyConf.control_flow import NodeLogic, CompositeNode
-
-from AllenConf.validators import mc_data_provider
-from AllenConf.odin import decode_odin
-from AllenCore.algorithms import reconstructible_signal_counter_t
-from AllenConf.utils import initialize_number_of_events
-from AllenConf.utils import make_algorithm
 from AllenConf.matching_reconstruction import make_velo_scifi_matches
+from AllenConf.velo_reconstruction import make_pr_velo_tracks
 
-# def add_count_reconstructible(hlt1_node):
-#     number_of_events = initialize_number_of_events()
-#     mc_events = mc_data_provider()
-#     reconstructible_counter = make_algorithm(
-#         reconstructible_signal_counter_t,
-#         name="reconstructible_counter",
-#         host_number_of_events_t=number_of_events["host_number_of_events"],
-#         host_mc_events_t=mc_events.host_mc_events_t,
-#         host_odin_data_t=decode_odin()["host_odin_data"])
-#     return CompositeNode(
-#         "AllenWithReconstuctible", [hlt1_node, reconstructible_counter],
-#         NodeLogic.NONLAZY_AND,
-#         force_order=True)
-
-with make_velo_scifi_matches.bind(ghost_killer_threshold=1.):
+with make_velo_scifi_matches.bind(
+        ghost_killer_threshold=0.8), make_pr_velo_tracks.bind(
+            missing_modules=[21]):
     hlt1_node = setup_hlt1_node(
         tracking_type=TrackingType.FORWARD_THEN_MATCHING,
-        threshold_settings=get_thresholds("tuning"),
+        threshold_settings=get_thresholds(
+            f"forward_then_matching_and_downstream_with_parkf_tuned_mu5p3_1100kHz"
+        ),
         with_ut=True,
-        enableTupling=True,
         enableDownstream=True,
         with_fullKF=True,
-        #user_hooks=add_count_reconstructible
     )
 
 generate(hlt1_node)
