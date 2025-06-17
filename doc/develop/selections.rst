@@ -570,6 +570,7 @@ The line algorithms are defined in the files following the same naming conventio
 
 The HLT1DiMuonLowMass line is defined in `hlt1_muon_lines.py` as follows:
 
+.. _make_di_muon_mass_line:
 .. code-block:: python
 
   def make_di_muon_mass_line(forward_tracks,
@@ -775,6 +776,196 @@ The source files that implement these examples correspond to the `KsToPiPiLine` 
 
 * `Line Header <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/selections/lines/inclusive_hadron/include/KsToPiPiLine.cuh>`_
 * `Line Implementation <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/selections/lines/inclusive_hadron/src/KsToPiPiLine.cu>`_
+
+Preparing your line for rate monitoring
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The HLT1 bandwidth (BW) division is a procedure performed offline to optimise the trigger configuration at the HLT1 level to maximise trigger efficiency whilst allowing for the broad range of LHCb physics with respect to the available bandwidth.
+This is performed by the BW team and is based on the output of the HLT1 lines, which are monitored in terms of their rate in unbiased LHCb data and efficiency in relevant MC samples.
+
+At the bare minimum every HLT1 line must be capable of having its tupling activated such that the resulting tuple contains an entry for the line with the event and run numbers of the events that passed that line.
+This allows the BW team to check both the inclusive and exclusive rates of the line which is necessary even if the line is not tuned in the division.
+
+This is achieved by editing your line algorithm, e.g. a function in `hlt1_calibration_lines.py <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/configuration/python/AllenConf/hlt1_calibration_lines.py>`_, such that the function can propagate an input `enable_tupling` to the line constructor.
+Taking the HLT1DiMuonLowMass line as an example, compared to above, we add the `enable_tupling` argument:
+
+.. code-block:: python
+  
+  def make_di_muon_mass_line(forward_tracks,
+                            secondary_vertices,
+                            pre_scaler_hash_string="di_muon_mass_line_pre",
+                            post_scaler_hash_string="di_muon_mass_line_post",
+                            minHighMassTrackPt="300.",
+                            minHighMassTrackP="6000.",
+                            minMass="2700.",
+                            maxDoca="0.2",
+                            maxVertexChi2="25.",
+                            minIPChi2="0.",
+                            name="Hlt1DiMuonHighMass",
+                            enable_tupling=False):
+      number_of_events = initialize_number_of_events()
+      odin = decode_odin()
+      layout = mep_layout()
+
+      return make_algorithm(
+          di_muon_mass_line_t,
+          name=name,
+          host_number_of_events_t=number_of_events["host_number_of_events"],
+          host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
+          dev_particle_container_t=secondary_vertices[
+            "dev_multi_event_composites"],
+          pre_scaler_hash_string=pre_scaler_hash_string,
+          post_scaler_hash_string=post_scaler_hash_string,
+          minHighMassTrackPt=minHighMassTrackPt,
+          minHighMassTrackP=minHighMassTrackP,
+          minMass=minMass,
+          maxDoca=maxDoca,
+          maxVertexChi2=maxVertexChi2,
+          minIPChi2=minIPChi2,
+          enable_tupling=enable_tupling)
+
+This should then also be propagated to where it is called in `default_physics_lines <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/configuration/python/AllenConf/HLT1.py>`_ :
+
+.. code-block:: python
+
+  lines.append(
+          line_maker(
+              "Hlt1DiMuonLowMass",
+              make_di_muon_mass_line(
+                  forward_tracks,
+                  secondary_vertices,
+                  name="Hlt1DiMuonLowMass",
+                  pre_scaler_hash_string="di_muon_low_mass_line_pre",
+                  post_scaler_hash_string="di_muon_low_mass_line_post",
+                  minHighMassTrackPt="500.",
+                  minHighMassTrackP="3000.",
+                  minMass="0.",
+                  maxDoca="0.2",
+                  maxVertexChi2="25.",
+                  minIPChi2="4.",
+                  enable_tupling=enable_tupling),
+              enableGEC=True))
+
+where the value of the `enable_tupling` argument is inherited from the function in which this line is called. Do not hard code it to either `False` or `True`.
+
+This will do nothing unless the cuda code of the line is also modified to add a function to fill the tuple.
+
+In the `.cuh` file for the line, the `struct Parameters` should be modified to include the following:
+
+.. code-block:: c++
+
+  DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+  DEVICE_OUTPUT(runNo_t, unsigned) runNo;
+
+and to the namespace of the line, add a `fill_tuples` function and the monitoring types:
+
+.. code-block:: c++
+  
+  __device__ bool z_range_materialvertex_seed_line::z_range_materialvertex_seed_line::fill_tuples(
+  const Parameters& parameters,
+  const DeviceProperties&,
+  std::tuple<const Allen::Views::Physics::BasicParticle> input,
+  unsigned index,
+  bool sel)
+  {
+  return sel;
+  }
+
+  using monitoring_types = std::tuple<evtNo_t, runNo_t>;
+
+The `.cu` file then needs the code for the function:
+
+.. code-block:: c++
+
+  __device__ bool di_muon_mass_line::di_muon_mass_line_t::fill_tuples(
+  const Parameters& parameters,
+  const DeviceProperties&,
+  std::tuple<const Allen::Views::Physics::BasicParticle> input,
+  unsigned index,
+  bool sel)
+  {
+  return sel;
+  }
+
+This now means that if a sequence sets `enableTupling=True` in its call to `hlt1_setup_node`, a tuple will be filled with the event and run numbers of the events that passed the line which can be used by the HLT1 BW division to check the exclusive rate of the line.
+
+Preparing your line for HLT1 BW division tuning
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The previous instructions aren't quite enough to facilitate the tuning of a line in the BW division. We must now enable the line to read in thresholds from the division, and also provide branches of the threshold variables in the tuples.
+Thresholds are cut values for parameters of interest that are varied in the tuning process of the division to find the optimal trigger configuration that maximises signal efficiency while keeping the rate within the available bandwidth.
+Taking again  the HLT1DiMuonLowMass line as an example, we must modify the line construction in `HLT1.py <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/configuration/python/AllenConf/HLT1.py>`_ to include a thresholds:
+
+.. code-block:: python
+
+  lines.append(
+          line_maker(
+              "Hlt1DiMuonLowMass",
+              make_di_muon_mass_line(
+                  forward_tracks,
+                  secondary_vertices,
+                  name="Hlt1DiMuonLowMass",
+                  pre_scaler_hash_string="di_muon_low_mass_line_pre",
+                  post_scaler_hash_string="di_muon_low_mass_line_post",
+                  minHighMassTrackPt=thresholds.minPt_DiMuonLowMass,
+                  minHighMassTrackP="3000.",
+                  minMass="0.",
+                  maxDoca="0.2",
+                  maxVertexChi2="25.",
+                  minIPChi2="4.",
+                  enable_tupling=enable_tupling),
+              enableGEC=True))
+
+and now we must make sure that threshold exists in the `thresholds` object, which is defined in `thresholds.py <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/configuration/python/AllenConf/thresholds/thresholds.py>`_.
+To the  `Thresholds` class, we add the following line:
+
+.. code-block:: python
+
+  minPt_DiMuonLowMass: float = 0.0
+
+Where clearly the default value is set to 0.0 such that by default no cut is applied. Depending on what parameter is being tuned this will need to be adapated, e.g. a maximum pT cut would need to be set to or beyond the maximum of your expected range. This now means that any threshold file can set a value for this parameter to be cut on in HLT1.
+
+Finally, we must add the parameter to the tuple that is filled in the line. In the `.cuh` file for the line, we add the following to the `Parameters` struct:
+
+.. code-block:: c++
+
+  DEVICE_OUTPUT(minHighMassTrackPt_t, float) minHighMassTrackPt;
+
+To the private members add 
+
+.. code-block:: c++
+  
+  Allen::Property<float> m_minHighMassTrackPt {this,"minHighMassTrackPt",300.f / Gaudi::Units::MeV,"minHighMassTrackPt description"};
+
+And finally in the `.cu` file, we modify the `fill_tuples` function:
+
+.. code-block:: c++
+
+  __device__ bool di_muon_mass_line::di_muon_mass_line_t::fill_tuples(
+    const Parameters& parameters,
+    const DeviceProperties&,
+    std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,
+    unsigned index,
+    bool sel)
+  {
+    if (sel) {
+      const auto particle = std::get<0>(input);
+      parameters.pt[index] = particle.minpt();
+    }
+    return sel;
+  }
+
+Guidelines for HLT1 line merge requests (MRs)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+When creating a merge request for a new HLT1 line, please follow these guidelines. This ensures that the line can be easily integrated into the existing HLT1 framework and is ready for monitoring and tuning.
+
+- Follow the above examples to create a new line algorithm, ensuring that it can be incorporated into the BW division, whether it needs tuning or not.
+- Test the line and determine an expected rate in unbiased data. This will help us to decide if a line needs tuning and prepare our planned work accordingly.
+- If the line is to be tuned, specify the tuning parameters and:
+   * Ensure that the line can read in thresholds for these.
+   * Add the necessary branches to the tuple that will be filled by the line.
+   * Specify, in the MR description, the range over which we can vary the threshold and with what step size.
+   * The line rate falls smoothly with tighter cuts on the parameter and reaches zero at your desired max/min threshold. Show plots in the MR description to illustrate this.
+- If the line is to be tuned specify the MC sample to be used for the tuning. The current pool of available MC can be found in `/eos/lhcb/wg/rta/WP3/bandwidth_division/Beam6800GeV-expected-2025-MagDown-Nu7.6/``.
+- Mark the current RTA-WP3 coordinator (Mika Vesterinen) and the HLT1 BW division coordinator (Aidan Wiederhold) as reviewers of the merge request as well as the appropriate RTA liaisons or equivalent for your working group or project.
 
 
 ML models in selections
