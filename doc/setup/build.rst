@@ -198,16 +198,21 @@ By default, all configured sequences available in `configuration/python/AllenSeq
 As a Gaudi/LHCb cmake project
 -------------------------------
 To build Allen like this, is the same as building
-any other Gaudi/LHCb project. Allen depends on Rec and all projects that Rec depends on. So either clone them locally or add the path to a valid nightly build to `CMAKE_PREFIX_PATH` (check the |nightly_builds|). Then do::
+any other Gaudi/LHCb project. Allen depends on Rec and all projects that Rec depends on. So either clone them locally or add the path to a valid nightly build to `CMAKE_PREFIX_PATH` (check the |nightly_builds| to).
+To build e.g. on `lxplus` machines, the below script may be used (again using the |nightly_builds| to inform the choice of Binary tag and LCG version, in this example `x86_64_v3-el9-gcc13-opt+g` and `106c`)::
 
-    LbLogin -c x86_64_v3-el9-gcc13-opt+g
+    git clone ssh://git@gitlab.cern.ch:7999/lhcb/Allen.git
     cd Allen
+    lb-set-platform x86_64_v3-el9-gcc13-opt+g
+    export LCG_VERSION="106c"
+    export BINARY_TAG="x86_64_v3-el9-gcc13-opt+g"
     lb-project-init
     make configure
-    make install
+    make -j16 install
 
-By default all sequences are built, Allen is built with
-CUDA, and the CUDA stack is searched for in `/usr/local/cuda`. These
+By default all sequences are built, Allen is built as a CPU
+build. If a binary tag is chosen including the `+cuda` tag,
+a CUDA build shall be performed. These
 defaults (and other cmake variables) can be changed by adding the same
 flags that you would pass to a standalone build to the `CMAKEFLAGS`
 environment variable before calling `make configure`.
@@ -226,4 +231,4 @@ other Gaudi/LHCb projects can be used::
 
 .. |nightly_builds| raw:: html
 
-   <a href="https://lhcb-nightlies.web.cern.ch/nightly/" target="_blank">here</a>
+   <a href="https://lhcb-nightlies.web.cern.ch/nightly/" target="_blank">nightly builds</a>
