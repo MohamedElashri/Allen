@@ -688,7 +688,7 @@ allen_add_host_library(HostCommon SHARED
   main/src/Transpose.cpp)
 
 target_link_libraries(AllenCommon INTERFACE
-  LHCbEvent AllenFS nlohmann_json::nlohmann_json cppgsl::cppgsl)
+  LHCbEvent AllenFS nlohmann_json::nlohmann_json cppgsl::cppgsl fmt::fmt)
 target_link_libraries(HostCommon PRIVATE
   mdf EventModel Gear Backend mdf AllenCommon LHCbEvent Boost::iostreams Rangev3::rangev3)
 

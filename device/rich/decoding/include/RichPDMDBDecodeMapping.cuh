@@ -40,7 +40,7 @@ namespace Rich::Future::DAQ::Allen {
 
     public:
       /// Default constructor
-      __host__ __device__ BitData() = default;
+      BitData() = default;
       /// Constructor from values
       __host__ __device__ BitData(
         const int8_t _ec,  //

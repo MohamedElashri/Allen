@@ -19,7 +19,7 @@ namespace Allen {
     uint64_t m_key;
 
   public:
-    __host__ __device__ RichSmartID() = default;
+    RichSmartID() = default;
 
     __host__ __device__ RichSmartID(uint64_t key) : m_key(key) {}
 

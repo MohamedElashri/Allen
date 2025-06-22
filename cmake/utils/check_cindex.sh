@@ -13,7 +13,7 @@ if [ "$#" -eq 2 ]; then
     export PYTHONPATH="$1":${PYTHONPATH}
     export LD_LIBRARY_PATH="$2":${LD_LIBRARY_PATH}
 fi
-python -c "$(cat <<EOF
+python3 -c "$(cat <<EOF
 import sys
 import inspect
 try:

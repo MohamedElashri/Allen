@@ -47,10 +47,7 @@ function(zmq_program)
 
   find_package(Threads REQUIRED)
   target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Boost::program_options AllenZMQ mdf AllenFS Threads::Threads LHCbEvent EventModel AllenCommon)
-  if (NOT STANDALONE)
-    find_package(fmt REQUIRED)
-    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE fmt::fmt)
-  endif()
+  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE fmt::fmt)
 
   install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin OPTIONAL)
 endfunction()

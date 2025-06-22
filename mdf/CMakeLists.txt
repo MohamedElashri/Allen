@@ -79,11 +79,11 @@ function(test_program)
       AllenZMQ
       Catch2::Catch2
       AllenLib
-      Boost::program_options)
+      Boost::program_options
+      fmt::fmt)
   target_compile_definitions(${test_name} PRIVATE ODIN_WITHOUT_GAUDI)
   if (NOT STANDALONE)
-    find_package(fmt REQUIRED)
-    target_link_libraries(${test_name} PRIVATE fmt::fmt LHCb::DAQEventLib)
+    target_link_libraries(${test_name} PRIVATE LHCb::DAQEventLib)
   endif()
 
   install(TARGETS ${test_name} RUNTIME DESTINATION bin)

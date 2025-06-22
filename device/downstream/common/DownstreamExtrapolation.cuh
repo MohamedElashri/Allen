@@ -126,7 +126,7 @@ namespace Downstream {
       float m_qop;
 
     public:
-      __device__ ExtrapolateTrack() = default;
+      ExtrapolateTrack() = default;
 
       __device__ ExtrapolateTrack(
         const float xMagnet,
