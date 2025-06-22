@@ -27,7 +27,7 @@ namespace track_matching::tools {
     bool m_is_first_hit;
 
   public:
-    __device__ VeloToUTExtrapolator() = default;
+    VeloToUTExtrapolator() = default;
 
     __device__ VeloToUTExtrapolator(
       const float vp_x,

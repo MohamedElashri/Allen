@@ -126,8 +126,8 @@ namespace Allen {
     {
       m_span = std::get<details::nonstandalone_buffer<T>>(m_buffer).get();
     }
-    __host__ buffer(buffer&&) = default;
-    __host__ buffer& operator=(buffer&&) = default;
+    buffer(buffer&&) = default;
+    buffer& operator=(buffer&&) = default;
 
     __host__ void resize(size_t size)
     {

@@ -33,7 +33,6 @@ if (NOT STANDALONE)
   lhcb_find_package(Rec 34.0 REQUIRED)
 
   find_package(AIDA REQUIRED)
-  find_package(fmt REQUIRED)
   find_package(TBB REQUIRED)
 
   # Detect device target from binary tag
@@ -95,6 +94,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 endif()
 
 find_package(cppgsl REQUIRED)
+find_package(fmt REQUIRED)
 
 # std::filesytem detection
 find_package(Filesystem REQUIRED)

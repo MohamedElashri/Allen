@@ -61,7 +61,7 @@ public:
     return shift<m>(static_cast<unsigned>(i));
   }
 
-  __device__ __host__ HltDecReport() = default;
+  HltDecReport() = default;
 
   __device__ __host__ HltDecReport(
     bool decision,
