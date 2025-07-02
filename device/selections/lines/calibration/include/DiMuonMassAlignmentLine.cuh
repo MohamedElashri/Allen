@@ -69,23 +69,23 @@ namespace di_muon_mass_alignment_line {
   private:
     Allen::Property<float> m_minHighMassTrackPt {this,
                                                  "minHighMassTrackPt",
-                                                 1000.f / Gaudi::Units::MeV,
+                                                 1000.f / Allen::Units::MeV,
                                                  "minHighMassTrackPt description"};
     Allen::Property<float> m_minHighMassTrackP {this,
                                                 "minHighMassTrackP",
-                                                6000.f / Gaudi::Units::MeV,
+                                                6000.f / Allen::Units::MeV,
                                                 "minHighMassTrackP description"};
-    Allen::Property<float> m_minMass {this, "minMass", 2996.f / Gaudi::Units::MeV, "minMass description"};
-    Allen::Property<float> m_maxMass {this, "maxMass", 3196.f / Gaudi::Units::MeV, "maxMass description"};
+    Allen::Property<float> m_minMass {this, "minMass", 2996.f / Allen::Units::MeV, "minMass description"};
+    Allen::Property<float> m_maxMass {this, "maxMass", 3196.f / Allen::Units::MeV, "maxMass description"};
     Allen::Property<float> m_maxDoca {this, "maxDoca", 0.2f, "maxDoca description"};
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 10.0f, "maxVertexChi2 description"};
-    Allen::Property<float> m_minIP {this, "minIP", 0.07f * Gaudi::Units::mm, "minIP description"};
+    Allen::Property<float> m_minIP {this, "minIP", 0.07f * Allen::Units::mm, "minIP description"};
     Allen::Property<float> m_minFdChi2 {this, "minFdChi2", 5.f, "minFdChi2 description"};
-    Allen::Property<float> m_minZ {this, "minZ", -330.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<float> m_minZ {this, "minZ", -330.f * Allen::Units::mm, "minimum vertex z coordinate"};
     Allen::Property<float> m_minEta {this, "minEta", 2.0f, "minEta description"};
     Allen::Property<float> m_maxEta {this, "maxEta", 5.0f, "maxEta description"};
     Allen::Property<float> m_minDira {this, "minDira", 0.9995f, "minimum value of cos(theta_dira)"};
-    Allen::Property<float> m_minComboPt {this, "minComboPt", 2000.0f * Gaudi::Units::MeV, "minComboPt description"};
+    Allen::Property<float> m_minComboPt {this, "minComboPt", 2000.0f * Allen::Units::MeV, "minComboPt description"};
     Allen::Property<float> m_maxChi2Muon {this, "maxChi2Muon", 1.8, "max Chi2Muon evaluation"};
     Allen::Property<int> m_dimuon_charge {this, "DiMuonCharge", 0, "Charge of the dimuon combination"};
   };

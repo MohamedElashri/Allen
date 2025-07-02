@@ -100,19 +100,19 @@ __global__ void velo_lumi_counters::velo_lumi_gec_counters(
 
     // fiducial cut: doca<3 mm && |poca|<300 mm
     if (velo_state.z() > -300.f && velo_state.z() < 300.f) {
-      if (velo_DOCAz(velo_state) < 3.f * Gaudi::Units::mm) {
+      if (velo_DOCAz(velo_state) < 3.f * Allen::Units::mm) {
         atomicAdd(&reco_counters[1], 1);
       }
     }
 
     // fill eta bins
     float eta = velo_eta(velo_state, parameters.dev_is_backward[track_offset + track_index]);
-    if (eta > tracks_eta_bins[Lumi::Constants::n_velo_eta_bin_edges - 1u] * Gaudi::Units::mm) {
+    if (eta > tracks_eta_bins[Lumi::Constants::n_velo_eta_bin_edges - 1u] * Allen::Units::mm) {
       atomicAdd(&reco_counters[2u + Lumi::Constants::n_velo_eta_bin_edges], 1);
       continue;
     }
     for (unsigned eta_bin = 0; eta_bin < Lumi::Constants::n_velo_eta_bin_edges; ++eta_bin) {
-      if (eta < tracks_eta_bins[eta_bin] * Gaudi::Units::mm) {
+      if (eta < tracks_eta_bins[eta_bin] * Allen::Units::mm) {
         atomicAdd(&reco_counters[2u + eta_bin], 1);
         break;
       }

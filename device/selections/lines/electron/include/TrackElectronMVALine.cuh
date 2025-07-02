@@ -75,16 +75,16 @@ namespace track_electron_mva_line {
 
   private:
     Allen::Property<float> m_maxChi2Ndof {this, "maxChi2Ndof", 2.5f, "maxChi2Ndof description"};
-    Allen::Property<float> m_minPt {this, "minPt", 1.f * Gaudi::Units::GeV, "minPt description"};
-    Allen::Property<float> m_maxPt {this, "maxPt", 26.f * Gaudi::Units::GeV, "maxPt description"};
+    Allen::Property<float> m_minPt {this, "minPt", 1.f * Allen::Units::GeV, "minPt description"};
+    Allen::Property<float> m_maxPt {this, "maxPt", 26.f * Allen::Units::GeV, "maxPt description"};
     Allen::Property<float> m_minIPChi2 {this, "minIPChi2", 3.f, "minIPChi2 description"};
-    Allen::Property<float> m_param1 {this, "param1", 1.f * Gaudi::Units::GeV* Gaudi::Units::GeV, "param1 description"};
-    Allen::Property<float> m_param2 {this, "param2", 1.f * Gaudi::Units::GeV, "param2 description"};
+    Allen::Property<float> m_param1 {this, "param1", 1.f * Allen::Units::GeV* Allen::Units::GeV, "param1 description"};
+    Allen::Property<float> m_param2 {this, "param2", 1.f * Allen::Units::GeV, "param2 description"};
     Allen::Property<float> m_param3 {this, "param3", 1.248f, "param3 description"};
     Allen::Property<float> m_alpha {this, "alpha", 0.f, "alpha description"};
     Allen::Property<float> m_minBPVz {this,
                                       "min_BPVz",
-                                      -330.f * Gaudi::Units::mm,
+                                      -330.f * Allen::Units::mm,
                                       "Minimum z for the associated best primary vertex"};
     Allen::Property<float> m_minElectronNN {this, "minElectronNN", 0.1, "min NN evaluation"};
     Allen::Property<bool> m_useNN {this, "useNN", true, "useNN"};

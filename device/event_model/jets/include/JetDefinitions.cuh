@@ -13,9 +13,9 @@
 #include "SystemOfUnits.h"
 
 namespace Jets {
-  static constexpr float pt_sum_precision = 0.1f * Gaudi::Units::MeV;
-  static constexpr float eta_weighted_sum_precision = 0.1f * Gaudi::Units::MeV;
-  static constexpr float phi_weighted_sum_precision = 0.01f * Gaudi::Units::MeV;
+  static constexpr float pt_sum_precision = 0.1f * Allen::Units::MeV;
+  static constexpr float eta_weighted_sum_precision = 0.1f * Allen::Units::MeV;
+  static constexpr float phi_weighted_sum_precision = 0.01f * Allen::Units::MeV;
 
   struct Jet {
     // Jet kinematics.

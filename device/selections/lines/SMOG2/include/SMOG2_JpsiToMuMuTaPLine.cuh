@@ -93,34 +93,34 @@ namespace SMOG2jpsitomumu_tap_line {
   private:
     Allen::Property<float> m_JpsiMinMass {this,
                                           "JpsiMinMass",
-                                          2850.f * Gaudi::Units::MeV,
+                                          2850.f * Allen::Units::MeV,
                                           "Min invariant mass for JPsi candidate"};
     Allen::Property<float> m_JpsiMaxMass {this,
                                           "JpsiMaxMass",
-                                          3350.f * Gaudi::Units::MeV,
+                                          3350.f * Allen::Units::MeV,
                                           "Min invariant mass for JPsi candidate"};
     Allen::Property<float> m_JpsiMinZ {this,
                                        "JpsiMinZ",
-                                       -537.5f * Gaudi::Units::mm,
+                                       -537.5f * Allen::Units::mm,
                                        "minimum vertex z dimuon coordinate"};
     Allen::Property<float> m_JpsiMaxZ {this,
                                        "JpsiMaxZ",
-                                       -337.5f * Gaudi::Units::mm,
+                                       -337.5f * Allen::Units::mm,
                                        "maximum vertex z dimuon coordinate"};
-    Allen::Property<float> m_mutagMinP {this, "mutagMinP", 3000.f * Gaudi::Units::MeV, "Min momentum for tag muon"};
-    Allen::Property<float> m_mutagMinPt {this, "mutagMinPt", 600.f * Gaudi::Units::MeV, "Min Pt for tag muon"};
+    Allen::Property<float> m_mutagMinP {this, "mutagMinP", 3000.f * Allen::Units::MeV, "Min momentum for tag muon"};
+    Allen::Property<float> m_mutagMinPt {this, "mutagMinPt", 600.f * Allen::Units::MeV, "Min Pt for tag muon"};
     Allen::Property<float> m_mutagMaxChi2Corr {this, "mutagMaxChi2Corr", 1.8, "maximum muon tag correlated chi2"};
     Allen::Property<float> m_muprobeMinP {this,
                                           "muprobeMinP",
-                                          3000.f * Gaudi::Units::MeV,
+                                          3000.f * Allen::Units::MeV,
                                           "Min momentum for probe muon"};
-    Allen::Property<float> m_muprobeMinPt {this, "muprobeMinPt", 150.f * Gaudi::Units::MeV, "Min Pt for probe muon"};
-    Allen::Property<float> m_JpsiMinPt {this, "JpsiMinPt", 0.f * Gaudi::Units::MeV, "Min Pt for the Jpsi candidate"};
+    Allen::Property<float> m_muprobeMinPt {this, "muprobeMinPt", 150.f * Allen::Units::MeV, "Min Pt for probe muon"};
+    Allen::Property<float> m_JpsiMinPt {this, "JpsiMinPt", 0.f * Allen::Units::MeV, "Min Pt for the Jpsi candidate"};
     Allen::Property<bool> m_posTag {this, "posTag", true, "Tags positive charged tracks with isMuon"};
     Allen::Property<float> m_JpsiMaxVChi2 {this, "JpsiMaxVChi2", 16.f, "Max chi2 for the J/psi candidate vertex"};
     Allen::Property<float> m_JpsiMaxDoca {this,
                                           "JpsiMaxDoca",
-                                          0.5f * Gaudi::Units::mm,
+                                          0.5f * Allen::Units::mm,
                                           "Max DOCA for the J/psi candidate combination"};
     Allen::Property<float> m_maxTrackChi2Ndf {this, "maxTrackChi2Ndf", 5.f, "max track fit Chi2ndf"};
     Allen::Property<float> m_minMuonNN {this, "minMuonNN", 0.1, "min NN evaluation"};

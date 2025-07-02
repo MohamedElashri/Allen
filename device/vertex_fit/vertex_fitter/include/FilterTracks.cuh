@@ -94,15 +94,15 @@ namespace FilterTracks {
                                                "Minimum track IP chi2 required for at least one tracks."};
     Allen::Property<float> m_minip_both {this,
                                          "track_min_ip_both",
-                                         0.06f * Gaudi::Units::mm,
+                                         0.06f * Allen::Units::mm,
                                          "Minimum track IP required for both tracks."};
     Allen::Property<float> m_minip_either {this,
                                            "track_min_ip_either",
-                                           0.06f * Gaudi::Units::mm,
+                                           0.06f * Allen::Units::mm,
                                            "Minimum track IP required for at least one track."};
     Allen::Property<float> m_maxchi2ndof {this, "track_max_chi2ndof", 10.0f, "max track chi2/ndof"};
-    Allen::Property<float> m_maxdoca {this, "doca_max", 1.f * Gaudi::Units::mm, "Maximum DOCA between tracks."};
-    Allen::Property<float> m_minsumpt {this, "sum_pt_min", 400.0f * Gaudi::Units::MeV, "Minimum sum of track pT."};
+    Allen::Property<float> m_maxdoca {this, "doca_max", 1.f * Allen::Units::mm, "Maximum DOCA between tracks."};
+    Allen::Property<float> m_minsumpt {this, "sum_pt_min", 400.0f * Allen::Units::MeV, "Minimum sum of track pT."};
     Allen::Property<bool> m_require_os_pair {this,
                                              "require_os_pair",
                                              false,

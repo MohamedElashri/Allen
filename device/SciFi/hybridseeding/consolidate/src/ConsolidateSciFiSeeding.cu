@@ -90,7 +90,7 @@ __device__ float qop_seeding_calculation(const float magSign, const MiniState se
   const float denom = p * scale_factor * 1e6f * (-1.f);
 
   if (std::fabs(scale_factor) < 1e-6f) {
-    qop = 0.01f / Gaudi::Units::GeV;
+    qop = 0.01f / Allen::Units::GeV;
   }
   else {
     qop = x0 / denom;

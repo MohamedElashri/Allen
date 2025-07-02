@@ -163,11 +163,11 @@ __global__ void chi2_muon::chi2_muon(chi2_muon::Parameters parameters)
 
       // z position of the absorber
       float msz[5] {
-        12800.f * Gaudi::Units::mm, // ECAL + SPD + PS
-        14300.f * Gaudi::Units::mm, // HCAL
-        15800.f * Gaudi::Units::mm, // M23 filter
-        17100.f * Gaudi::Units::mm, // M34 filter
-        18300.f * Gaudi::Units::mm  // M45 filter
+        12800.f * Allen::Units::mm, // ECAL + SPD + PS
+        14300.f * Allen::Units::mm, // HCAL
+        15800.f * Allen::Units::mm, // M23 filter
+        17100.f * Allen::Units::mm, // M34 filter
+        18300.f * Allen::Units::mm  // M45 filter
       };
 
       // Radiation lenghts z/X0
@@ -216,8 +216,8 @@ __global__ void chi2_muon::chi2_muon(chi2_muon::Parameters parameters)
             // the z of the absorber has to be smaller than the z of the hit station
             if (msz[i] < min(zj, zk)) {
 
-              covX[j][k] += (zj - msz[i]) * (zk - msz[i]) * square((13.6f * Gaudi::Units::MeV) / momentum) * msrl[i];
-              covY[j][k] += (zj - msz[i]) * (zk - msz[i]) * square((13.6f * Gaudi::Units::MeV) / momentum) * msrl[i];
+              covX[j][k] += (zj - msz[i]) * (zk - msz[i]) * square((13.6f * Allen::Units::MeV) / momentum) * msrl[i];
+              covY[j][k] += (zj - msz[i]) * (zk - msz[i]) * square((13.6f * Allen::Units::MeV) / momentum) * msrl[i];
             }
           } // end i
         }   // end k

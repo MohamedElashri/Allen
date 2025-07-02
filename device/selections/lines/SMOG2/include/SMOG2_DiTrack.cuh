@@ -110,33 +110,33 @@ namespace SMOG2_ditrack_line {
     Allen::Property<float> m_maxTrackChi2Ndf {this, "maxTrackChi2Ndf", 4.f, "max track fit Chi2ndf"};
     Allen::Property<float> m_minTrackP {this,
                                         "minTrackP",
-                                        3000.f * Gaudi::Units::MeV,
+                                        3000.f * Allen::Units::MeV,
                                         "minimum final-state particles momentum"};
     Allen::Property<float> m_minTrackPt {this,
                                          "minTrackPt",
-                                         400.f * Gaudi::Units::MeV,
+                                         400.f * Allen::Units::MeV,
                                          "minimum final-state particles transverse momentum"};
     Allen::Property<float> m_minEitherTrackPt {this,
                                                "minEitherTrackPt",
-                                               800.f * Gaudi::Units::MeV,
+                                               800.f * Allen::Units::MeV,
                                                "minimum transverse momentum for at least one final-state particle"};
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 20.f, "max SV Chi2"};
-    Allen::Property<float> m_minZ {this, "minZ", -537.5f * Gaudi::Units::mm, "minimum accepted SV z"};
-    Allen::Property<float> m_maxZ {this, "maxZ", -337.5f * Gaudi::Units::mm, "maximum accepted SV z"};
-    Allen::Property<float> m_maxDoca {this, "maxDoca", 0.2f * Gaudi::Units::mm, "max distance of closest approach"};
+    Allen::Property<float> m_minZ {this, "minZ", -537.5f * Allen::Units::mm, "minimum accepted SV z"};
+    Allen::Property<float> m_maxZ {this, "maxZ", -337.5f * Allen::Units::mm, "maximum accepted SV z"};
+    Allen::Property<float> m_maxDoca {this, "maxDoca", 0.2f * Allen::Units::mm, "max distance of closest approach"};
     Allen::Property<int> m_combCharge {this, "combCharge", 0, "Charge of the combination"};
     Allen::Property<float> m_minTrackIPCHI2 {this, "minTrackIPCHI2", 5.f, "Min IPCHI2 for the final-state parts"};
     Allen::Property<float> m_maxTrackIPCHI2 {this, "maxTrackIPCHI2", 999999.f, "Max IPCHI2 for the final-state parts"};
-    Allen::Property<float> m_m1 {this, "m1", -1.f * Gaudi::Units::MeV, "first final-state particle mass"};
-    Allen::Property<float> m_m2 {this, "m2", -1.f * Gaudi::Units::MeV, "second final-state particle mass"};
+    Allen::Property<float> m_m1 {this, "m1", -1.f * Allen::Units::MeV, "first final-state particle mass"};
+    Allen::Property<float> m_m2 {this, "m2", -1.f * Allen::Units::MeV, "second final-state particle mass"};
     Allen::Property<float> m_minMdipion {this,
                                          "minMdipion",
-                                         -1.f * Gaudi::Units::MeV,
+                                         -1.f * Allen::Units::MeV,
                                          "Minimum mass assuming dipion hypothesis in MeV"};
-    Allen::Property<float> m_mMother {this, "mMother", -1.f * Gaudi::Units::MeV, "resonance mass"};
+    Allen::Property<float> m_mMother {this, "mMother", -1.f * Allen::Units::MeV, "resonance mass"};
     Allen::Property<float> m_massWindow {this,
                                          "massWindow",
-                                         -1.f * Gaudi::Units::MeV,
+                                         -1.f * Allen::Units::MeV,
                                          "maximum mass difference wrt mM"};
     Allen::Property<float> m_minFDCHI2 {this, "minFDCHI2", -10.f, "Min flight distance CHI2 for the final-state part"};
     Allen::Property<float> m_maxFDCHI2 {this,

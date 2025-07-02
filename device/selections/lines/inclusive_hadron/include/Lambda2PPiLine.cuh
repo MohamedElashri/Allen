@@ -135,21 +135,21 @@ namespace lambda2ppi_line {
   private:
     Allen::Property<float> m_L_p_MIPCHI2_min {this, "L_p_MIPCHI2_min", 12.f, "proton min ip chi^2 for Lambda LL"};
     Allen::Property<float> m_L_pi_MIPCHI2_min {this, "L_pi_MIPCHI2_min", 32.f, "pion min ip chi^2 for Lambda LL"};
-    Allen::Property<float> m_L_p_MIP_min {this, "L_p_MIP_min", 80.f * Gaudi::Units::um, "proton min ip for Lambda LL"};
-    Allen::Property<float> m_L_pi_MIP_min {this, "L_pi_MIP_min", 200.f * Gaudi::Units::um, "pion min ip for Lambda LL"};
-    Allen::Property<float> m_L_p_PT_min {this, "L_p_PT_min", 450.f * Gaudi::Units::MeV, "proton min pT for Lambda LL"};
-    Allen::Property<float> m_L_pi_PT_min {this, "L_pi_PT_min", 80.f * Gaudi::Units::MeV, "pion min pT for Lambda LL"};
-    Allen::Property<float> m_L_DOCA_max {this, "L_DOCA_max", 500.f * Gaudi::Units::um, "max p, pi DOCA for Lambda LL"};
-    Allen::Property<float> m_L_PT_min {this, "L_PT_min", 500.f * Gaudi::Units::MeV, "min pT of Lambda LL"};
-    Allen::Property<float> m_L_M_max {this, "L_M_max", 1140.f * Gaudi::Units::MeV, "max mass for Lambda LL"};
+    Allen::Property<float> m_L_p_MIP_min {this, "L_p_MIP_min", 80.f * Allen::Units::um, "proton min ip for Lambda LL"};
+    Allen::Property<float> m_L_pi_MIP_min {this, "L_pi_MIP_min", 200.f * Allen::Units::um, "pion min ip for Lambda LL"};
+    Allen::Property<float> m_L_p_PT_min {this, "L_p_PT_min", 450.f * Allen::Units::MeV, "proton min pT for Lambda LL"};
+    Allen::Property<float> m_L_pi_PT_min {this, "L_pi_PT_min", 80.f * Allen::Units::MeV, "pion min pT for Lambda LL"};
+    Allen::Property<float> m_L_DOCA_max {this, "L_DOCA_max", 500.f * Allen::Units::um, "max p, pi DOCA for Lambda LL"};
+    Allen::Property<float> m_L_PT_min {this, "L_PT_min", 500.f * Allen::Units::MeV, "min pT of Lambda LL"};
+    Allen::Property<float> m_L_M_max {this, "L_M_max", 1140.f * Allen::Units::MeV, "max mass for Lambda LL"};
     Allen::Property<float> m_L_VCHI2_max {this, "L_VCHI2_max", 16.f, "max p pi vertex chi2"};
     Allen::Property<float> m_L_VZ_min {this,
                                        "L_VZ_min",
-                                       -80.f * Gaudi::Units::mm,
+                                       -80.f * Allen::Units::mm,
                                        "min vertex z position of Lambda candidate"};
     Allen::Property<float> m_L_VZ_max {this,
                                        "L_VZ_max",
-                                       650.f * Gaudi::Units::mm,
+                                       650.f * Allen::Units::mm,
                                        "max vertex z position of Lambda candidate"};
     Allen::Property<float> m_L_BPVVDCHI2_min {this,
                                               "L_BPVVDCHI2_min",
@@ -157,18 +157,18 @@ namespace lambda2ppi_line {
                                               "min flight distance chi2 between p pi vertex and its best PV"};
     Allen::Property<float> m_L_BPVVDZ_min {this,
                                            "L_BPVVDZ_min",
-                                           12.f * Gaudi::Units::mm,
+                                           12.f * Allen::Units::mm,
                                            "min distance (in z) between Lambda vertex and best PV"};
     Allen::Property<float> m_L_BPVVDRHO_min {this,
                                              "L_BPVVDRHO_min",
-                                             2.f * Gaudi::Units::mm,
+                                             2.f * Allen::Units::mm,
                                              "min squared radial vertex distance of Lambda w.r.t. its best PV"};
     Allen::Property<float> m_L_BPVDIRA_min {this,
                                             "L_BPVDIRA_min",
                                             0.9997,
                                             "min cosine of direction angle of Lambda w.r.t. its best PV"};
-    Allen::Property<float> m_minPVZ {this, "minPVZ", -200.f * Gaudi::Units::mm, "minimum PV z coordinate"};
-    Allen::Property<float> m_maxPVZ {this, "maxPVZ", 200.f * Gaudi::Units::mm, "maximum PV z coordinate"};
+    Allen::Property<float> m_minPVZ {this, "minPVZ", -200.f * Allen::Units::mm, "minimum PV z coordinate"};
+    Allen::Property<float> m_maxPVZ {this, "maxPVZ", 200.f * Allen::Units::mm, "maximum PV z coordinate"};
 
     Allen::Monitoring::Histogram<> m_histogram_lz_mass {this, "lz_mass", "mass", {100u, 1000.f, 1200.f}};
     Allen::Monitoring::Histogram<> m_histogram_lz_pt {this, "lz_pt", "pT (lz)", {100u, 0.f, 1e4f}};

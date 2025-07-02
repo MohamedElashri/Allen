@@ -50,9 +50,9 @@ namespace SciFi {
     // todo: use dzdy defined in geometry, read by mat
     static constexpr float dzdy = 0.003601f;
     static constexpr float dRatio = -0.00028f;
-    static constexpr float ZBegT = 7500.f * Gaudi::Units::mm;   // FIXME_GEOMETRY_HARDCODING
-    static constexpr float ZEndT = 9410.f * Gaudi::Units::mm;   // FIXME_GEOMETRY_HARDCODING
-    static constexpr float z_mid_t = 8520.f * Gaudi::Units::mm; // FIXME_GEOMETRY_HARDCODING
+    static constexpr float ZBegT = 7500.f * Allen::Units::mm;   // FIXME_GEOMETRY_HARDCODING
+    static constexpr float ZEndT = 9410.f * Allen::Units::mm;   // FIXME_GEOMETRY_HARDCODING
+    static constexpr float z_mid_t = 8520.f * Allen::Units::mm; // FIXME_GEOMETRY_HARDCODING
 
     // Looking Forward
     static constexpr int max_track_size = n_layers;

@@ -94,24 +94,24 @@ namespace kplus_to_three_tracks_line {
     using monitoring_types = std::tuple<min_pt_t, min_ip_t, evtNo_t, runNo_t>;
 
   private:
-    Allen::Property<float> m_minComboPt {this, "minComboPt", 100.0f * Gaudi::Units::MeV, "Minimum combination pt"};
+    Allen::Property<float> m_minComboPt {this, "minComboPt", 100.0f * Allen::Units::MeV, "Minimum combination pt"};
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 20.f, "Maximum vertex chi2"};
-    Allen::Property<float> m_maxDOCA {this, "maxDOCA", 0.2f * Gaudi::Units::mm, "Maximum DOCA"};
+    Allen::Property<float> m_maxDOCA {this, "maxDOCA", 0.2f * Allen::Units::mm, "Maximum DOCA"};
     Allen::Property<float> m_minEta {this, "minEta", 2.0f, "Minimum PV-SV eta"};
     Allen::Property<float> m_maxEta {this, "maxEta", 5.0f, "Maximum PV-SV eta"};
-    Allen::Property<float> m_minTrackPt {this, "minTrackPt", 100.f * Gaudi::Units::MeV, "Minimum track pt"};
-    Allen::Property<float> m_minTrackP {this, "minTrackP", 100.f * Gaudi::Units::MeV, "Minimum track P"};
-    Allen::Property<float> m_massWindow_min {this, "massWindow_min", 200.f * Gaudi::Units::MeV, "Low mass window"};
-    Allen::Property<float> m_massWindow_max {this, "massWindow_max", 200.f * Gaudi::Units::MeV, "Upper mass window"};
-    Allen::Property<float> m_minTrackIP {this, "minTrackIP", 0.5f * Gaudi::Units::mm, "Minimum track IP"};
-    Allen::Property<float> m_minZ {this, "minZ", -341.f * Gaudi::Units::mm, "Minimum z of vertex"};
+    Allen::Property<float> m_minTrackPt {this, "minTrackPt", 100.f * Allen::Units::MeV, "Minimum track pt"};
+    Allen::Property<float> m_minTrackP {this, "minTrackP", 100.f * Allen::Units::MeV, "Minimum track P"};
+    Allen::Property<float> m_massWindow_min {this, "massWindow_min", 200.f * Allen::Units::MeV, "Low mass window"};
+    Allen::Property<float> m_massWindow_max {this, "massWindow_max", 200.f * Allen::Units::MeV, "Upper mass window"};
+    Allen::Property<float> m_minTrackIP {this, "minTrackIP", 0.5f * Allen::Units::mm, "Minimum track IP"};
+    Allen::Property<float> m_minZ {this, "minZ", -341.f * Allen::Units::mm, "Minimum z of vertex"};
     Allen::Property<float> m_minPairMass {this,
                                           "minPairMass",
-                                          0.f * Gaudi::Units::MeV,
+                                          0.f * Allen::Units::MeV,
                                           "Minimum mass of the two-track pair"};
     Allen::Property<float> m_maxPairMass {this,
                                           "maxPairMass",
-                                          1000.f * Gaudi::Units::MeV,
+                                          1000.f * Allen::Units::MeV,
                                           "Maximum mass of the two-track pair"};
     Allen::Property<bool> m_is_dimuon {this, "is_dimuon", false, "Require dimuon"};
     Allen::Property<bool> m_is_dielectron {this, "is_dielectron", false, "Require dielectron"};
@@ -120,7 +120,7 @@ namespace kplus_to_three_tracks_line {
     Allen::Property<float> m_mass_seed_track_two {this, "mass_seed_track_two", Allen::mPi, "Mass of child 2"};
     Allen::Property<float> m_minFlightDistance {this,
                                                 "minFlightDistance",
-                                                Gaudi::Units::mm,
+                                                Allen::Units::mm,
                                                 "Mininum Flight Distance of mother"};
     Allen::Monitoring::Histogram<> m_histogramTwoBodySeedMass {this,
                                                                "two_body_seed_mass",

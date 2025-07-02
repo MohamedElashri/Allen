@@ -195,7 +195,7 @@ header.
 
     private:
       // Line-specific properties
-      Property<float> m_minPt {this, "minPt", 10000.0f * Gaudi::Units::MeV, "minPt description"};
+      Property<float> m_minPt {this, "minPt", 10000.0f * Allen::Units::MeV, "minPt description"};
       Property<float> m_minIPChi2 {this, "minIPChi2", 25.0f, "minIPChi2 description"};
     };
   } // namespace example_one_track_line
@@ -252,8 +252,8 @@ secondary vertices with no postscale. This line inherits from `CompositeParticle
 
     private:
       // Line-specific properties
-      Property<float> m_minComboPt {this, "minComboPt", 2000.0f * Gaudi::Units::MeV, "minComboPt description"};
-      Property<float> m_minTrackPt {this, "minTrackPt", 500.0f * Gaudi::Units::MeV, "minTrackPt description"};
+      Property<float> m_minComboPt {this, "minComboPt", 2000.0f * Allen::Units::MeV, "minComboPt description"};
+      Property<float> m_minTrackPt {this, "minTrackPt", 500.0f * Allen::Units::MeV, "minTrackPt description"};
       Property<float> m_minTrackIPChi2 {this, "minTrackIPChi2", 25.0f, "minTrackIPChi2 description"};
     };
 
@@ -933,7 +933,7 @@ To the private members add
 
 .. code-block:: c++
   
-  Allen::Property<float> m_minHighMassTrackPt {this,"minHighMassTrackPt",300.f / Gaudi::Units::MeV,"minHighMassTrackPt description"};
+  Allen::Property<float> m_minHighMassTrackPt {this,"minHighMassTrackPt",300.f / Allen::Units::MeV,"minHighMassTrackPt description"};
 
 And finally in the `.cu` file, we modify the `fill_tuples` function:
 

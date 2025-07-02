@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+* (c) Copyright 2018-2025 CERN for the benefit of the LHCb Collaboration      *
 *                                                                             *
 * This software is distributed under the terms of the Apache License          *
 * version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
@@ -48,11 +48,9 @@
 // 01.03.01   parsec
 // 28.04.06   import from CLHEP to GaudiKernel -- HD
 // 11.05.06   Rename pascal to Pa to avoid warnings on Windows - MC
+#pragma once
 
-#ifndef GAUDI_SYSTEM_OF_UNITS_H
-#define GAUDI_SYSTEM_OF_UNITS_H
-
-namespace Gaudi {
+namespace Allen {
   namespace Units {
 
     //
@@ -290,6 +288,4 @@ namespace Gaudi {
     constexpr float perMillion = 0.000001f;
 
   } // namespace Units
-} // namespace Gaudi
-
-#endif /* GAUDI_SYSTEM_OF_UNITS_H */
+} // namespace Allen

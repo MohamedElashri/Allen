@@ -195,62 +195,62 @@ namespace xi_omega_lll_line {
       runNo_t>;
 
   private:
-    Allen::Property<float> m_L_DOCA_max {this, "L_DOCA_max", 180.f * Gaudi::Units::um, "max p, pi DOCA for Lambda LL"};
+    Allen::Property<float> m_L_DOCA_max {this, "L_DOCA_max", 180.f * Allen::Units::um, "max p, pi DOCA for Lambda LL"};
     Allen::Property<float> m_L_VCHI2_max {this, "L_VCHI2_max", 24.f, "Lambda vertex chi2"};
-    Allen::Property<float> m_L_M_min {this, "L_M_min", 1090.f * Gaudi::Units::MeV, "min mass of Lambda candidate"};
-    Allen::Property<float> m_L_M_max {this, "L_M_max", 1140.f * Gaudi::Units::MeV, "max mass of Lambda candidate"};
-    Allen::Property<float> m_BPVZ_min {this, "BPVZ_min", -200.f * Gaudi::Units::mm, "min primary vertex z position"};
-    Allen::Property<float> m_VZ_min {this, "VZ_min", -200.f * Gaudi::Units::mm, "min vertex z position"};
-    Allen::Property<float> m_VZ_max {this, "VZ_max", 640.f * Gaudi::Units::mm, "max vertex z position"};
+    Allen::Property<float> m_L_M_min {this, "L_M_min", 1090.f * Allen::Units::MeV, "min mass of Lambda candidate"};
+    Allen::Property<float> m_L_M_max {this, "L_M_max", 1140.f * Allen::Units::MeV, "max mass of Lambda candidate"};
+    Allen::Property<float> m_BPVZ_min {this, "BPVZ_min", -200.f * Allen::Units::mm, "min primary vertex z position"};
+    Allen::Property<float> m_VZ_min {this, "VZ_min", -200.f * Allen::Units::mm, "min vertex z position"};
+    Allen::Property<float> m_VZ_max {this, "VZ_max", 640.f * Allen::Units::mm, "max vertex z position"};
     Allen::Property<float> m_Xi_M_min {this,
                                        "Xi_M_min",
-                                       1292.f * Gaudi::Units::MeV,
+                                       1292.f * Allen::Units::MeV,
                                        "min mass given pion mass hypothesis for tertiary track"};
     Allen::Property<float> m_Xi_M_max {this,
                                        "Xi_M_max",
-                                       1352.f * Gaudi::Units::MeV,
+                                       1352.f * Allen::Units::MeV,
                                        "max mass given pion mass hypothesis for tertiary track"};
     Allen::Property<float> m_Omega_M_min {this,
                                           "Omega_M_min",
-                                          1647.f * Gaudi::Units::MeV,
+                                          1647.f * Allen::Units::MeV,
                                           "min mass given kaon mass hypothesis for tertiary track"};
     Allen::Property<float> m_Omega_M_max {this,
                                           "Omega_M_max",
-                                          1697.f * Gaudi::Units::MeV,
+                                          1697.f * Allen::Units::MeV,
                                           "max mass given kaon mass hypothesis for tertiary track"};
-    Allen::Property<float> m_t_PT_min {this, "t_PT_min", 280.f * Gaudi::Units::MeV, "min companion track pT"};
+    Allen::Property<float> m_t_PT_min {this, "t_PT_min", 280.f * Allen::Units::MeV, "min companion track pT"};
     Allen::Property<float> m_t_MIPCHI2_min {this, "t_MIPCHI2_min", 6.f, "min companion track IP chi2"};
     Allen::Property<float> m_XimOmmt_M_max {this,
                                             "XimOmmt_M_max",
-                                            6.f * Gaudi::Units::GeV,
+                                            6.f * Allen::Units::GeV,
                                             "max mass given muon mass hypothesis for companion track"};
     Allen::Property<float> m_LVDZ_min {this,
                                        "LVDZ_min",
-                                       4.f * Gaudi::Units::mm,
+                                       4.f * Allen::Units::mm,
                                        "min distance (in z) of Lambda to Xi/Omega vertex"};
     Allen::Property<float> m_XimOmmVDZ_min {this,
                                             "XimOmmVDZ_min",
-                                            4.f * Gaudi::Units::mm,
+                                            4.f * Allen::Units::mm,
                                             "min distance (in z) of Xi/Omega to charm vertex"};
-    Allen::Property<float> m_BPVVDZ_min {this, "BPVVDZ_min", 1.f * Gaudi::Units::mm, "min distance (in z) to best PV"};
+    Allen::Property<float> m_BPVVDZ_min {this, "BPVVDZ_min", 1.f * Allen::Units::mm, "min distance (in z) to best PV"};
     Allen::Property<float> m_BPVVDRHO_min {this,
                                            "BPVVDRHO_min",
-                                           75.f * Gaudi::Units::um,
+                                           75.f * Allen::Units::um,
                                            "min radial distance to best PV"};
 
     Allen::Monitoring::Histogram<> m_histogram_Lambda_mass {
       this,
       "Lambda_mass_XiOmegaLLL",
       "m(p#pi^{#minus}) [MeV]",
-      {100u, 1090.f * Gaudi::Units::MeV, 1140.f * Gaudi::Units::MeV}};
+      {100u, 1090.f * Allen::Units::MeV, 1140.f * Allen::Units::MeV}};
     Allen::Monitoring::Histogram<> m_histogram_Xi_mass {this,
                                                         "Xi_mass",
                                                         "m(#Lambda#pi^{#minus}) [MeV]",
-                                                        {60u, 1292.f * Gaudi::Units::MeV, 1352.f * Gaudi::Units::MeV}};
+                                                        {60u, 1292.f * Allen::Units::MeV, 1352.f * Allen::Units::MeV}};
     Allen::Monitoring::Histogram<> m_histogram_Omega_mass {
       this,
       "Omega_mass",
       "m(#LambdaK^{#minus}) [MeV]",
-      {50u, 1647.f * Gaudi::Units::MeV, 1697.f * Gaudi::Units::MeV}};
+      {50u, 1647.f * Allen::Units::MeV, 1697.f * Allen::Units::MeV}};
   };
 } // namespace xi_omega_lll_line

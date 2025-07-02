@@ -75,8 +75,8 @@ namespace downstream_lambdatoppi_line {
       bool sel);
 
   private:
-    Allen::Property<float> m_minMass {this, "minMass", (1115.7f - 30.f) * Gaudi::Units::MeV, "Minimum invariant mass"};
-    Allen::Property<float> m_maxMass {this, "maxMass", (1115.7f + 30.f) * Gaudi::Units::MeV, "Maximum invariat mass"};
+    Allen::Property<float> m_minMass {this, "minMass", (1115.7f - 30.f) * Allen::Units::MeV, "Minimum invariant mass"};
+    Allen::Property<float> m_maxMass {this, "maxMass", (1115.7f + 30.f) * Allen::Units::MeV, "Maximum invariat mass"};
     Allen::Property<float> m_mva_l0_threshold {this, "mva_l0_threshold", 0.5f, "MVA threshold for Lambda selection"};
     Allen::Property<float> m_mva_detached_l0_threshold {this,
                                                         "mva_detached_l0_threshold",

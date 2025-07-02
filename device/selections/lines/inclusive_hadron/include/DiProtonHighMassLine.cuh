@@ -89,13 +89,13 @@ namespace diproton_highmass_line {
       bool sel);
 
   private:
-    Allen::Property<float> m_minPT_p {this, "minPT_p", 5000.f * Gaudi::Units::MeV, "Minimum proton PT"};
-    Allen::Property<float> m_minP_p {this, "minP_p", 25000.f * Gaudi::Units::MeV, "Minimum proton P"};
-    Allen::Property<float> m_minPT_pp {this, "minPT_pp", 6000.f * Gaudi::Units::MeV, "Minimum DiProton PT"};
-    Allen::Property<float> m_minP_pp {this, "minP_pp", 60000.f * Gaudi::Units::MeV, "Minimum DiProton P"};
+    Allen::Property<float> m_minPT_p {this, "minPT_p", 5000.f * Allen::Units::MeV, "Minimum proton PT"};
+    Allen::Property<float> m_minP_p {this, "minP_p", 25000.f * Allen::Units::MeV, "Minimum proton P"};
+    Allen::Property<float> m_minPT_pp {this, "minPT_pp", 6000.f * Allen::Units::MeV, "Minimum DiProton PT"};
+    Allen::Property<float> m_minP_pp {this, "minP_pp", 60000.f * Allen::Units::MeV, "Minimum DiProton P"};
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 16.0f, "Maximum vertex Chi2"};
-    Allen::Property<float> m_minMass {this, "minMass", 8500.f * Gaudi::Units::MeV, "Minimum invariant mass"};
-    Allen::Property<float> m_maxMass {this, "maxMass", 12500.f * Gaudi::Units::MeV, "Maximum invariat mass"};
+    Allen::Property<float> m_minMass {this, "minMass", 8500.f * Allen::Units::MeV, "Minimum invariant mass"};
+    Allen::Property<float> m_maxMass {this, "maxMass", 12500.f * Allen::Units::MeV, "Maximum invariat mass"};
     Allen::Property<float> m_maxPtAsym {this, "maxPtAsym", 0.7f, "Maximum PT asymmetry daughters w.r.t. the mother"};
     Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign proton combinations"};
     Allen::Property<float> m_maxGhostProb {this, "maxGhostProb", 0.5, "Maximum ghost probability of the tracks"};

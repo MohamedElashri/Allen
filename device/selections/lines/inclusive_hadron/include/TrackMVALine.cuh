@@ -75,19 +75,19 @@ namespace track_mva_line {
 
   private:
     Allen::Property<float> m_maxChi2Ndof {this, "maxChi2Ndof", 2.5f, "maxChi2Ndof description"};
-    Allen::Property<float> m_minPt {this, "minPt", 2.f * Gaudi::Units::GeV, "minPt description"};
-    Allen::Property<float> m_maxPt {this, "maxPt", 26.f * Gaudi::Units::GeV, "maxPt description"};
+    Allen::Property<float> m_minPt {this, "minPt", 2.f * Allen::Units::GeV, "minPt description"};
+    Allen::Property<float> m_maxPt {this, "maxPt", 26.f * Allen::Units::GeV, "maxPt description"};
     Allen::Property<float> m_minIPChi2 {this, "minIPChi2", 7.4f, "minIPChi2 description"};
-    Allen::Property<float> m_param1 {this, "param1", 1.f * Gaudi::Units::GeV* Gaudi::Units::GeV, "param1 description"};
-    Allen::Property<float> m_param2 {this, "param2", 2.f * Gaudi::Units::GeV, "param2 description"};
+    Allen::Property<float> m_param1 {this, "param1", 1.f * Allen::Units::GeV* Allen::Units::GeV, "param1 description"};
+    Allen::Property<float> m_param2 {this, "param2", 2.f * Allen::Units::GeV, "param2 description"};
     Allen::Property<float> m_param3 {this, "param3", 1.248f, "param3 description"};
     Allen::Property<float> m_alpha {this,
                                     "alpha",
-                                    296.f * Gaudi::Units::MeV,
+                                    296.f * Allen::Units::MeV,
                                     "alpha description"}; // tuned to about 330 kHz (modulo GEC)
     Allen::Property<float> m_minBPVz {this,
                                       "minBPVz",
-                                      -330.f * Gaudi::Units::mm,
+                                      -330.f * Allen::Units::mm,
                                       "minimum z for the best associated primary vertex"};
     Allen::Property<float> m_maxGhostProb {this, "maxGhostProb", 0.5, "Maximum ghost probability of the tracks"};
 

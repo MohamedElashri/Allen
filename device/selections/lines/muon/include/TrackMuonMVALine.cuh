@@ -77,8 +77,8 @@ namespace track_muon_mva_line {
 
   private:
     Allen::Property<float> m_maxChi2Ndof {this, "maxChi2Ndof", 100.0f, "maxChi2Ndof description"};
-    Allen::Property<float> m_minPt {this, "minPt", 2000.0f * Gaudi::Units::MeV, "minPt description"};
-    Allen::Property<float> m_maxPt {this, "maxPt", 26000.0f * Gaudi::Units::MeV, "maxPt description"};
+    Allen::Property<float> m_minPt {this, "minPt", 2000.0f * Allen::Units::MeV, "minPt description"};
+    Allen::Property<float> m_maxPt {this, "maxPt", 26000.0f * Allen::Units::MeV, "maxPt description"};
     Allen::Property<float> m_minIPChi2 {this, "minIPChi2", 7.4f, "minIPChi2 description"};
     Allen::Property<float> m_param1 {this, "param1", 1.0f, "param1 description"};
     Allen::Property<float> m_param2 {this, "param2", 2.0f, "param2 description"};
@@ -86,7 +86,7 @@ namespace track_muon_mva_line {
     Allen::Property<float> m_alpha {this, "alpha", 0.f, "alpha description"};
     Allen::Property<float> m_minBPVz {this,
                                       "minBPVz",
-                                      -330.f * Gaudi::Units::mm,
+                                      -330.f * Allen::Units::mm,
                                       "minimum z for the best primary vertex associated to the muon"};
     Allen::Property<float> m_maxChi2Muon {this, "maxChi2Muon", 1.8, "maximum Chi2Muon evaluation"};
     Allen::Property<float> m_minMuonNN {this, "minMuonNN", 0.15, "minimum NN evaluation"};

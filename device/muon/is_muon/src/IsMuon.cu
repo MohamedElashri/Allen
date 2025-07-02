@@ -50,7 +50,7 @@ void is_muon::is_muon_t::operator()(
 
 __device__ float elliptical_foi_window(const float a, const float b, const float c, const float momentum)
 {
-  return a + b * expf(-c * momentum / Gaudi::Units::GeV);
+  return a + b * expf(-c * momentum / Allen::Units::GeV);
 }
 
 __device__ std::pair<float, float> field_of_interest(

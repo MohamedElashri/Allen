@@ -75,8 +75,8 @@ namespace downstream_kstopipi_line {
       bool sel);
 
   private:
-    Allen::Property<float> m_minMass {this, "minMass", (497.6f - 80.f) * Gaudi::Units::MeV, "Minimum invariant mass"};
-    Allen::Property<float> m_maxMass {this, "maxMass", (497.6f + 80.f) * Gaudi::Units::MeV, "Maximum invariat mass"};
+    Allen::Property<float> m_minMass {this, "minMass", (497.6f - 80.f) * Allen::Units::MeV, "Minimum invariant mass"};
+    Allen::Property<float> m_maxMass {this, "maxMass", (497.6f + 80.f) * Allen::Units::MeV, "Maximum invariat mass"};
     Allen::Property<float> m_mva_ks_threshold {this, "mva_ks_threshold", 0.5f, "MVA threshold for Kshort selection"};
     Allen::Property<float> m_mva_detached_ks_threshold {this,
                                                         "mva_detached_ks_threshold",

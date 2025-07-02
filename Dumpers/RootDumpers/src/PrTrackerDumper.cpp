@@ -364,7 +364,7 @@ double mcpTau(const LHCb::MCParticle* mcp)
     Gaudi::XYZVector dir = mcp_evtx - mcp_ovtx;
     double tau = mcp->momentum().M() * dir.Dot(mcp->momentum().Vect()) / mcp->momentum().Vect().mag2();
     tau /= Gaudi::Units::c_light;
-    tau /= Gaudi::Units::picosecond;
+    tau /= Allen::Units::picosecond;
     return tau;
   }
   return 0;

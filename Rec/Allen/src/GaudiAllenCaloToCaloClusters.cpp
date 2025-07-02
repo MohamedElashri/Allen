@@ -44,7 +44,7 @@ public:
     const std::vector<CaloCluster>& allen_ecal_clusters) const override;
 
 private:
-  Gaudi::Property<float> m_EtCalo {this, "EtCalo", 400 * Gaudi::Units::MeV, "Default ET for Calo Clusters"};
+  Gaudi::Property<float> m_EtCalo {this, "EtCalo", 400 * Allen::Units::MeV, "Default ET for Calo Clusters"};
 };
 
 DECLARE_COMPONENT(GaudiAllenCaloToCaloClusters)

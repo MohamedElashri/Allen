@@ -64,14 +64,14 @@ namespace displaced_di_muon_line {
     // Dimuon track pt.
     Allen::Property<float> m_minDispTrackPt {this,
                                              "minDispTrackPt",
-                                             500.f / Gaudi::Units::MeV,
+                                             500.f / Allen::Units::MeV,
                                              "minDispTrackPt description"};
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 6.f, "maxVertexChi2 description"};
     // Displaced dimuon selections.
     Allen::Property<float> m_dispMinIPChi2 {this, "dispMinIPChi2", 6.f, "dispMinIPChi2 description"};
     Allen::Property<float> m_dispMinEta {this, "dispMinEta", 2.f, "dispMinEta description"};
     Allen::Property<float> m_dispMaxEta {this, "dispMaxEta", 5.f, "dispMaxEta description"};
-    Allen::Property<float> m_minZ {this, "minZ", -330.f * Gaudi::Units::mm, "minimum vertex z dimuon coordinate"};
+    Allen::Property<float> m_minZ {this, "minZ", -330.f * Allen::Units::mm, "minimum vertex z dimuon coordinate"};
     Allen::Property<float> m_maxChi2Muon {this, "maxChi2Muon", 1.8, "maximum Chi2Muon evaluation"};
 
     Allen::Monitoring::Histogram<> m_histogram_displaced_dimuon_mass {this,

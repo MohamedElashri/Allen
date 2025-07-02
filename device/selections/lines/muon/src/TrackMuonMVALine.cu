@@ -37,9 +37,9 @@ __device__ bool track_muon_mva_line::track_muon_mva_line_t::select(
     return false;
   }
 
-  const auto ptShift = (track.state().pt() - properties.alpha) / Gaudi::Units::GeV;
-  const auto maxPt_GeV = properties.maxPt / Gaudi::Units::GeV;
-  const auto minPt_GeV = properties.minPt / Gaudi::Units::GeV;
+  const auto ptShift = (track.state().pt() - properties.alpha) / Allen::Units::GeV;
+  const auto maxPt_GeV = properties.maxPt / Allen::Units::GeV;
+  const auto minPt_GeV = properties.minPt / Allen::Units::GeV;
   const auto ipChi2 = track.ip_chi2();
   const auto minBPVz = properties.minBPVz;
   const auto chi2corr = parameters.dev_chi2muon[parameters.dev_track_offsets[event_number] + track.get_index()];

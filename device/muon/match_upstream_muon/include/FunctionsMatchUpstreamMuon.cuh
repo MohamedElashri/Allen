@@ -43,13 +43,13 @@ __device__ inline int trackTypeFromMomentum(float p)
   // The following quantities have been set from the references
   // for offline muons in the MuonID, giving room for resolution.
 
-  if (p < 2.5f * Gaudi::Units::GeV) // 3 GeV/c for offline muons
+  if (p < 2.5f * Allen::Units::GeV) // 3 GeV/c for offline muons
     return MatchUpstreamMuon::VeryLowP;
 
-  else if (p < 7.f * Gaudi::Units::GeV) // 6 GeV/c for offline muons
+  else if (p < 7.f * Allen::Units::GeV) // 6 GeV/c for offline muons
     return MatchUpstreamMuon::LowP;
 
-  else if (p < 12.f * Gaudi::Units::GeV) // 10 GeV/c for offline muons
+  else if (p < 12.f * Allen::Units::GeV) // 10 GeV/c for offline muons
     return MatchUpstreamMuon::MediumP;
 
   else

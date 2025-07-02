@@ -38,7 +38,7 @@ namespace PV {
 
   // steering parameters for final cluster selection
   // int    m_minClusterMult = 3;
-  static constexpr float mcu_dzCloseTracksInCluster = 5.f * Gaudi::Units::mm;
+  static constexpr float mcu_dzCloseTracksInCluster = 5.f * Allen::Units::mm;
   // int    m_minCloseTracksInCluster = 3;
   static constexpr int mcu_highMult = 10;
   static constexpr float mcu_ratioSig2HighMult = 1.0f;
@@ -59,7 +59,7 @@ namespace PV {
   static constexpr size_t m_minTr = 4;
   static constexpr int m_Iterations = 20;
   static constexpr int m_minIter = 5;
-  static constexpr float m_maxDeltaZ = 0.0005f * Gaudi::Units::mm;
+  static constexpr float m_maxDeltaZ = 0.0005f * Allen::Units::mm;
   static constexpr float m_minTrackWeight = 0.00000001f;
   static constexpr float m_TrackErrorScaleFactor = 1.0f;
   static constexpr float m_maxChi2 = 400.0f;
@@ -67,7 +67,7 @@ namespace PV {
   // static constexpr  double m_trackChi = sqrtf(m_trackMaxChi2);     // sqrt of trackMaxChi2
   static constexpr float m_trackChi = 3.464f; // sqrt of trackMaxChi2
   static constexpr float m_trackMaxChi2Remove = 25.f;
-  static constexpr float m_maxDeltaZCache = 1.f * Gaudi::Units::mm;
+  static constexpr float m_maxDeltaZCache = 1.f * Allen::Units::mm;
 
   struct vtxCluster final {
 

@@ -77,7 +77,7 @@ namespace displaced_dielectron_line {
     Allen::Property<float> m_MaxDOCA {this, "MaxDOCA", 0.082f, "Max DOCA"};
     Allen::Property<float> m_MinPT {this, "MinPT", 500.f, "Min PT"};
     Allen::Property<float> m_MaxVtxChi2 {this, "MaxVtxChi2", 7.4f, "Max vertex chi2"};
-    Allen::Property<float> m_MinZ {this, "MinZ", -330.f * Gaudi::Units::mm, "Min z dielectron coordinate"};
+    Allen::Property<float> m_MinZ {this, "MinZ", -330.f * Allen::Units::mm, "Min z dielectron coordinate"};
     Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign dielectron combinations"};
     Allen::Property<float> m_minElectronNN {this, "minElectronNN", 0.1, "min NN evaluation"};
     Allen::Property<bool> m_useNN {this, "useNN", true, "useNN"};

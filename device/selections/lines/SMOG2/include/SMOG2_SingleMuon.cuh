@@ -72,10 +72,10 @@ namespace SMOG2_single_muon_line {
 
   private:
     Allen::Property<float> m_maxChi2Ndof {this, "maxChi2Ndof", 100.f, "maxChi2Ndof description"};
-    Allen::Property<float> m_MinPt {this, "MinPt", 600.f / Gaudi::Units::MeV, "Minimum PT"};
-    Allen::Property<float> m_MinP {this, "MinP", 5000.f / Gaudi::Units::MeV, "Minimum P"};
-    Allen::Property<float> m_minBPVz {this, "minBPVz", -537.5f * Gaudi::Units::mm, "minimum z for the track BPV"};
-    Allen::Property<float> m_maxBPVz {this, "maxBPVz", -337.5f * Gaudi::Units::mm, "maximum z for the track BPV"};
+    Allen::Property<float> m_MinPt {this, "MinPt", 600.f / Allen::Units::MeV, "Minimum PT"};
+    Allen::Property<float> m_MinP {this, "MinP", 5000.f / Allen::Units::MeV, "Minimum P"};
+    Allen::Property<float> m_minBPVz {this, "minBPVz", -537.5f * Allen::Units::mm, "minimum z for the track BPV"};
+    Allen::Property<float> m_maxBPVz {this, "maxBPVz", -337.5f * Allen::Units::mm, "maximum z for the track BPV"};
     Allen::Property<float> m_maxChi2Corr {this, "maxChi2Corr", 1.8, "maximum Chi2Muon evaluation"};
     Allen::Property<float> m_minMuonNN {this, "minMuonNN", 0.15, "minimum NN evaluation"};
     Allen::Property<bool> m_useNN {this, "useNN", true, "Use NN instead of Chi2Corr"};

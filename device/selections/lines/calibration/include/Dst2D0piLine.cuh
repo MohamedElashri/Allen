@@ -82,18 +82,18 @@ namespace dst_d2kpi_line {
     using monitoring_types = std::tuple<min_pt_t, min_ip_t, D0_ct_t, evtNo_t, runNo_t>;
 
   private:
-    Allen::Property<float> m_minComboPt {this, "minComboPt", 500.0f * Gaudi::Units::MeV, "minComboPt description"};
+    Allen::Property<float> m_minComboPt {this, "minComboPt", 500.0f * Allen::Units::MeV, "minComboPt description"};
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 20.f, "maxVertexChi2 description"};
     Allen::Property<float> m_minFDChi2 {this, "minFDChi2", 25.f, "minFDChi2 description"};
-    Allen::Property<float> m_maxDOCA {this, "maxDOCA", 0.2f * Gaudi::Units::mm, "maxDOCA description"};
+    Allen::Property<float> m_maxDOCA {this, "maxDOCA", 0.2f * Allen::Units::mm, "maxDOCA description"};
     Allen::Property<float> m_minEta {this, "minEta", 2.0f, "minEta description"};
     Allen::Property<float> m_maxEta {this, "maxEta", 5.0f, "maxEta description"};
-    Allen::Property<float> m_minTrackPt {this, "minTrackPt", 250.f * Gaudi::Units::MeV, "minTrackPt description"};
-    Allen::Property<float> m_massWindow {this, "massWindow", 100.f * Gaudi::Units::MeV, "massWindow description"};
-    Allen::Property<float> m_minTrackIP {this, "minTrackIP", 0.06f * Gaudi::Units::mm, "minTrackIP description"};
+    Allen::Property<float> m_minTrackPt {this, "minTrackPt", 250.f * Allen::Units::MeV, "minTrackPt description"};
+    Allen::Property<float> m_massWindow {this, "massWindow", 100.f * Allen::Units::MeV, "massWindow description"};
+    Allen::Property<float> m_minTrackIP {this, "minTrackIP", 0.06f * Allen::Units::mm, "minTrackIP description"};
     Allen::Property<float> m_ctIPScale {this, "ctIPScale", 1.f, "D0 ct should be larger than this time minTrackIP"};
-    Allen::Property<float> m_dmMax {this, "dmMax", 160.f * Gaudi::Units::MeV, "Maximum Dst-D0 mass difference."};
-    Allen::Property<float> m_minZ {this, "minZ", -330.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<float> m_dmMax {this, "dmMax", 160.f * Allen::Units::MeV, "Maximum Dst-D0 mass difference."};
+    Allen::Property<float> m_minZ {this, "minZ", -330.f * Allen::Units::mm, "minimum vertex z coordinate"};
 
     Allen::Monitoring::Histogram<> m_histogram_d0_mass {this, "d0_mass", "m(D0)", {100u, 1765.f, 1965.f}};
     Allen::Monitoring::Histogram<> m_histogram_d0_pt {this, "d0_pt", "pT(D0)", {100u, 0.f, 1e4f}};

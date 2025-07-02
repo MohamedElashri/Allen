@@ -89,8 +89,8 @@ namespace UT {
     static constexpr float maxPseudoChi2 = 1280.0f;
     static constexpr float maxXSlope = 0.350f;
     static constexpr float maxYSlope = 0.300f;
-    static constexpr float centralHoleSize = 33.0f * Gaudi::Units::mm;
-    static constexpr float passHoleSize = 40.0f * Gaudi::Units::mm;
+    static constexpr float centralHoleSize = 33.0f * Allen::Units::mm;
+    static constexpr float passHoleSize = 40.0f * Allen::Units::mm;
     static constexpr bool passTracks = false;
 
     // Scale the z-component, to not run into numerical problems with floats

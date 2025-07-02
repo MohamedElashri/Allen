@@ -94,8 +94,8 @@ namespace rich_2_line {
   private:
     // Commonly required properties
     // RICH 2 Line-specific properties
-    Allen::Property<float> m_minPt {this, "minPt", 500.0f / Gaudi::Units::MeV, "minPt description"};
-    Allen::Property<float> m_minP {this, "minP", 60000.0f / Gaudi::Units::MeV, "minP description"};
+    Allen::Property<float> m_minPt {this, "minPt", 500.0f / Allen::Units::MeV, "minPt description"};
+    Allen::Property<float> m_minP {this, "minP", 60000.0f / Allen::Units::MeV, "minP description"};
     Allen::Property<float> m_maxTrChi2 {this, "maxTrChi2", 2.0f, "max track chi2"};
     Allen::Property<std::array<float, 1>> m_minEta {this, "minEta", {2.65}, "minimum pseudorapidity"};
     Allen::Property<std::array<float, 1>> m_maxEta {this, "maxEta", {2.80}, "maximum pseudorapidity"};

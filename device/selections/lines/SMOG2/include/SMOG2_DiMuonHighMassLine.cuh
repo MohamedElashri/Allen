@@ -93,18 +93,18 @@ namespace SMOG2_dimuon_highmass_line {
     Allen::Property<float> m_maxTrackChi2Ndf {this, "maxTrackChi2Ndf", 5.f, "max track fit Chi2ndf"};
     Allen::Property<float> m_minTrackPt {this,
                                          "minTrackPt",
-                                         500.f * Gaudi::Units::MeV,
+                                         500.f * Allen::Units::MeV,
                                          "min track transverse momentum"};
-    Allen::Property<float> m_minTrackP {this, "minTrackP", 3000.f * Gaudi::Units::MeV, "min track momentum"};
+    Allen::Property<float> m_minTrackP {this, "minTrackP", 3000.f * Allen::Units::MeV, "min track momentum"};
     Allen::Property<float> m_minMass {this,
                                       "minMass",
-                                      2700.f * Gaudi::Units::MeV,
+                                      2700.f * Allen::Units::MeV,
                                       "min invariant mass for track combination"};
     Allen::Property<int> m_CombCharge {this, "HighMassCombCharge", 0, "Charge of the combination"};
-    Allen::Property<float> m_maxDoca {this, "maxDoca", 0.5f * Gaudi::Units::mm, "max distance of closest approach"};
+    Allen::Property<float> m_maxDoca {this, "maxDoca", 0.5f * Allen::Units::mm, "max distance of closest approach"};
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 25.0f, "Max vertex chi2"};
-    Allen::Property<float> m_minZ {this, "minZ", -537.5f * Gaudi::Units::mm, "minimum vertex z"};
-    Allen::Property<float> m_maxZ {this, "maxZ", -337.5f * Gaudi::Units::mm, "maximum vertex z"};
+    Allen::Property<float> m_minZ {this, "minZ", -537.5f * Allen::Units::mm, "minimum vertex z"};
+    Allen::Property<float> m_maxZ {this, "maxZ", -337.5f * Allen::Units::mm, "maximum vertex z"};
     Allen::Property<float> m_maxChi2Corr {this, "maxChi2Corr", 1.8, "maximum Chi2Muon evaluation"};
 
     Allen::Monitoring::Histogram<> m_histogram_smogdimuon_mass {this,
