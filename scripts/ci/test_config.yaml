@@ -56,7 +56,8 @@ minimal:
   - type: "throughput"
     sequence:
       - hlt1_pp_default
-      - hlt1_pp_forward_then_matching
+      #- hlt1_pp_forward_then_matching # I guess this one can be replaced?
+      - hlt1_pp_forward_then_matching_and_downstream_with_parkf_1200kHz
     dataset: "Run307533_MEPs_LHCb_ECEB01_BU_0_passthrough"
     geometry: "geometry_run3_2024.Q1.2-v00.00"
 
@@ -102,7 +103,7 @@ full:
     geometry: "geometry_run3_2024.Q1.2-v00.00"
     throughput_report: false # don't publish throughput report
 
-  # run throughput, forward no ut, matching
+  # run throughput, various settings
   - type: "throughput"
     sequence:
       - hlt1_pp_matching
@@ -110,7 +111,8 @@ full:
       - hlt1_pp_forward_then_matching_no_ut
       - hlt1_pp_forward_then_matching_and_downstream
       - hlt1_pp_forward_then_matching_with_parkf
-    dataset: "Run307533_MEPs_LHCb_ECEB01_BU_0_passthrough"
+      - hlt1_pp_forward_then_matching_and_downstream_with_parkf_1200kHz
+    dataset: "Run307533_MEPs_LHCb_ECEB01_BU_0_passthrough" # we should keep this one properly updated!
     geometry: "geometry_run3_2024.Q1.2-v00.00"
 
   # run throughput, pp reference run, exp 2024 conditions
