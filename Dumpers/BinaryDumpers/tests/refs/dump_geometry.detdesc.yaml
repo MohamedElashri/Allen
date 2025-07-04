@@ -10,7 +10,7 @@ stdout: |-
   HLTControlFlowMgr                      INFO Will measure time between events 0 and 0 (stop might be some events later)
   HLTControlFlowMgr                      INFO Starting loop on events
   DeviceFTGeometry                       INFO Conditions DB is compatible with FT bank version 7 and 8.
-  RootIOAlg                           SUCCESS Reading Event record 1 within root://eoslhcb.cern.ch//eos/lhcb/wg/rta/samples/mc/Jira_LHCBGAUSS-2635/Minbias_MagDown_Boole_lhcbhead3379_dddb-20220705_sim-20220705-vc-md100_lumi0.xdigi
+  RootIOAlg                           SUCCESS Reading Event record 1 within root://eoslhcb.cern.ch//eos/lhcb/wg/rta/samples/mc/Jira_LHCBGAUSS-2635/Minbias_MagDown_Boole_lhcbhead3379_dddb-20220705_sim-20220705-vc-md100_lumi0.xdigi, 1 overall
   ApplicationMgr                         INFO Application Manager Stopped successfully
   HLTControlFlowMgr                      INFO
   HLTControlFlowMgr                      INFO StateTree: CFNode   #executed  #passed
