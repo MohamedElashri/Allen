@@ -59,14 +59,7 @@ public:
     const auto invoke_arguments =
       Allen::Gear::Function::make_parameters(m_grid_dim, m_block_dim, m_dynamic_shared_memory_size, arguments...);
 
-    invoke_device_function(
-      m_fn,
-      m_grid_dim,
-      m_block_dim,
-      m_context,
-      m_dynamic_shared_memory_size,
-      invoke_arguments,
-      std::make_index_sequence<sizeof...(S)>());
+    invoke_device_function(m_fn, m_grid_dim, m_block_dim, m_context, m_dynamic_shared_memory_size, invoke_arguments);
 
     // Check result of kernel call
     Allen::peek_at_last_error();

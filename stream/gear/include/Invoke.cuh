@@ -22,20 +22,18 @@
  * @param[in]  shared_memory_size  Shared memory size.
  * @param      stream              The stream where the function will be run.
  * @param[in]  arguments           The arguments of the function.
- * @param[in]  I                   Index sequence
  *
  * @return     Return value of the function.
  */
 #if defined(DEVICE_COMPILER)
-template<class Fn, class Tuple, unsigned long... I>
+template<class Fn, class Tuple>
 void invoke_device_function(
   Fn&& function,
   const dim3& grid_dim,
   const dim3& block_dim,
   const Allen::Context& context,
   const unsigned dynamic_shared_memory_size,
-  const Tuple& invoke_arguments,
-  std::index_sequence<I...>)
+  const Tuple& invoke_arguments)
 {
   // If any grid dimension component, or any block dimension component is zero,
   // return without running.
@@ -53,28 +51,31 @@ void invoke_device_function(
     for (unsigned int j = 0; j < grid_dim.y; ++j) {
       for (unsigned int k = 0; k < grid_dim.z; ++k) {
         blockIdx = {i, j, k};
-        function(std::get<I>(invoke_arguments)...);
+        apply(function, invoke_arguments);
       }
     }
   }
 #elif defined(TARGET_DEVICE_HIP) || defined(TARGET_DEVICE_CUDA)
 #ifdef SYNCHRONOUS_DEVICE_EXECUTION
   _unused(context);
-  function<<<grid_dim, block_dim, dynamic_shared_memory_size>>>(std::get<I>(invoke_arguments)...);
+  apply(
+    [&](auto&&... args) {
+      function<<<grid_dim, block_dim, dynamic_shared_memory_size>>>(std::forward<decltype(args)>(args)...);
+    },
+    invoke_arguments);
 #else
-  function<<<grid_dim, block_dim, dynamic_shared_memory_size, context.stream()>>>(std::get<I>(invoke_arguments)...);
+  apply(
+    [&](auto&&... args) {
+      function<<<grid_dim, block_dim, dynamic_shared_memory_size, context.stream()>>>(
+        std::forward<decltype(args)>(args)...);
+    },
+    invoke_arguments);
 #endif
 #endif
 }
 #else
-template<class Fn, class Tuple, unsigned long... I>
-void invoke_device_function(
-  Fn&&,
-  const dim3&,
-  const dim3&,
-  const Allen::Context&,
-  const Tuple&,
-  std::index_sequence<I...>)
+template<class Fn, class Tuple>
+void invoke_device_function(Fn&&, const dim3&, const dim3&, const Allen::Context&, const Tuple&)
 {
   error_cout << "Global function invoked with unexpected backend.\n";
 }
