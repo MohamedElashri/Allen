@@ -272,12 +272,12 @@ struct MuonTrack {
 };
 
 namespace MatchUpstreamMuon {
-  static constexpr float kickOffset = 338.92f * Gaudi::Units::MeV; // KickOffset
-  static constexpr float kickScale = 1218.62f * Gaudi::Units::MeV; // KickScale
-  static constexpr float za = 5.331f * Gaudi::Units::m;            // MagnetPlaneParA
-  static constexpr float zb = -0.958f * Gaudi::Units::m;           // MagnetPlaneParB
-  static constexpr float ca = 25.17f * Gaudi::Units::mm;           // MagnetCorrParA
-  static constexpr float cb = -701.5f * Gaudi::Units::mm;          // MagnetCorrParB
+  static constexpr float kickOffset = 338.92f * Allen::Units::MeV; // KickOffset
+  static constexpr float kickScale = 1218.62f * Allen::Units::MeV; // KickScale
+  static constexpr float za = 5.331f * Allen::Units::m;            // MagnetPlaneParA
+  static constexpr float zb = -0.958f * Allen::Units::m;           // MagnetPlaneParB
+  static constexpr float ca = 25.17f * Allen::Units::mm;           // MagnetCorrParA
+  static constexpr float cb = -701.5f * Allen::Units::mm;          // MagnetCorrParB
 
   static constexpr float maxChi2DoF = 20.f;
   // static constexpr bool fitY = false;
@@ -322,17 +322,17 @@ namespace MatchUpstreamMuon {
   };
 
   struct SearchWindows {
-    float Windows[8] {500.f * Gaudi::Units::mm, // M2
-                      400.f * Gaudi::Units::mm,
+    float Windows[8] {500.f * Allen::Units::mm, // M2
+                      400.f * Allen::Units::mm,
 
-                      600.f * Gaudi::Units::mm, // M3
-                      500.f * Gaudi::Units::mm,
+                      600.f * Allen::Units::mm, // M3
+                      500.f * Allen::Units::mm,
 
-                      700.f * Gaudi::Units::mm, // M4
-                      600.f * Gaudi::Units::mm,
+                      700.f * Allen::Units::mm, // M4
+                      600.f * Allen::Units::mm,
 
-                      800.f * Gaudi::Units::mm, // M5
-                      700.f * Gaudi::Units::mm
+                      800.f * Allen::Units::mm, // M5
+                      700.f * Allen::Units::mm
 
     };
   };

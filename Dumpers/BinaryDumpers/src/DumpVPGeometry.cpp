@@ -24,7 +24,6 @@
 
 // Gaudi
 #include "GaudiAlg/Transformer.h"
-#include "GaudiKernel/SystemOfUnits.h"
 
 // Allen
 #include <Dumpers/Identifiers.h>

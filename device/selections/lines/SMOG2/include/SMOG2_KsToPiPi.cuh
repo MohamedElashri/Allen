@@ -85,15 +85,15 @@ namespace SMOG2_kstopipi_line {
   private:
     Allen::Property<float> m_minIPChi2 {this, "minIPChi2", 100.f, "Minimum IPCHI2"};
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 10.0f, "Maximum vertex Chi2"};
-    Allen::Property<float> m_maxIP {this, "maxIP", 0.3f * Gaudi::Units::mm, "Maximum IP"};
-    Allen::Property<float> m_minMass {this, "minMass", 400.f * Gaudi::Units::MeV, "Minimum invariant mass"};
+    Allen::Property<float> m_maxIP {this, "maxIP", 0.3f * Allen::Units::mm, "Maximum IP"};
+    Allen::Property<float> m_minMass {this, "minMass", 400.f * Allen::Units::MeV, "Minimum invariant mass"};
     Allen::Property<float> m_minTrackPt {this,
                                          "minTrackPt",
-                                         200.f * Gaudi::Units::MeV,
+                                         200.f * Allen::Units::MeV,
                                          "Minimum final-state particles Pt"};
-    Allen::Property<float> m_maxMass {this, "maxMass", 600.f * Gaudi::Units::MeV, "Maximum invariat mass"};
-    Allen::Property<float> m_minPVZ {this, "minPVZ", -537.5f * Gaudi::Units::mm, "minimum PV z coordinate"};
-    Allen::Property<float> m_maxPVZ {this, "maxPVZ", -337.5f * Gaudi::Units::mm, "maximum PV z coordinate"};
+    Allen::Property<float> m_maxMass {this, "maxMass", 600.f * Allen::Units::MeV, "Maximum invariat mass"};
+    Allen::Property<float> m_minPVZ {this, "minPVZ", -537.5f * Allen::Units::mm, "minimum PV z coordinate"};
+    Allen::Property<float> m_maxPVZ {this, "maxPVZ", -337.5f * Allen::Units::mm, "maximum PV z coordinate"};
     Allen::Property<int> m_CombCharge {this, "CombCharge", 0, "Charge of the combination"};
 
     Allen::Monitoring::Histogram<> m_histogram_smogks_mass {this,

@@ -65,8 +65,8 @@ namespace cone_jet_line {
     using monitoring_types = std::tuple<jet_pt_t, jet_eta_t, jet_phi_t, evtNo_t, runNo_t>;
 
   private:
-    Allen::Property<float> m_min_jet_pt {this, "min_jet_pt", 15.f * Gaudi::Units::GeV, "Minimum jet pT"};
-    Allen::Property<float> m_max_jet_pt {this, "max_jet_pt", 1000.f * Gaudi::Units::GeV, "Maximum jet pT"};
+    Allen::Property<float> m_min_jet_pt {this, "min_jet_pt", 15.f * Allen::Units::GeV, "Minimum jet pT"};
+    Allen::Property<float> m_max_jet_pt {this, "max_jet_pt", 1000.f * Allen::Units::GeV, "Maximum jet pT"};
   };
 
 } // namespace cone_jet_line

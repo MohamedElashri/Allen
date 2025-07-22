@@ -79,16 +79,16 @@ namespace d2kk_line {
     using monitoring_types = std::tuple<min_pt_t, min_ip_t, D0_ct_t, evtNo_t, runNo_t>;
 
   private:
-    Allen::Property<float> m_minComboPt {this, "minComboPt", 2000.0f * Gaudi::Units::MeV, "minComboPt description"};
+    Allen::Property<float> m_minComboPt {this, "minComboPt", 2000.0f * Allen::Units::MeV, "minComboPt description"};
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 20.f, "maxVertexChi2 description"};
-    Allen::Property<float> m_maxDOCA {this, "maxDOCA", 0.2f * Gaudi::Units::mm, "maxDOCA description"};
+    Allen::Property<float> m_maxDOCA {this, "maxDOCA", 0.2f * Allen::Units::mm, "maxDOCA description"};
     Allen::Property<float> m_minEta {this, "minEta", 2.0f, "minEta description"};
     Allen::Property<float> m_maxEta {this, "maxEta", 5.0f, "maxEta description"};
-    Allen::Property<float> m_minTrackPt {this, "minTrackPt", 800.f * Gaudi::Units::MeV, "minTrackPt description"};
-    Allen::Property<float> m_massWindow {this, "massWindow", 100.f * Gaudi::Units::MeV, "massWindow description"};
-    Allen::Property<float> m_minTrackIP {this, "minTrackIP", 0.06f * Gaudi::Units::mm, "minTrackIP description"};
+    Allen::Property<float> m_minTrackPt {this, "minTrackPt", 800.f * Allen::Units::MeV, "minTrackPt description"};
+    Allen::Property<float> m_massWindow {this, "massWindow", 100.f * Allen::Units::MeV, "massWindow description"};
+    Allen::Property<float> m_minTrackIP {this, "minTrackIP", 0.06f * Allen::Units::mm, "minTrackIP description"};
     Allen::Property<float> m_ctIPScale {this, "ctIPScale", 1.f, "D0 ct should be larger than this time minTrackIP"};
-    Allen::Property<float> m_minZ {this, "minZ", -330.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<float> m_minZ {this, "minZ", -330.f * Allen::Units::mm, "minimum vertex z coordinate"};
     Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign dibody combinations"};
 
     Allen::Monitoring::Histogram<> m_histogram_d02kk_mass {this, "d02kk_mass", "m(D0)", {100u, 1765.f, 1965.f}};

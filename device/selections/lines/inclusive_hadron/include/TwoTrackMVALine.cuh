@@ -96,8 +96,8 @@ namespace two_track_mva_line {
                                      "minMVA",
                                      0.9569f,
                                      "Minimum passing MVA response."}; // tuned to about 660 kHz (modulo GEC)
-    Allen::Property<float> m_minPt {this, "minPt", 200.f * Gaudi::Units::MeV, "Minimum track pT in MeV."};
-    Allen::Property<float> m_minSVpt {this, "minSVpt", 1000.f * Gaudi::Units::MeV, "Minimum SV pT in MeV."};
+    Allen::Property<float> m_minPt {this, "minPt", 200.f * Allen::Units::MeV, "Minimum track pT in MeV."};
+    Allen::Property<float> m_minSVpt {this, "minSVpt", 1000.f * Allen::Units::MeV, "Minimum SV pT in MeV."};
     Allen::Property<float> m_minEta {this, "minEta", 2.f, "Minimum PV-SV eta."};
     Allen::Property<float> m_maxEta {this, "maxEta", 5.f, "Maximum PV-SV eta."};
     Allen::Property<float> m_minMcor {this, "minMcor", 1000.f, "Minimum corrected mass in MeV"};
@@ -108,7 +108,7 @@ namespace two_track_mva_line {
       "minipchi2",
       4.f,
       "minimum ipchi2 of the tracks"}; // this is probably a noop, but better safe than sorry
-    Allen::Property<float> m_minZ {this, "minZ", -330.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<float> m_minZ {this, "minZ", -330.f * Allen::Units::mm, "minimum vertex z coordinate"};
     Allen::Property<float> m_maxGhostProb {this, "maxGhostProb", 0.5, "Maximum ghost probability of the tracks"};
 
     Allen::Monitoring::Histogram<> m_histogram_p0_ghost_prob {this,

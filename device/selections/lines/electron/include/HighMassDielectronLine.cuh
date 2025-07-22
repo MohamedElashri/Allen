@@ -106,14 +106,14 @@ namespace highmass_dielectron_line {
     // Low-mass no-IP dielectron selections.
     Allen::Property<float> m_minTrackP {this,
                                         "minTrackP",
-                                        14.f * Gaudi::Units::GeV,
+                                        14.f * Allen::Units::GeV,
                                         "Minimal momentum for both daughters "};
-    Allen::Property<float> m_minTrackPt {this, "minTrackPt", 1.5f * Gaudi::Units::GeV, "Minimal pT for both daughters"};
+    Allen::Property<float> m_minTrackPt {this, "minTrackPt", 1.5f * Allen::Units::GeV, "Minimal pT for both daughters"};
     Allen::Property<float> m_maxTrackEta {this, "maxTrackEta", 5.0, "Maximal ETA for both daughters"};
-    Allen::Property<float> m_minMass {this, "minMass", 8.0f * Gaudi::Units::GeV, "Min mass of the composite"};
-    Allen::Property<float> m_maxMass {this, "maxMass", 140.f * Gaudi::Units::GeV, "Max mass of the composite"};
-    Allen::Property<float> m_maxDoca {this, "maxDoca", .2f * Gaudi::Units::mm, "maxDoca description"};
-    Allen::Property<float> m_MinZ {this, "MinZ", -330.f * Gaudi::Units::mm, "Min z dielectron coordinate"};
+    Allen::Property<float> m_minMass {this, "minMass", 8.0f * Allen::Units::GeV, "Min mass of the composite"};
+    Allen::Property<float> m_maxMass {this, "maxMass", 140.f * Allen::Units::GeV, "Max mass of the composite"};
+    Allen::Property<float> m_maxDoca {this, "maxDoca", .2f * Allen::Units::mm, "maxDoca description"};
+    Allen::Property<float> m_MinZ {this, "MinZ", -330.f * Allen::Units::mm, "Min z dielectron coordinate"};
     Allen::Property<bool> m_only_select_opposite_sign {this,
                                                        "OppositeSign",
                                                        true,

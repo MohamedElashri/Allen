@@ -78,10 +78,10 @@ namespace kstopipi_line {
   private:
     Allen::Property<float> m_minIPChi2 {this, "minIPChi2", 100.f, "Minimum IPCHI2"};
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 10.0f, "Maximum vertex Chi2"};
-    Allen::Property<float> m_maxIP {this, "maxIP", 0.3f * Gaudi::Units::mm, "Maximum IP"};
-    Allen::Property<float> m_minMass {this, "minMass", 400.f * Gaudi::Units::MeV, "Minimum invariant mass"};
-    Allen::Property<float> m_maxMass {this, "maxMass", 600.f * Gaudi::Units::MeV, "Maximum invariat mass"};
-    Allen::Property<float> m_minZ {this, "minZ", -330.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<float> m_maxIP {this, "maxIP", 0.3f * Allen::Units::mm, "Maximum IP"};
+    Allen::Property<float> m_minMass {this, "minMass", 400.f * Allen::Units::MeV, "Minimum invariant mass"};
+    Allen::Property<float> m_maxMass {this, "maxMass", 600.f * Allen::Units::MeV, "Maximum invariat mass"};
+    Allen::Property<float> m_minZ {this, "minZ", -330.f * Allen::Units::mm, "minimum vertex z coordinate"};
     Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign dimuon combinations"};
     Allen::Property<bool> m_double_muon_misid {this, "double_muon_misid", false, "Selects dimuon combinations"};
 

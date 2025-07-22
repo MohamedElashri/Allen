@@ -703,7 +703,7 @@ namespace GaudiAllen::Converters::v3 {
 
   private:
     Gaudi::Property<float> m_qopvar_rel {this, "relQoPVar", 0.1, "Default relative qop variance (qopVar/(qop*qop))"};
-    Gaudi::Property<float> m_ptVelo {this, "ptVelo", 400 * Gaudi::Units::MeV, "Default pT for Velo tracks"};
+    Gaudi::Property<float> m_ptVelo {this, "ptVelo", 400 * Allen::Units::MeV, "Default pT for Velo tracks"};
 
     template<typename AllenTrack>
     OutType make_output_container(const LHCb::UniqueIDGenerator& unique_id_gen) const

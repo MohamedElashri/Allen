@@ -64,7 +64,7 @@ namespace compass_ut_fit_tracks {
   private:
     Allen::Property<float> m_sigma_velo_slope {this,
                                                "sigma_velo_slope",
-                                               0.1f * Gaudi::Units::mrad,
+                                               0.1f * Allen::Units::mrad,
                                                "sigma velo slope [radians]"};
     Allen::Property<float> m_min_momentum_final {this, "min_momentum_final", 2500.f, "final min momentum cut [MeV/c]"};
     Allen::Property<float> m_min_pt_final {this, "min_pt_final", 425.f, "final min pT cut [MeV/c]"};

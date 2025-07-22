@@ -88,17 +88,17 @@ namespace di_muon_mass_line {
   private:
     Allen::Property<float> m_minHighMassTrackPt {this,
                                                  "minHighMassTrackPt",
-                                                 300.f / Gaudi::Units::MeV,
+                                                 300.f / Allen::Units::MeV,
                                                  "minHighMassTrackPt description"};
     Allen::Property<float> m_minHighMassTrackP {this,
                                                 "minHighMassTrackP",
-                                                6000.f / Gaudi::Units::MeV,
+                                                6000.f / Allen::Units::MeV,
                                                 "minHighMassTrackP description"};
-    Allen::Property<float> m_minMass {this, "minMass", 2700.f / Gaudi::Units::MeV, "minMass description"};
+    Allen::Property<float> m_minMass {this, "minMass", 2700.f / Allen::Units::MeV, "minMass description"};
     Allen::Property<float> m_maxDoca {this, "maxDoca", 0.2f, "maxDoca description"};
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 25.0f, "maxVertexChi2 description"};
     Allen::Property<float> m_minIPChi2 {this, "minIPChi2", 0.f, "minIPChi2 description"};
-    Allen::Property<float> m_minZ {this, "minZ", -330.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<float> m_minZ {this, "minZ", -330.f * Allen::Units::mm, "minimum vertex z coordinate"};
     Allen::Property<float> m_maxChi2Muon {this, "maxChi2Muon", 1.8, "maximum Chi2Muon evaluation"};
     Allen::Property<float> m_minMuonNN {this, "minMuonNN", 0.1, "min NN evaluation"};
     Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign dimuon combinations"};

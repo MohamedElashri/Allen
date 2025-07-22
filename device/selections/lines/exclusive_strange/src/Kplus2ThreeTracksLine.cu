@@ -26,8 +26,8 @@ __device__ bool kplus_to_three_tracks_line::kplus_to_three_tracks_line_t::select
   const auto c2_state = c2->state();
 
   // Calculate c1 + c2 invariant mass
-  const float e_pair = c1_state.e(properties.mass_seed_track_one * Gaudi::Units::MeV) +
-                       c2_state.e(properties.mass_seed_track_two * Gaudi::Units::MeV);
+  const float e_pair = c1_state.e(properties.mass_seed_track_one * Allen::Units::MeV) +
+                       c2_state.e(properties.mass_seed_track_two * Allen::Units::MeV);
   const float p2_pair = (c1_state.px() + c2_state.px()) * (c1_state.px() + c2_state.px()) +
                         (c1_state.py() + c2_state.py()) * (c1_state.py() + c2_state.py()) +
                         (c1_state.pz() + c2_state.pz()) * (c1_state.pz() + c2_state.pz());
@@ -36,9 +36,9 @@ __device__ bool kplus_to_three_tracks_line::kplus_to_three_tracks_line_t::select
   // Calculate the combination invariant mass
   const auto piplus_state = piplus->state();
   const float p2_kplus = particle.vertex().p2();
-  const float e_kplus = piplus_state.e(properties.mass_companion * Gaudi::Units::MeV) +
-                        c1_state.e(properties.mass_seed_track_one * Gaudi::Units::MeV) +
-                        c2_state.e(properties.mass_seed_track_two * Gaudi::Units::MeV);
+  const float e_kplus = piplus_state.e(properties.mass_companion * Allen::Units::MeV) +
+                        c1_state.e(properties.mass_seed_track_one * Allen::Units::MeV) +
+                        c2_state.e(properties.mass_seed_track_two * Allen::Units::MeV);
   const float m_kplus = sqrtf(e_kplus * e_kplus - p2_kplus);
 
   if (properties.is_dimuon) {

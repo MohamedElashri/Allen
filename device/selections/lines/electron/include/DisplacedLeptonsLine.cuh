@@ -56,7 +56,7 @@ namespace displaced_leptons_line {
     Allen::Property<float> m_min_pt {this, "min_pt", 1000.f, "Minimum pt"};
     Allen::Property<float> m_minBPVz {this,
                                       "min_BPVz",
-                                      -330.f * Gaudi::Units::mm,
+                                      -330.f * Allen::Units::mm,
                                       "Minimum z for the associated best primary vertex"};
   };
 } // namespace displaced_leptons_line

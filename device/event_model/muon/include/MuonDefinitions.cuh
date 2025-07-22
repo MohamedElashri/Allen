@@ -68,7 +68,7 @@ namespace Muon {
       static constexpr unsigned y = 1;
     } // namespace FoiParams
 
-    static constexpr float momentum_cuts[] = {3 * Gaudi::Units::GeV, 6 * Gaudi::Units::GeV, 10 * Gaudi::Units::GeV};
+    static constexpr float momentum_cuts[] = {3 * Allen::Units::GeV, 6 * Allen::Units::GeV, 10 * Allen::Units::GeV};
     struct FieldOfInterest {
     private:
       /* FOI_x = a_x + b_x * exp(-c_x * p)

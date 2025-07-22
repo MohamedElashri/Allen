@@ -33,7 +33,7 @@ namespace LookingForward {
   };
 
   // Reference z plane
-  constexpr float z_mid_t = 8520.f * Gaudi::Units::mm; // FIXME_GEOMETRY_HARDCODING
+  constexpr float z_mid_t = 8520.f * Allen::Units::mm; // FIXME_GEOMETRY_HARDCODING
 
   // ==================================
   // Constants for lf search by triplet

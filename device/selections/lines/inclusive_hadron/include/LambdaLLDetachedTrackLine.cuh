@@ -162,47 +162,47 @@ namespace lambda_ll_detached_track_line {
       runNo_t>;
 
   private:
-    Allen::Property<float> m_pi_PT_min {this, "pi_PT_min", 130.f * Gaudi::Units::MeV, "pT of pion candidate"};
-    Allen::Property<float> m_p_PT_min {this, "p_PT_min", 1200.f * Gaudi::Units::MeV, "pT of proton candidate"};
+    Allen::Property<float> m_pi_PT_min {this, "pi_PT_min", 130.f * Allen::Units::MeV, "pT of pion candidate"};
+    Allen::Property<float> m_p_PT_min {this, "p_PT_min", 1200.f * Allen::Units::MeV, "pT of proton candidate"};
     Allen::Property<float> m_pi_MIPCHI2_min {this, "pi_MIPCHI2_min", 64.f, "min IP chi2 of pion candidate"};
     Allen::Property<float> m_p_MIPCHI2_min {this, "p_MIPCHI2_min", 12.f, "min IP chi2 of proton candidate"};
-    Allen::Property<float> m_L_PT_min {this, "L_PT_min", 1400.f * Gaudi::Units::MeV, "pT of Lambda candidate"};
-    Allen::Property<float> m_L_DOCA_max {this, "L_DOCA_max", 100.f * Gaudi::Units::um, "DOCA of proton and pion"};
+    Allen::Property<float> m_L_PT_min {this, "L_PT_min", 1400.f * Allen::Units::MeV, "pT of Lambda candidate"};
+    Allen::Property<float> m_L_DOCA_max {this, "L_DOCA_max", 100.f * Allen::Units::um, "DOCA of proton and pion"};
     Allen::Property<float> m_L_VCHI2_max {this, "L_VCHI2_max", 16.f, "Lambda vertex chi2"};
     Allen::Property<float> m_L_BPVFDCHI2_min {this,
                                               "L_BPVFDCHI2_min",
                                               240.f,
                                               "flight distance chi2 of Lambda candidate"};
-    Allen::Property<float> m_L_M_min {this, "L_M_min", 1090.f * Gaudi::Units::MeV, "min mass of Lambda candidate"};
-    Allen::Property<float> m_L_M_max {this, "L_M_max", 1140.f * Gaudi::Units::MeV, "max mass of Lambda candidate"};
+    Allen::Property<float> m_L_M_min {this, "L_M_min", 1090.f * Allen::Units::MeV, "min mass of Lambda candidate"};
+    Allen::Property<float> m_L_M_max {this, "L_M_max", 1140.f * Allen::Units::MeV, "max mass of Lambda candidate"};
     Allen::Property<float> m_t_MIPCHI2_min {this, "t_MIPCHI2_min", 12.f, "min companion track IP chi2"};
-    Allen::Property<float> m_t_PT_min {this, "t_PT_min", 700.f * Gaudi::Units::MeV, "min companion track PT"};
-    Allen::Property<float> m_VZ_min {this, "VZ_min", -200.f * Gaudi::Units::mm, "min vertex z position"};
-    Allen::Property<float> m_VZ_max {this, "VZ_max", 250.f * Gaudi::Units::mm, "max vertex z position"};
+    Allen::Property<float> m_t_PT_min {this, "t_PT_min", 700.f * Allen::Units::MeV, "min companion track PT"};
+    Allen::Property<float> m_VZ_min {this, "VZ_min", -200.f * Allen::Units::mm, "min vertex z position"};
+    Allen::Property<float> m_VZ_max {this, "VZ_max", 250.f * Allen::Units::mm, "max vertex z position"};
     Allen::Property<float> m_M_max {this,
                                     "M_max",
-                                    3.6f * Gaudi::Units::GeV,
+                                    3.6f * Allen::Units::GeV,
                                     "max mass given pion mass hypothesis for companion track"};
-    Allen::Property<float> m_BPVVDZ_min {this, "BPVVDZ_min", 1.5f * Gaudi::Units::mm, "min distance (in z) to best PV"};
+    Allen::Property<float> m_BPVVDZ_min {this, "BPVVDZ_min", 1.5f * Allen::Units::mm, "min distance (in z) to best PV"};
     Allen::Property<float> m_BPVVDRHO_min {this,
                                            "BPVVDRHO_min",
-                                           120.f * Gaudi::Units::um,
+                                           120.f * Allen::Units::um,
                                            "min distance (in z) to best PV"};
     Allen::Property<float> m_LVDZ_min {this,
                                        "LVDZ_min",
-                                       8.f * Gaudi::Units::mm,
+                                       8.f * Allen::Units::mm,
                                        "min distance (in z) to Lambda vertex"};
-    Allen::Property<float> m_SUMPT_min {this, "SUMPT_min", 2.8f * Gaudi::Units::GeV, "sum of Lambda and track pT"};
+    Allen::Property<float> m_SUMPT_min {this, "SUMPT_min", 2.8f * Allen::Units::GeV, "sum of Lambda and track pT"};
 
     Allen::Monitoring::Histogram<> m_histogram_Lambda_mass {
       this,
       "Lambda_mass_LambdaLLDetachedTrack",
       "m(p#pi^{#minus}) [MeV]",
-      {100u, 1090.f * Gaudi::Units::MeV, 1140.f * Gaudi::Units::MeV}};
+      {100u, 1090.f * Allen::Units::MeV, 1140.f * Allen::Units::MeV}};
     Allen::Monitoring::Histogram<> m_histogram_LambdaPi_mass {
       this,
       "LambdaTrack_mass",
       "m(#Lambda#pi^{+}) [MeV]",
-      {94u, 1.25f * Gaudi::Units::GeV, 3.6f * Gaudi::Units::GeV}};
+      {94u, 1.25f * Allen::Units::GeV, 3.6f * Allen::Units::GeV}};
   };
 } // namespace lambda_ll_detached_track_line

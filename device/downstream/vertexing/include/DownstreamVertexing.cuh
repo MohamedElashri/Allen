@@ -73,29 +73,29 @@ namespace downstream_vertexing {
     // Cuts
     Allen::Property<float> m_minpt_both {this,
                                          "track_min_pt_both",
-                                         136.1f * Gaudi::Units::MeV,
+                                         136.1f * Allen::Units::MeV,
                                          "Minimum track pT required for both tracks."};
     Allen::Property<float> m_minpt_either {this,
                                            "track_min_pt_either",
-                                           277.1f * Gaudi::Units::MeV,
+                                           277.1f * Allen::Units::MeV,
                                            "Minimum track pT required for at least one track."};
     Allen::Property<float> m_minip_both {this,
                                          "track_min_ip_both",
-                                         64.7f * Gaudi::Units::mm,
+                                         64.7f * Allen::Units::mm,
                                          "Minimum track IP required for both tracks."};
     Allen::Property<float> m_minip_either {this,
                                            "track_min_ip_either",
-                                           64.7f * Gaudi::Units::mm,
+                                           64.7f * Allen::Units::mm,
                                            "Minimum track IP required for at least one track."};
-    Allen::Property<float> m_minsumpt {this, "sum_pt_min", 471.8f * Gaudi::Units::MeV, "Minimum sum of track pT."};
-    Allen::Property<float> m_maxdoca {this, "doca_max", 19.1f * Gaudi::Units::mm, "Maximum DOCA between tracks."};
+    Allen::Property<float> m_minsumpt {this, "sum_pt_min", 471.8f * Allen::Units::MeV, "Minimum sum of track pT."};
+    Allen::Property<float> m_maxdoca {this, "doca_max", 19.1f * Allen::Units::mm, "Maximum DOCA between tracks."};
     Allen::Property<float> m_min_vtx_z {this,
                                         "min_vtx_z",
-                                        54.5f * Gaudi::Units::mm,
+                                        54.5f * Allen::Units::mm,
                                         "Minimum z position of the vertex."};
     Allen::Property<float> m_max_vtx_z {this,
                                         "max_vtx_z",
-                                        2484.6f * Gaudi::Units::mm,
+                                        2484.6f * Allen::Units::mm,
                                         "Maximum z position of the vertex."};
     Allen::Property<float> m_min_quality {this, "min_quality", 0.1, "Minimum MVA quality score."};
     Allen::Property<bool> m_dihadron {this, "dihadron", true, "Filter leptons"};

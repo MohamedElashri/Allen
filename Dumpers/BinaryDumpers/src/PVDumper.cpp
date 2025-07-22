@@ -27,7 +27,7 @@ namespace {
   {
     for (const auto& idau : mcvtx.products()) {
       double dv2 = (mcpv.position() - idau->originVertex()->position()).Mag2();
-      if (dv2 > (100. * Gaudi::Units::mm) * (100. * Gaudi::Units::mm)) continue;
+      if (dv2 > (100. * Allen::Units::mm) * (100. * Allen::Units::mm)) continue;
       allprods.emplace_back(idau);
       for (const auto& ivtx : idau->endVertices()) {
         collectProductss(mcpv, *ivtx, allprods);
@@ -94,6 +94,6 @@ int PVDumper::count_reconstructible_mc_particles(const LHCb::MCVertex& avtx, con
   return std::count_if(allproducts.begin(), allproducts.end(), [&](const auto* pmcp) {
     if (pmcp->particleID().threeCharge() == 0 || !trInfo.hasVelo(pmcp)) return false;
     double dv2 = (avtx.position() - pmcp->originVertex()->position()).Mag2();
-    return dv2 < 0.0000001 && pmcp->p() > 100. * Gaudi::Units::MeV;
+    return dv2 < 0.0000001 && pmcp->p() > 100. * Allen::Units::MeV;
   });
 }

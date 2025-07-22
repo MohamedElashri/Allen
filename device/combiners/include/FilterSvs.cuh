@@ -59,25 +59,25 @@ namespace FilterSvs {
 
   private:
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 30.f, "Max child vertex chi2"};
-    Allen::Property<float> m_minComboPt {this, "minComboPt", 500.f * Gaudi::Units::MeV, "Minimum combo pT"};
+    Allen::Property<float> m_minComboPt {this, "minComboPt", 500.f * Allen::Units::MeV, "Minimum combo pT"};
     Allen::Property<float> m_minComboPtHighIP {this,
                                                "minComboPtHighIP",
-                                               200.f * Gaudi::Units::MeV,
+                                               200.f * Allen::Units::MeV,
                                                "Minimum combo pT high IP"};
     // Momenta of SVs from displaced decays won't point back to a PV, so don't
     // make a DIRA cut here by default.
     Allen::Property<float> m_minCosDira {this, "minChildCosDira", 0.0f, "Minimum child DIRA"};
     Allen::Property<float> m_minChildEta {this, "minChildEta", 2.f, "Minimum child eta"};
     Allen::Property<float> m_maxChildEta {this, "maxChildEta", 5.f, "Maximum child eta"};
-    Allen::Property<float> m_minTrackPt {this, "minTrackPt", 200.f * Gaudi::Units::MeV, "Minimum track pT"};
+    Allen::Property<float> m_minTrackPt {this, "minTrackPt", 200.f * Allen::Units::MeV, "Minimum track pT"};
     Allen::Property<float> m_minTrackPtLowIP {this,
                                               "minTrackPtLowIP",
-                                              500.f * Gaudi::Units::MeV,
+                                              500.f * Allen::Units::MeV,
                                               "Minimum track pT Low IP"};
-    Allen::Property<float> m_minTrackP {this, "minTrackP", 1000.f * Gaudi::Units::MeV, "Minimum track p"};
+    Allen::Property<float> m_minTrackP {this, "minTrackP", 1000.f * Allen::Units::MeV, "Minimum track p"};
     Allen::Property<float> m_minTrackIPChi2 {this, "minTrackIPChi2", 4.f, "Minimum track IP chi2"};
-    Allen::Property<float> m_minTrackHighIP {this, "minTrackHighIP", 0.2f * Gaudi::Units::mm, "Minimum track high IP"};
-    Allen::Property<float> m_minTrackLowIP {this, "minTrackLowIP", 0.06f * Gaudi::Units::mm, "Minimum track low IP"};
+    Allen::Property<float> m_minTrackHighIP {this, "minTrackHighIP", 0.2f * Allen::Units::mm, "Minimum track high IP"};
+    Allen::Property<float> m_minTrackLowIP {this, "minTrackLowIP", 0.06f * Allen::Units::mm, "Minimum track low IP"};
     Allen::Property<dim3> m_block_dim_filter {this,
                                               "block_dim_filter",
                                               {128, 1, 1},

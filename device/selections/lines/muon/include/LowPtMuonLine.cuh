@@ -43,12 +43,12 @@ namespace low_pt_muon_line {
   private:
     Allen::Property<float> m_maxChi2Ndof {this, "maxChi2Ndof", 100.f, "maxChi2Ndof description"};
     // NB: This pt cut is looser than default tracking threshold.
-    Allen::Property<float> m_minPt {this, "minPt", 80.0f * Gaudi::Units::MeV, "minPt description"};
+    Allen::Property<float> m_minPt {this, "minPt", 80.0f * Allen::Units::MeV, "minPt description"};
     Allen::Property<float> m_minIP {this, "minIP", 4.f, "minIP description"};
     Allen::Property<float> m_minIPChi2 {this, "minIPChi2", 7.4f, "minIPChi2 description"};
     Allen::Property<float> m_minBPVz {this,
                                       "minBPVz",
-                                      -330.f * Gaudi::Units::mm,
+                                      -330.f * Allen::Units::mm,
                                       "minimum z for the best primary vertex associated to the muon"};
   };
 } // namespace low_pt_muon_line

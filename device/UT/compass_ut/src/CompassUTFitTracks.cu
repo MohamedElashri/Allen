@@ -80,7 +80,7 @@ namespace {
     // Get bdl
     //
     const auto bdl = get_bdl(bdl_table, velo_state);
-    const float qpxz2p = -1.f / bdl * 3.3356f / Gaudi::Units::GeV;
+    const float qpxz2p = -1.f / bdl * 3.3356f / Allen::Units::GeV;
 
     //
     // First we perform a pkick fit

@@ -63,30 +63,30 @@ namespace FilterSVTrack {
   private:
     Allen::Property<float> m_SV_VZ_min {this,
                                         "SV_VZ_min",
-                                        -180.f * Gaudi::Units::mm,
+                                        -180.f * Allen::Units::mm,
                                         "min vertex z position of sv candidate"};
     Allen::Property<float> m_SV_VZ_max {this,
                                         "SV_VZ_max",
-                                        650.f * Gaudi::Units::mm,
+                                        650.f * Allen::Units::mm,
                                         "max vertex z position of sv candidate"};
     Allen::Property<float> m_SV_BPVIP_min {this,
                                            "SV_BPVIP_min",
-                                           32.f * Gaudi::Units::um,
+                                           32.f * Allen::Units::um,
                                            "min IP of sv w.r.t. its best PV"};
     Allen::Property<float> m_SV_BPVVDZ_min {this,
                                             "SV_BPVVDZ_min",
-                                            24.f * Gaudi::Units::mm,
+                                            24.f * Allen::Units::mm,
                                             "min z vertex distance of sv w.r.t. its best PV"};
     Allen::Property<float> m_SV_BPVVDRHO_min {this,
                                               "SV_BPVVDRHO_min",
-                                              3.f * Gaudi::Units::mm,
+                                              3.f * Allen::Units::mm,
                                               "min radial vertex distance of sv w.r.t. its best PV"};
     Allen::Property<float> m_SV_BPVDIRA_min {this,
                                              "SV_BPVDIRA_min",
                                              0.9999f,
                                              "min cosine of direction angle of sv w.r.t. its best PV"};
     Allen::Property<float> m_T_CHI2NDF_max {this, "T_CHI2NDF_max", 10.f, "Maximum track chi2 per n.d.f. (VeloKalman)"};
-    Allen::Property<float> m_T_PT_min {this, "T_PT_min", 100.f * Gaudi::Units::MeV, "Minimal track pT"};
+    Allen::Property<float> m_T_PT_min {this, "T_PT_min", 100.f * Allen::Units::MeV, "Minimal track pT"};
     Allen::Property<float> m_T_MIPCHI2_min {this, "T_MIPCHI2_min", 6.f, "Minimal IP chi^2 of track w.r.t. any PV"};
     Allen::Property<float> m_T_MIPCHI2_max {this,
                                             "T_MIPCHI2_max",
@@ -97,10 +97,10 @@ namespace FilterSVTrack {
                                         "T_MIP_max",
                                         std::numeric_limits<float>::max(),
                                         "Maximum minimal IP of track w.r.t. any PV"};
-    Allen::Property<float> m_SV_T_DOCA_max {this, "SV_T_DOCA_max", 150.f * Gaudi::Units::um, "DOCA of sv and track"};
+    Allen::Property<float> m_SV_T_DOCA_max {this, "SV_T_DOCA_max", 150.f * Allen::Units::um, "DOCA of sv and track"};
     Allen::Property<float> m_opening_angle_min {this,
                                                 "opening_angle_min",
-                                                0.5f * Gaudi::Units::mrad,
+                                                0.5f * Allen::Units::mrad,
                                                 "min angle between tracks from sv and companion track"};
     Allen::Property<bool> m_require_same_pv {this,
                                              "require_same_pv",

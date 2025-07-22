@@ -206,25 +206,25 @@ namespace d02ksks_DDDD_line {
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 20.f, "maxVertexChi2 description"};
     Allen::Property<float> m_minComboPt_Ks {this,
                                             "minComboPt_Ks",
-                                            1200.f * Gaudi::Units::MeV,
+                                            1200.f * Allen::Units::MeV,
                                             "minComboPt_Ks description"};
     Allen::Property<float> m_minEta_Ks {this, "minEta_Ks", 2.f, "minEta_Ks description"};
     Allen::Property<float> m_maxEta_Ks {this, "maxEta_Ks", 4.2f, "maxEta_Ks description"};
     Allen::Property<float> m_minTrackPt_piKs {this,
                                               "minTrackPt_piKs",
-                                              450.f * Gaudi::Units::MeV,
+                                              450.f * Allen::Units::MeV,
                                               "minTrackPt_piKs description"};
     Allen::Property<float> m_minTrackP_piKs {this,
                                              "minTrackP_piKs",
-                                             3000.f * Gaudi::Units::MeV,
+                                             3000.f * Allen::Units::MeV,
                                              "minTrackP_piKs description"};
     Allen::Property<float> m_minTrackIP_piKs {this, "minTrackIP_piKs", 1.f, "minTrackIP_piKs description"};
-    Allen::Property<float> m_minM_Ks {this, "minM_Ks", 400.0f * Gaudi::Units::MeV, "minM_Ks description"};
-    Allen::Property<float> m_maxM_Ks {this, "maxM_Ks", 600.0f * Gaudi::Units::MeV, "maxM_Ks description"};
-    Allen::Property<float> m_minM_D0 {this, "minM_D0", 1650.0f * Gaudi::Units::MeV, "minM_D0 description"};
-    Allen::Property<float> m_maxM_D0 {this, "maxM_D0", 2100.0f * Gaudi::Units::MeV, "maxM_D0 description"};
-    Allen::Property<float> m_minZ_sv {this, "minZ_sv", 400.f * Gaudi::Units::mm, "minZ_sv description"};
-    Allen::Property<float> m_minZ_pv {this, "minZ_pv", -330.f * Gaudi::Units::mm, "minZ_pv description"};
+    Allen::Property<float> m_minM_Ks {this, "minM_Ks", 400.0f * Allen::Units::MeV, "minM_Ks description"};
+    Allen::Property<float> m_maxM_Ks {this, "maxM_Ks", 600.0f * Allen::Units::MeV, "maxM_Ks description"};
+    Allen::Property<float> m_minM_D0 {this, "minM_D0", 1650.0f * Allen::Units::MeV, "minM_D0 description"};
+    Allen::Property<float> m_maxM_D0 {this, "maxM_D0", 2100.0f * Allen::Units::MeV, "maxM_D0 description"};
+    Allen::Property<float> m_minZ_sv {this, "minZ_sv", 400.f * Allen::Units::mm, "minZ_sv description"};
+    Allen::Property<float> m_minZ_pv {this, "minZ_pv", -330.f * Allen::Units::mm, "minZ_pv description"};
     Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign dibody combinations"};
   };
 } // namespace d02ksks_DDDD_line

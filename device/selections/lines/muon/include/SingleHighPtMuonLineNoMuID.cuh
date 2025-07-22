@@ -55,8 +55,8 @@ namespace single_high_pt_muon_no_muid_line {
 
   private:
     Allen::Property<float> m_maxChi2Ndof {this, "maxChi2Ndof", 100.f, "maxChi2Ndof description"};
-    Allen::Property<float> m_singleMinPt {this, "singleMinPt", 8000.f / Gaudi::Units::MeV, "singleMinPt description"};
-    Allen::Property<float> m_singleMinP {this, "singleMinP", 6000.f / Gaudi::Units::MeV, "singleMinP description"};
-    Allen::Property<float> m_minZ {this, "minZ", -330.f * Gaudi::Units::mm, "minimum z for the track state"};
+    Allen::Property<float> m_singleMinPt {this, "singleMinPt", 8000.f / Allen::Units::MeV, "singleMinPt description"};
+    Allen::Property<float> m_singleMinP {this, "singleMinP", 6000.f / Allen::Units::MeV, "singleMinP description"};
+    Allen::Property<float> m_minZ {this, "minZ", -330.f * Allen::Units::mm, "minimum z for the track state"};
   };
 } // namespace single_high_pt_muon_no_muid_line

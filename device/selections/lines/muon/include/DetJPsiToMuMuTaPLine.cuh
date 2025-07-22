@@ -141,22 +141,22 @@ namespace det_jpsitomumu_tap_line {
       muprobe_eta_t>;
 
   private:
-    Allen::Property<float> m_JpsiMinPt {this, "JpsiMinPt", 1000.f * Gaudi::Units::MeV, "JpsiMinPt description"};
+    Allen::Property<float> m_JpsiMinPt {this, "JpsiMinPt", 1000.f * Allen::Units::MeV, "JpsiMinPt description"};
     Allen::Property<float> m_JpsiMaxVChi2 {this, "JpsiMaxVChi2", 15.f, "JpsiMaxVChi2 description"};
-    Allen::Property<float> m_JpsiMinMass {this, "JpsiMinMass", 2950.f * Gaudi::Units::MeV, "JpsiMinMass description"};
-    Allen::Property<float> m_JpsiMaxMass {this, "JpsiMaxMass", 3250.f * Gaudi::Units::MeV, "JpsiMaxMass description"};
+    Allen::Property<float> m_JpsiMinMass {this, "JpsiMinMass", 2950.f * Allen::Units::MeV, "JpsiMinMass description"};
+    Allen::Property<float> m_JpsiMaxMass {this, "JpsiMaxMass", 3250.f * Allen::Units::MeV, "JpsiMaxMass description"};
     Allen::Property<float> m_JpsiMinZ {this,
                                        "JpsiMinZ",
-                                       -330.f * Gaudi::Units::mm,
+                                       -330.f * Allen::Units::mm,
                                        "minimum vertex z dimuon coordinate"};
-    Allen::Property<float> m_JpsiMaxDoca {this, "JpsiMaxDoca", 1.f * Gaudi::Units::mm, "JpsiMaxDoca description"};
+    Allen::Property<float> m_JpsiMaxDoca {this, "JpsiMaxDoca", 1.f * Allen::Units::mm, "JpsiMaxDoca description"};
     Allen::Property<float> m_JpsiMinCosDira {this, "JpsiMinCosDira", 0.99f, "JpsiMinCosDira description"};
     Allen::Property<float> m_JpsiMinFDChi2 {this, "JpsiMinFDChi2", 50.f, "JpsiMinFDChi2 description"};
-    Allen::Property<float> m_mutagMinP {this, "mutagMinP", 3000.f * Gaudi::Units::MeV, "mutagMinP description"};
-    Allen::Property<float> m_mutagMinPt {this, "mutagMinPt", 1200.f * Gaudi::Units::MeV, "mutagMinPt description"};
+    Allen::Property<float> m_mutagMinP {this, "mutagMinP", 3000.f * Allen::Units::MeV, "mutagMinP description"};
+    Allen::Property<float> m_mutagMinPt {this, "mutagMinPt", 1200.f * Allen::Units::MeV, "mutagMinPt description"};
     Allen::Property<float> m_mutagMinIPChi2 {this, "mutagMinIPChi2", 9.f, "mutagMinIPChi2 description"};
     Allen::Property<float> m_muprobeMinIPChi2 {this, "muprobeMinIPChi2", 9.f, "muprobeMinIPChi2 description"};
-    Allen::Property<float> m_muprobeMinP {this, "muprobeMinP", 3000.f * Gaudi::Units::MeV, "muprobeMinP description"};
+    Allen::Property<float> m_muprobeMinP {this, "muprobeMinP", 3000.f * Allen::Units::MeV, "muprobeMinP description"};
     Allen::Property<bool> m_posTag {this, "posTag", true, "Tags positive charged tracks with isMuon"};
 
     Allen::Monitoring::Histogram<> m_histogram_det_jpsitomumu_tap_mass {this,

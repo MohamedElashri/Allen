@@ -181,31 +181,31 @@ namespace tautophimu_line {
       runNo_t>;
 
   private:
-    Allen::Property<float> m_minTrackP {this, "minTrackP", 3.0f * Gaudi::Units::GeV, "Minimum track momentum"};
-    Allen::Property<float> m_minTrackPt {this, "minTrackPt", 450.0f * Gaudi::Units::MeV, "Minimum track pT"};
+    Allen::Property<float> m_minTrackP {this, "minTrackP", 3.0f * Allen::Units::GeV, "Minimum track momentum"};
+    Allen::Property<float> m_minTrackPt {this, "minTrackPt", 450.0f * Allen::Units::MeV, "Minimum track pT"};
     Allen::Property<float> m_minTrackIPChi2 {this, "minTrackIPChi2", 4.0f, "Minimum track IP chi2"};
-    Allen::Property<float> m_minTrackIP {this, "minTrackIP", 0.0f * Gaudi::Units::mm, "Minimum track IP"};
+    Allen::Property<float> m_minTrackIP {this, "minTrackIP", 0.0f * Allen::Units::mm, "Minimum track IP"};
     Allen::Property<float> m_minTrackEta {this, "minTrackEta", 2.0f, "Minimum track eta"};
     Allen::Property<float> m_maxTrackEta {this, "maxTrackEta", 5.0f, "Maximum track eta"};
-    Allen::Property<float> m_minPhiPt {this, "minPhiPt", 900.0f * Gaudi::Units::MeV, "Minimum phi pT"};
+    Allen::Property<float> m_minPhiPt {this, "minPhiPt", 900.0f * Allen::Units::MeV, "Minimum phi pT"};
     Allen::Property<float> m_maxPhiVertexChi2 {this, "maxPhiVertexChi2", 10.0f, "Maximum phi vertex chi2"};
-    Allen::Property<float> m_maxPhiDOCA {this, "maxPhiDOCA", 0.2f * Gaudi::Units::mm, "Maximum phi DOCA"};
-    Allen::Property<float> m_maxDOCA {this, "maxDOCA", 0.2f * Gaudi::Units::mm, "Maximum DOCA btw phi and muon"};
+    Allen::Property<float> m_maxPhiDOCA {this, "maxPhiDOCA", 0.2f * Allen::Units::mm, "Maximum phi DOCA"};
+    Allen::Property<float> m_maxDOCA {this, "maxDOCA", 0.2f * Allen::Units::mm, "Maximum DOCA btw phi and muon"};
     Allen::Property<float> m_minPhiFDChi2 {this, "minPhiFDChi2", 10.0f, "Minimum phi FD chi2"};
-    Allen::Property<float> m_PhiMassWindow {this, "PhiMassWindow", 30.0f * Gaudi::Units::MeV, "Phi mass window"};
-    Allen::Property<float> m_minSVpt {this, "minSVpt", 2.5f * Gaudi::Units::GeV, "Minimum tau pT"};
-    Allen::Property<float> m_minctau {this, "minctau", 0.07f * Gaudi::Units::mm, "Minimum tau ctau"};
-    Allen::Property<float> m_maxctau {this, "maxctau", 1.0f * Gaudi::Units::mm, "Maximum tau ctau"};
-    Allen::Property<float> m_minZ {this, "minZ", -200.f * Gaudi::Units::mm, "Minimum z"};
-    Allen::Property<float> m_minInvMass {this, "minInvMass", 1620.0f * Gaudi::Units::MeV, "Minimum tau invariant mass"};
-    Allen::Property<float> m_maxInvMass {this, "maxInvMass", 2050.0f * Gaudi::Units::MeV, "Maximum tau invariant mass"};
+    Allen::Property<float> m_PhiMassWindow {this, "PhiMassWindow", 30.0f * Allen::Units::MeV, "Phi mass window"};
+    Allen::Property<float> m_minSVpt {this, "minSVpt", 2.5f * Allen::Units::GeV, "Minimum tau pT"};
+    Allen::Property<float> m_minctau {this, "minctau", 0.07f * Allen::Units::mm, "Minimum tau ctau"};
+    Allen::Property<float> m_maxctau {this, "maxctau", 1.0f * Allen::Units::mm, "Maximum tau ctau"};
+    Allen::Property<float> m_minZ {this, "minZ", -200.f * Allen::Units::mm, "Minimum z"};
+    Allen::Property<float> m_minInvMass {this, "minInvMass", 1620.0f * Allen::Units::MeV, "Minimum tau invariant mass"};
+    Allen::Property<float> m_maxInvMass {this, "maxInvMass", 2050.0f * Allen::Units::MeV, "Maximum tau invariant mass"};
     Allen::Property<float> m_minThirdTrackP {this,
                                              "minThirdTrackP",
-                                             3.0f * Gaudi::Units::GeV,
+                                             3.0f * Allen::Units::GeV,
                                              "Minimum third track momentum"};
     Allen::Property<float> m_minThirdTrackPt {this,
                                               "minThirdTrackPt",
-                                              350.0f * Gaudi::Units::MeV,
+                                              350.0f * Allen::Units::MeV,
                                               "Minimum third track pT"};
     Allen::Property<float> m_minThirdTrackIPChi2 {this, "minThirdTrackIPChi2", 9.0f, "Minimum third track IP chi2"};
     Allen::Property<float> m_minThirdTrackEta {this, "minThirdTrackEta", 2.0f, "Minimum third track eta"};

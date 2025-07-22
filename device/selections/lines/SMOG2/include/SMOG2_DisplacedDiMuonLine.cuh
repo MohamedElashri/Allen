@@ -86,18 +86,18 @@ namespace SMOG2_displaced_di_muon_line {
     // Dimuon track pt.
     Allen::Property<float> m_minDispTrackPt {this,
                                              "minDispTrackPt",
-                                             250.f * Gaudi::Units::MeV,
+                                             250.f * Allen::Units::MeV,
                                              "minDispTrackPt description"};
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 30.f, "maxVertexChi2 description"};
-    Allen::Property<float> m_minComboPt {this, "minComboPt", 1.f * Gaudi::Units::GeV, "minComboPt description"};
+    Allen::Property<float> m_minComboPt {this, "minComboPt", 1.f * Allen::Units::GeV, "minComboPt description"};
     // Displaced dimuon selections.
-    Allen::Property<float> m_mass {this, "mass", 500.f * Gaudi::Units::MeV, "mass of dimuon"};
-    Allen::Property<float> m_minZ {this, "minZ", -537.5f * Gaudi::Units::mm, "minimum vertex z dimuon coordinate"};
+    Allen::Property<float> m_mass {this, "mass", 500.f * Allen::Units::MeV, "mass of dimuon"};
+    Allen::Property<float> m_minZ {this, "minZ", -537.5f * Allen::Units::mm, "minimum vertex z dimuon coordinate"};
     Allen::Property<float> m_maxChi2CorrMuon {this, "maxChi2CorrMuon", 2.5, "maximum Chi2CorrMuon evaluation"};
-    Allen::Property<float> m_minPVZ {this, "minPVZ", -537.5f * Gaudi::Units::mm, "minimum PV z coordinate"};
-    Allen::Property<float> m_maxPVZ {this, "maxPVZ", -337.5f * Gaudi::Units::mm, "maximum PV z coordinate"};
+    Allen::Property<float> m_minPVZ {this, "minPVZ", -537.5f * Allen::Units::mm, "minimum PV z coordinate"};
+    Allen::Property<float> m_maxPVZ {this, "maxPVZ", -337.5f * Allen::Units::mm, "maximum PV z coordinate"};
     Allen::Property<float> m_minFDCHI2 {this, "minFDCHI2", 15.f, "chi2 of pv and endvertex"};
-    Allen::Property<float> m_maxIP {this, "maxIP", 1.f * Gaudi::Units::mm, "mother IP"};
+    Allen::Property<float> m_maxIP {this, "maxIP", 1.f * Allen::Units::mm, "mother IP"};
     Allen::Property<float> m_minMuonNN {this, "minMuonNN", 0.1, "min NN evaluation"};
     Allen::Property<float> m_useNN {this, "useNN", true, "useNN"};
 

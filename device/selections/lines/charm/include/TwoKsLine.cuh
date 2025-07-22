@@ -204,25 +204,25 @@ namespace two_ks_line {
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 20.f, "maxVertexChi2 description"};
     Allen::Property<float> m_minComboPt_Ks {this,
                                             "minComboPt_Ks",
-                                            1150.f / Gaudi::Units::MeV,
+                                            1150.f / Allen::Units::MeV,
                                             "minComboPt Ks description"};
     Allen::Property<float> m_minCosDira {this, "minCosDira", 0.99f, "minCosDira description"};
     Allen::Property<float> m_minEta_Ks {this, "minEta_Ks", 2.f, "minEta_Ks description"};
     Allen::Property<float> m_maxEta_Ks {this, "maxEta_Ks", 4.2f, "maxEta_Ks description"};
     Allen::Property<float> m_minTrackPt_piKs {this,
                                               "minTrackPt_piKs",
-                                              425.f / Gaudi::Units::MeV,
+                                              425.f / Allen::Units::MeV,
                                               "minTrackPt_piKs description"};
     Allen::Property<float> m_minTrackP_piKs {this,
                                              "minTrackP_piKs",
-                                             3000.f / Gaudi::Units::MeV,
+                                             3000.f / Allen::Units::MeV,
                                              "minTrackP_piKs description"};
     Allen::Property<float> m_minTrackIPChi2_Ks {this, "minTrackIPChi2_Ks", 15.f, "minTrackIPChi2_Ks description"};
-    Allen::Property<float> m_minM_Ks {this, "minM_Ks", 455.0f / Gaudi::Units::MeV, "minM_Ks description"};
-    Allen::Property<float> m_maxM_Ks {this, "maxM_Ks", 545.0f / Gaudi::Units::MeV, "maxM_Ks description"};
+    Allen::Property<float> m_minM_Ks {this, "minM_Ks", 455.0f / Allen::Units::MeV, "minM_Ks description"};
+    Allen::Property<float> m_maxM_Ks {this, "maxM_Ks", 545.0f / Allen::Units::MeV, "maxM_Ks description"};
     Allen::Property<float> m_minCosOpening {this, "minCosOpening", 0.99f, "minCosOpening description"};
-    Allen::Property<float> m_min_combip {this, "min_combip", 0.23f / Gaudi::Units::mm, "min_combip description"};
-    Allen::Property<float> m_minZ {this, "minZ", -330.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<float> m_min_combip {this, "min_combip", 0.23f / Allen::Units::mm, "min_combip description"};
+    Allen::Property<float> m_minZ {this, "minZ", -330.f * Allen::Units::mm, "minimum vertex z coordinate"};
     Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign dibody combinations"};
   };
 } // namespace two_ks_line

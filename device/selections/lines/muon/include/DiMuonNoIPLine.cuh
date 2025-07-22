@@ -106,18 +106,18 @@ namespace di_muon_no_ip_line {
   private:
     Allen::Property<float> m_minTrackPtPROD {this,
                                              "minTrackPtPROD",
-                                             1.f * Gaudi::Units::GeV* Gaudi::Units::GeV,
+                                             1.f * Allen::Units::GeV* Allen::Units::GeV,
                                              "minTrackPtPROD description"}; // run 2 value: 1.*GeV*GeV
     Allen::Property<float> m_minTrackP {this,
                                         "minTrackP",
-                                        5000.f * Gaudi::Units::MeV,
+                                        5000.f * Allen::Units::MeV,
                                         "minTrackP description"};                   // run 2 value: 10000
     Allen::Property<float> m_maxDoca {this, "maxDoca", .3f, "maxDoca description"}; // run 2 value: 0.1
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 9.f, "maxVertexChi2 description"}; // run 2 value: 9
     Allen::Property<float> m_maxTrChi2 {this, "maxTrChi2", 3.f, "maxTrChi2 description"};             // run 2 value: 3
     Allen::Property<bool> m_ss_on {this, "ss_on", false, "ss_on description"};
-    Allen::Property<float> m_minPt {this, "minPt", 1.f * Gaudi::Units::GeV, "minPt description"};
-    Allen::Property<float> m_minZ {this, "minZ", -330.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<float> m_minPt {this, "minPt", 1.f * Allen::Units::GeV, "minPt description"};
+    Allen::Property<float> m_minZ {this, "minZ", -330.f * Allen::Units::mm, "minimum vertex z coordinate"};
     Allen::Property<float> m_maxChi2Muon {this, "maxChi2Muon", 1.3f, "maximum Chi2Muon evaluation"};
     Allen::Property<float> m_minNN {this, "minNN", 0.74f, "minimum NN evaluation"};
   };
