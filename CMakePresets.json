@@ -12,8 +12,8 @@
         "TARGET_DEVICE": "CUDA",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "CMAKE_TOOLCHAIN_FILE": "/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_106c/x86_64_v3-el9-gcc13+cuda12_4-opt+g.cmake",
-        "CUDNN_INCLUDE_DIR": "/home/melashri/local/cuda/include",
-        "CUDNN_LIBRARY": "/home/melashri/local/cuda/lib64/libcudnn.so"
+        "CUDNN_INCLUDE_DIR": "/data/home/melashri/local/cuda/include",
+        "CUDNN_LIBRARY": "/data/home/melashri/local/cuda/lib64/libcudnn.so"
       }
     },
     {
@@ -27,8 +27,8 @@
         "TARGET_DEVICE": "CUDA",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "CMAKE_TOOLCHAIN_FILE": "/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_106c/x86_64_v3-el9-gcc13+cuda12_4-opt+g.cmake",
-        "CUDNN_INCLUDE_DIR": "/home/melashri/local/cuda/include",
-        "CUDNN_LIBRARY": "/home/melashri/local/cuda/lib64/libcudnn.so"
+        "CUDNN_INCLUDE_DIR": "/data/home/melashri/local/cuda/include",
+        "CUDNN_LIBRARY": "/data/home/melashri/local/cuda/lib64/libcudnn.so"
       }
     },
     {
