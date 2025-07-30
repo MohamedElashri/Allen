@@ -1,0 +1,5 @@
+build
+.git
+input
+Dockerfile
+configuration/pregenerated

@@ -1,0 +1,82 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
+\*****************************************************************************/
+#pragma once
+
+#include "BackendCommon.h"
+#include "Logger.h"
+
+/**
+ * @brief      Invokes a function specified by its function and arguments.
+ *
+ * @param[in]  function            The function.
+ * @param[in]  grid_dim            Number of blocks of kernel invocation.
+ * @param[in]  block_dim           Number of threads of kernel invocation.
+ * @param[in]  shared_memory_size  Shared memory size.
+ * @param      stream              The stream where the function will be run.
+ * @param[in]  arguments           The arguments of the function.
+ *
+ * @return     Return value of the function.
+ */
+#if defined(DEVICE_COMPILER)
+template<class Fn, class Tuple>
+void invoke_device_function(
+  Fn&& function,
+  const dim3& grid_dim,
+  const dim3& block_dim,
+  const Allen::Context& context,
+  const unsigned dynamic_shared_memory_size,
+  const Tuple& invoke_arguments)
+{
+  // If any grid dimension component, or any block dimension component is zero,
+  // return without running.
+  if (
+    grid_dim.x == 0 || grid_dim.y == 0 || grid_dim.z == 0 || block_dim.x == 0 || block_dim.y == 0 || block_dim.z == 0) {
+    return;
+  }
+
+#if defined(TARGET_DEVICE_CPU)
+  _unused(context);
+  _unused(dynamic_shared_memory_size);
+
+  gridDim = {grid_dim.x, grid_dim.y, grid_dim.z};
+  for (unsigned int i = 0; i < grid_dim.x; ++i) {
+    for (unsigned int j = 0; j < grid_dim.y; ++j) {
+      for (unsigned int k = 0; k < grid_dim.z; ++k) {
+        blockIdx = {i, j, k};
+        apply(function, invoke_arguments);
+      }
+    }
+  }
+#elif defined(TARGET_DEVICE_HIP) || defined(TARGET_DEVICE_CUDA)
+#ifdef SYNCHRONOUS_DEVICE_EXECUTION
+  _unused(context);
+  apply(
+    [&](auto&&... args) {
+      function<<<grid_dim, block_dim, dynamic_shared_memory_size>>>(std::forward<decltype(args)>(args)...);
+    },
+    invoke_arguments);
+#else
+  apply(
+    [&](auto&&... args) {
+      function<<<grid_dim, block_dim, dynamic_shared_memory_size, context.stream()>>>(
+        std::forward<decltype(args)>(args)...);
+    },
+    invoke_arguments);
+#endif
+#endif
+}
+#else
+template<class Fn, class Tuple>
+void invoke_device_function(Fn&&, const dim3&, const dim3&, const Allen::Context&, const Tuple&)
+{
+  error_cout << "Global function invoked with unexpected backend.\n";
+}
+#endif

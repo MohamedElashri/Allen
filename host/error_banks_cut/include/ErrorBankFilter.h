@@ -1,0 +1,187 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
+\*****************************************************************************/
+#pragma once
+
+#include <gsl/span>
+#include <memory>
+
+#include "Common.h"
+#include "AlgorithmTypes.cuh"
+#include "InputProvider.h"
+#include "Event/RawBank.h"
+#include <MEPTools.h>
+
+#ifndef ALLEN_STANDALONE
+#include <Gaudi/Parsers/Factory.h>
+#include <GaudiKernel/ToStream.h>
+#include <Gaudi/Parsers/CommonParsers.h>
+#include <GaudiKernel/StatusCode.h>
+#include <Kernel/STLExtensions.h>
+
+#include <GAUDI_VERSION.h>
+
+// backward compatibility with Gaudi < v39 where StaticHistogram is just the plain Histogram
+#if GAUDI_MAJOR_VERSION < 39
+#include "Gaudi/Accumulators/Histogram.h"
+namespace Gaudi::Accumulators {
+  template<unsigned int ND, atomicity Atomicity = atomicity::full, typename Arithmetic = double>
+  using StaticHistogram = Histogram<ND, Atomicity, Arithmetic>;
+} // namespace Gaudi::Accumulators
+#else
+#include "Gaudi/Accumulators/StaticHistogram.h"
+#endif
+
+#endif
+
+namespace error_bank_filter {
+  struct bank_types_t {
+    using key_type = std::string;
+    using mapped_type = std::vector<std::string>;
+
+    void insert(std::pair<key_type, mapped_type> v)
+    {
+      if (v.first == "data_types") {
+        data_types = std::move(v.second);
+      }
+      else if (v.first == "other_types") {
+        other_types = std::move(v.second);
+      }
+      else if (v.first == "error_types") {
+        error_types = std::move(v.second);
+      }
+    }
+
+    std::vector<std::string> data_types;
+    std::vector<std::string> other_types;
+    std::vector<std::string> error_types;
+  };
+
+  // Conversion functions from and to json
+  void from_json(const nlohmann::json& j, bank_types_t& sd_bank_types);
+
+  void to_json(nlohmann::json& j, bank_types_t const& sd_bank_types);
+
+  struct Parameters {
+    HOST_INPUT(host_event_list_t, unsigned) host_event_list;
+    HOST_INPUT(mep_layout_t, unsigned) mep_layout;
+    MASK_OUTPUT(dev_output_event_list_t) dev_output_event_list;
+    HOST_OUTPUT(host_output_event_list_t, unsigned) host_output_event_list;
+    HOST_OUTPUT(host_number_of_selected_events_t, unsigned) host_number_of_selected_events;
+    HOST_OUTPUT(host_temp_counts_t, float) host_counts;
+  };
+
+  // Algorithm
+  struct error_bank_filter_t : public HostAlgorithm, Parameters {
+    void set_arguments_size(
+      ArgumentReferences<Parameters> arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants&) const;
+
+    void operator()(
+      const ArgumentReferences<Parameters>& arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants&,
+      const Allen::Context& context) const;
+
+    void init();
+
+    void error_bank_filter(
+      Parameters parameters,
+      IInputProvider const* input_provider,
+      unsigned const slice_index,
+      unsigned const number_of_events,
+      unsigned const event_start) const;
+
+  private:
+    using bin_mapping_t = std::array<unsigned, 256>;
+
+#ifndef ALLEN_STANDALONE
+    mutable std::unique_ptr<Gaudi::Accumulators::StaticHistogram<1>> m_error_per_source;
+    mutable std::unique_ptr<Gaudi::Accumulators::StaticHistogram<1>> m_data_banks;
+    mutable bin_mapping_t m_data_bin_mapping;
+    mutable std::unique_ptr<Gaudi::Accumulators::StaticHistogram<1>> m_other_banks;
+    mutable bin_mapping_t m_other_bin_mapping;
+    mutable std::unique_ptr<Gaudi::Accumulators::StaticHistogram<1>> m_error_banks;
+    mutable bin_mapping_t m_error_bin_mapping;
+#endif
+    struct sd_info_t {
+      sd_info_t() = default;
+
+      BankTypes sd = BankTypes::Unknown;
+      std::unordered_set<unsigned char> data_bank_types;
+      std::unordered_set<unsigned char> other_bank_types;
+      std::unordered_set<unsigned char> error_bank_types;
+#ifndef ALLEN_STANDALONE
+      bin_mapping_t mapping;
+      bin_mapping_t unexpected_mapping;
+      std::unique_ptr<Gaudi::Accumulators::StaticHistogram<1>> banks;
+      std::unique_ptr<Gaudi::Accumulators::StaticHistogram<1>> unexpected_banks;
+      std::unique_ptr<Gaudi::Accumulators::Counter<>> error;
+      std::unique_ptr<Gaudi::Accumulators::Counter<>> invalid_type;
+#endif
+    };
+
+    mutable std::unordered_map<std::string, sd_info_t> m_sd_info;
+
+    Allen::Property<std::map<std::string, error_bank_filter::bank_types_t>> m_sd_bank_types {
+      this,
+      "sd_bank_types",
+      {},
+      "subdetector data, other and error bank types"};
+    Allen::Property<std::vector<std::string>> m_daq_error_types {this,
+                                                                 "daq_error_types",
+                                                                 {"DaqErrorFragmentThrottled",
+                                                                  "DaqErrorBXIDCorrupted",
+                                                                  "DaqErrorSyncBXIDCorrupted",
+                                                                  "DaqErrorFragmentMissing",
+                                                                  "DaqErrorFragmentTruncated",
+                                                                  "DaqErrorIdleBXIDCorrupted",
+                                                                  "DaqErrorFragmentMalformed",
+                                                                  "DaqErrorEVIDJumped",
+                                                                  "DaqErrorAlignFifoFull",
+                                                                  "DaqErrorFEfragSizeWrong"},
+                                                                 "DAQ error types"};
+  };
+
+} // namespace error_bank_filter
+
+#ifndef ALLEN_STANDALONE
+namespace Gaudi::Utils {
+  inline std::string toString(error_bank_filter::bank_types_t bt)
+  {
+    std::map<std::string, std::vector<std::string>> tmp = {{"data_types", std::move(bt.data_types)},
+                                                           {"other_types", std::move(bt.other_types)},
+                                                           {"error_types", std::move(bt.error_types)}};
+    return toString(std::move(tmp));
+  }
+
+  std::ostream& toStream(error_bank_filter::bank_types_t bt, std::ostream& os)
+  {
+    return os << std::quoted(toString(std::move(bt)), '\'');
+  }
+} // namespace Gaudi::Utils
+
+namespace error_bank_filter {
+  std::ostream& operator<<(std::ostream& s, bank_types_t bt) { return Gaudi::Utils::toStream(std::move(bt), s); }
+} // namespace error_bank_filter
+
+namespace Gaudi {
+  namespace Parsers {
+
+    template<typename Iterator, typename Skipper>
+    struct Grammar_<Iterator, error_bank_filter::bank_types_t, Skipper> {
+      typedef MapGrammar<Iterator, error_bank_filter::bank_types_t, Skipper> Grammar;
+    };
+
+    StatusCode parse(error_bank_filter::bank_types_t& bt, const std::string& in);
+  } // namespace Parsers
+} // namespace Gaudi
+#endif

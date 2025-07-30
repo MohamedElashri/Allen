@@ -1,0 +1,76 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
+\*****************************************************************************/
+#pragma once
+
+#include <cstdio>
+#include "BackendCommon.h"
+
+/**
+ * @brief  Binary search leftmost
+ * @detail This implementation finds the "leftmost element",
+ *         as described in
+ *         https://en.wikipedia.org/wiki/Binary_search_algorithm
+ */
+template<typename T>
+__host__ __device__ int binary_search_leftmost(const T* array, const unsigned array_size, const T& value)
+{
+  int l = 0;
+  int r = array_size;
+  while (l < r) {
+    const int m = (l + r) / 2;
+    if (value > array[m]) {
+      l = m + 1;
+    }
+    else {
+      r = m;
+    }
+  }
+  return l;
+}
+
+template<typename T>
+__host__ __device__ int binary_search_rightmost(const T* array, const unsigned array_size, const T& value)
+{
+  int l = 0;
+  int r = array_size;
+  while (l < r) {
+    const int m = (l + r) / 2;
+    if (array[m] > value) {
+      r = m;
+    }
+    else {
+      l = m + 1;
+    }
+  }
+  return r - 1;
+}
+
+/**
+ * @brief Linear search
+ * @details This implementation of linear search accepts a parameter "start_element"
+ *          which is the starting point of where to look for. The data structure
+ *          is sweeped to the correct direction afterwards.
+ */
+template<typename T>
+__host__ __device__ int
+linear_search(const T* array, const int array_size, const T& value, const unsigned start_element = 0)
+{
+  // Start in start_element
+  int i = start_element;
+  const auto array_element = array[i];
+  const auto direction = array_element > value;
+  for (; i >= 0 && i < array_size; i += (direction ? -1 : 1)) {
+    if ((!direction && array[i] > value) || (direction && array[i] < value)) {
+      return i + direction;
+    }
+  }
+  return i + direction;
+}

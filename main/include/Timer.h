@@ -1,0 +1,80 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
+\*****************************************************************************/
+#pragma once
+
+/**
+ *      Timer
+ *
+ *      author  -   Daniel Campora
+ *      email   -   dcampora@cern.ch
+ *
+ *      March, 2018
+ *      CERN
+ */
+
+#include <chrono>
+
+class Timer {
+private:
+  // The timers are in seconds, stored in double (ratio 1:1 by default)
+  std::chrono::duration<double> accumulated_elapsed_time;
+  std::chrono::high_resolution_clock::time_point start_time;
+  std::chrono::high_resolution_clock::time_point stop_time;
+  bool started = false;
+
+public:
+  Timer();
+
+  /**
+   * @brief Starts the timer
+   */
+  void start();
+
+  /**
+   * @brief Stops the timer
+   */
+  void stop();
+
+  /**
+   * @brief Flushes the timer
+   */
+  void flush();
+
+  /**
+   * @brief Flushes the timer and starts it
+   */
+  void restart();
+
+  /**
+   * @brief Gets the elapsed time since start
+   */
+  double get_elapsed_time() const;
+
+  /**
+   * @brief Gets the accumulated time
+   */
+  double get() const;
+
+  /**
+   * @brief Gets start time
+   */
+  double get_start_time() const;
+
+  /**
+   * @brief Gets stop time
+   */
+  double get_stop_time() const;
+
+  /**
+   * @brief Gets the current time
+   */
+  static double get_current_time();
+};

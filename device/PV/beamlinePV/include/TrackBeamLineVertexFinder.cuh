@@ -1,0 +1,122 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
+\*****************************************************************************/
+#pragma once
+
+#include "BackendCommon.h"
+#include "Common.h"
+#include "Logger.h"
+#include "PV_Definitions.cuh"
+#include "VeloConsolidated.cuh"
+
+// structure with minimal track info needed for PV search
+struct PVTrack {
+  PVTrack() = default;
+  PVTrack(const PVTrack&) = default;
+  PVTrack& operator=(const PVTrack&) = default;
+
+  __host__ __device__ PVTrack(const KalmanVeloState& state) :
+    z {state.z()}, x {state.x(), state.y()}, tx {state.tx(), state.ty()}, W_00 {1.f / state.c00()}, W_11 {1.f /
+                                                                                                          state.c11()}
+  {}
+
+  float z {0};
+  float2 x;   /// position (x,y)
+  float2 tx;  /// direction (tx,ty)
+  float W_00; /// weightmatrix
+  float W_11;
+};
+
+#ifdef TARGET_DEVICE_HIP
+// UGLY HACK to support trivially copyable check on HIP for float2, float3 and float4
+// See https://github.com/ROCm-Developer-Tools/HIP/issues/2610
+template<>
+struct Allen::is_trivially_copyable<PVTrack> : std::true_type {
+};
+#endif
+
+struct Extremum {
+  Extremum() = default;
+  Extremum(const Extremum&) = default;
+  Extremum& operator=(const Extremum&) = default;
+
+  __host__ __device__ Extremum(unsigned short _index, float _value, float _integral) :
+    index {_index}, value {_value}, integral {_integral} {};
+
+  unsigned short index;
+  float value;
+  float integral;
+};
+
+struct Cluster {
+  Cluster() = default;
+  Cluster(const Cluster&) = default;
+  Cluster& operator=(const Cluster&) = default;
+
+  __host__ __device__ Cluster(unsigned short _izfirst, unsigned short _izlast, unsigned short _izmax) :
+    izfirst {_izfirst}, izlast {_izlast}, izmax {_izmax}
+  {}
+
+  unsigned short izfirst;
+  unsigned short izlast;
+  unsigned short izmax;
+};
+
+// Need a small extension to the track when fitting the
+// vertex. Caching this information doesn't seem to help much
+// though.
+struct PVTrackInVertex : PVTrack {
+  __host__ __device__ PVTrackInVertex(const PVTrack& trk) : PVTrack {trk}
+  {
+    // H matrix is symmetric and has four non-zero entries
+    H_00 = 1.f;
+    H_11 = 1.f;
+    H_20 = -trk.tx.x;
+    H_21 = -trk.tx.y;
+    // HW: product of H and W matrices, symmetric with four non-zero entries
+    HW_00 = W_00;
+    HW_11 = W_11;
+    HW_20 = H_20 * W_00;
+    HW_21 = H_21 * W_11;
+    // HWH: ROOT::Math::Similarity(H,W)
+    HWH_00 = W_00;
+    HWH_20 = H_20 * W_00;
+    HWH_11 = W_11;
+    HWH_21 = H_21 * W_11;
+    HWH_22 = H_20 * H_20 * W_00 + H_21 * H_21 * W_11;
+  }
+  // TO DO: check whether this needs to be a double
+  // changing it to float slightly (~ 1%) degrades the efficency and fake rate
+  float H_00;
+  float H_11;
+  float H_20;
+  float H_21;
+  // HW: product of H and W matrices, symmetric with four non-zero entries
+  float HW_00;
+  float HW_11;
+  float HW_20;
+  float HW_21;
+  // HWH: ROOT::Math::Similarity(H,W), doing a similarity transformation of W, meaning the product of H_transposed * W *
+  // H
+  float HWH_00;
+  float HWH_20;
+  float HWH_11;
+  float HWH_21;
+  float HWH_22;
+  float weight = 1.f;
+};
+
+void findPVs(
+  char* kalmanvelo_states,
+  int* velo_atomics,
+  unsigned* velo_track_hit_number,
+  PV::Vertex* reconstructed_pvs,
+  int* number_of_pvs,
+  const unsigned number_of_events);

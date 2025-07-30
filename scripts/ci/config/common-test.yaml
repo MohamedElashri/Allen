@@ -1,0 +1,57 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
+###############################################################################
+
+
+.test_physics_efficiency:
+  extends:
+    - .base_job
+    - .default_rules
+  variables:
+    TEST_NAME: "test_physics_efficiency"
+
+  parallel:
+    matrix:
+      - SEQUENCE: "hlt1_pp_validation"
+
+  artifacts:
+    expire_in: 2 hours
+    when: always
+    paths:
+      - ./run_physics_efficiency_output_*/efficiency_*
+      - ./generated_reference_files/*
+      - update-references.patch
+
+  tags: [cvmfs]
+
+
+.test_run_changes:
+  extends:
+    - .base_job
+    - .default_rules
+  variables:
+    TEST_NAME: "test_run_changes"
+  parallel:
+    matrix:
+      - SEQUENCE: "hlt1_pp_validation"
+
+
+.publish_test_throughput:
+  stage: publish
+  extends:
+    - .base_job
+    - .default_rules
+  variables:
+    TEST_NAME: "publish_throughput"
+    LCG_SYSTEM: "x86_64_v3-el9-gcc13"
+    BREAKDOWN_DEVICE_ID: "a5000"
+    PUBLISH_ARTIFACT_NAME: "publish_throughput"
+
+  tags: [cvmfs]

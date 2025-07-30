@@ -1,0 +1,225 @@
+/*****************************************************************************\
+* (c) Copyright 2000-2019 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
+\*****************************************************************************/
+#include <array>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <vector>
+
+#include <range/v3/algorithm/any_of.hpp>
+#include <range/v3/algorithm/fill.hpp>
+#include <range/v3/core.hpp>
+#include <range/v3/numeric/accumulate.hpp>
+#include <range/v3/view/cartesian_product.hpp>
+#include <range/v3/view/concat.hpp>
+#include <range/v3/view/iota.hpp>
+#include <range/v3/view/take.hpp>
+
+#if RANGE_V3_VERSION < 900
+namespace ranges::views {
+  using namespace ranges::view;
+}
+#endif
+
+#include <boost/format.hpp>
+#include <boost/numeric/conversion/cast.hpp>
+
+#include <Detector/Muon/Layout.h>
+#include <MuonDet/DeMuonDetector.h>
+#include <MuonDet/MuonNamespace.h>
+#include "Dumper.h"
+#include <Dumpers/Utils.h>
+#include "MuonDefinitions.cuh"
+
+#include <DD4hep/GrammarUnparsed.h>
+
+namespace {
+  using boost::numeric_cast;
+  using std::array;
+  using std::ios;
+  using std::ofstream;
+  using std::string;
+  using std::tuple;
+  using std::vector;
+  using namespace ranges;
+
+  inline const std::string MuonTableCond = DeMuonLocation::Default;
+
+  array<int, 16> padGridX {48, 48, 48, 48, 48, 48, 48, 48, 12, 12, 12, 12, 12, 12, 12, 12};
+  array<int, 16> stripXGridX {48, 48, 48, 48, 48, 48, 48, 48, 12, 12, 12, 12, 12, 12, 12, 12};
+
+  struct MuonTable_t {
+    MuonTable_t() = default;
+    MuonTable_t(std::vector<char>& data, const DeMuonDetector& det)
+    {
+
+      DumpUtils::Writer output {};
+      const int nStations = det.stations();
+      assert(nStations == 4);
+      const int nRegions = det.regions() / nStations;
+      assert(nRegions == 4);
+
+      vector<float> padSizeX {}, stripXSizeX {}, stripYSizeX {}, padSizeY {}, stripXSizeY {}, stripYSizeY {};
+      array<unsigned int, 16> padOffset {}, stripXOffset {}, stripYOffset {};
+      array<int, 16> padGridY {}, stripXGridY {}, stripYGridX {}, stripYGridY {};
+      array<vector<array<float, 3>>, 4> padTable {}, stripXTable {}, stripYTable {};
+
+      auto nChannels = [](size_t s, const auto& gridX, const auto& gridY) {
+        return [s, &gridX, &gridY](auto tot, const auto r) { return tot + gridX[4 * s + r] * gridY[4 * s + r]; };
+      };
+
+      unsigned int geom_version = det.upgradeReadout() ? 3 : 2;
+      output.write(geom_version);
+
+      if (geom_version == 3) {
+        padGridY = {8, 16, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
+        stripXGridY = {1, 2, 8, 8, 1, 2, 2, 2, 8, 2, 2, 2, 8, 2, 2, 8};
+        stripYGridX = {8, 4, 48, 48, 8, 4, 2, 2, 12, 4, 2, 2, 12, 4, 2, 12};
+        stripYGridY = {8, 16, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
+      }
+      else {
+        padGridY = {8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
+        stripXGridY = {1, 2, 2, 2, 1, 2, 2, 2, 8, 2, 2, 2, 8, 2, 2, 2};
+        stripYGridX = {8, 4, 2, 2, 8, 4, 2, 2, 12, 4, 2, 2, 12, 4, 2, 2};
+        stripYGridY = {8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
+      }
+
+      for (int s = 0; s < nStations; ++s) {
+        const auto pad_resize = geom_version == 3 ?
+                                  12 * accumulate(views::ints(0, 4), 0, nChannels(s, padGridX, padGridY)) :
+                                  Muon::Constants::ODEFrameSize * padGridX[s] * padGridY[s];
+        padTable[s].resize(pad_resize);
+        stripXTable[s].resize(12 * accumulate(views::ints(0, 4), 0, nChannels(s, stripXGridX, stripXGridY)));
+        stripYTable[s].resize(12 * accumulate(views::ints(0, 4), 0, nChannels(s, stripYGridX, stripYGridY)));
+      }
+
+      for (auto& [sizeX, sizeY, gridY] :
+           {make_tuple(std::ref(padSizeX), std::ref(padSizeY), std::ref(padGridY)),
+            make_tuple(std::ref(stripXSizeX), std::ref(stripXSizeY), std::ref(stripXGridY)),
+            make_tuple(std::ref(stripYSizeX), std::ref(stripYSizeY), std::ref(stripYGridY))}) {
+        sizeX.resize(16);
+        sizeY.resize(16);
+      }
+
+      string padType {"pad"}, stripXType {"stripX"}, stripYType {"stripY"};
+      // Pads
+      auto pad = std::tie(padType, padGridX, padGridY, padSizeX, padSizeY, padOffset, padTable);
+      // X strips
+      auto stripX = std::tie(stripXType, stripXGridX, stripXGridY, stripXSizeX, stripXSizeY, stripXOffset, stripXTable);
+      // Y strips
+      auto stripY = std::tie(stripYType, stripYGridX, stripYGridY, stripYSizeX, stripYSizeY, stripYOffset, stripYTable);
+
+      for (auto& [t, gridX, gridY, sizeX, sizeY, offset, table] : {pad, stripX, stripY}) {
+        for (auto station : views::ints(0, nStations)) {
+          size_t index = 0;
+          for (auto region : views::ints(0, nRegions)) {
+            size_t gidx = station * 4 + region;
+            offset[gidx] = index;
+
+            auto yxRange = views::concat(
+              views::cartesian_product(views::ints(0, gridY[gidx]), views::ints(gridX[gidx], 2 * gridX[gidx])),
+              views::cartesian_product(views::ints(gridY[gidx], 2 * gridY[gidx]), views::ints(0, 2 * gridX[gidx])));
+            // loop over quarters
+            for (auto [quarter, yx] : views::cartesian_product(views::ints(0, 4), yxRange)) {
+              auto [y, x] = yx;
+              LHCb::Detector::Muon::TileID tile {station,
+                                                 LHCb::Detector::Muon::Layout {static_cast<unsigned int>(gridX[gidx]),
+                                                                               static_cast<unsigned int>(gridY[gidx])},
+                                                 region,
+                                                 quarter,
+                                                 x,
+                                                 y};
+              auto pos = det.position(tile);
+              if (!pos) {
+                std::stringstream e;
+                e << t << " " << station << " " << region << " " << quarter << " " << gridX[gidx] << " " << gridY[gidx]
+                  << " " << x << " " << y << "\n";
+                throw GaudiException {e.str(), __FILE__, StatusCode::FAILURE};
+              }
+              else {
+                auto sizeIdx = 4 * tile.station() + tile.region();
+
+                // positions are always indexed by station
+                table[station][index++] = {
+                  numeric_cast<float>(pos->x()), numeric_cast<float>(pos->y()), numeric_cast<float>(pos->z())};
+
+                // sizes are specially indexed
+                if (y < gridY[gidx]) {
+                  if ((t == "pad") || (float) pos->dX() > sizeX[sizeIdx]) sizeX[sizeIdx] = pos->dX();
+                  if ((t == "pad") || (float) pos->dY() > sizeY[sizeIdx]) sizeY[sizeIdx] = pos->dY();
+                }
+              }
+            }
+          }
+        }
+
+        output.write(
+          gridX.size(),
+          gridX,
+          gridY.size(),
+          gridY,
+          sizeX.size(),
+          sizeX,
+          sizeY.size(),
+          sizeY,
+          offset.size(),
+          offset,
+          table.size());
+        for (const auto& station : table) {
+          output.write(station.size());
+          for (const auto& point : station) {
+            output.write(point);
+          }
+        }
+      }
+      data = output.buffer();
+    }
+  };
+} // namespace
+
+/** @class DumpMuonTable
+ *  Dump tables for the muon detector
+ *
+ *  @author Saverio Mariani
+ *  @date   2022-06-03
+ */
+class DumpMuonTable final
+  : public Allen::Dumpers::Dumper<void(MuonTable_t const&), LHCb::Algorithm::Traits::usesConditions<MuonTable_t>> {
+public:
+  DumpMuonTable(const std::string& name, ISvcLocator* svcLoc);
+
+  void operator()(const MuonTable_t& MuonTable) const override;
+
+  StatusCode initialize() override;
+
+private:
+  std::vector<char> m_data;
+};
+
+DECLARE_COMPONENT(DumpMuonTable)
+
+DumpMuonTable::DumpMuonTable(const std::string& name, ISvcLocator* svcLoc) :
+  Dumper(name, svcLoc, {KeyValue {"MuonTableLocation", location(name, "table")}})
+{}
+
+StatusCode DumpMuonTable::initialize()
+{
+  return Dumper::initialize().andThen([&] {
+    register_producer(Allen::NonEventData::MuonLookupTables::id, "muon_tables", m_data);
+    addConditionDerivation({MuonTableCond}, inputLocation<MuonTable_t>(), [&](DeMuonDetector const& det) {
+      auto MuonTable = MuonTable_t {m_data, det};
+      dump();
+      return MuonTable;
+    });
+  });
+}
+
+void DumpMuonTable::operator()(const MuonTable_t&) const {}

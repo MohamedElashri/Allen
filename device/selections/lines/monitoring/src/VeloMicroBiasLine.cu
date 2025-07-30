@@ -1,0 +1,36 @@
+/*****************************************************************************\
+* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
+\*****************************************************************************/
+#include "VeloMicroBiasLine.cuh"
+
+// Explicit instantiation
+INSTANTIATE_LINE(velo_micro_bias_line::velo_micro_bias_line_t, velo_micro_bias_line::Parameters)
+
+__device__ std::tuple<const unsigned> velo_micro_bias_line::velo_micro_bias_line_t::get_input(
+  const Parameters& parameters,
+  const unsigned event_number,
+  const unsigned)
+{
+  Velo::Consolidated::ConstTracks velo_tracks {parameters.dev_offsets_velo_tracks,
+                                               parameters.dev_offsets_velo_track_hit_number,
+                                               event_number,
+                                               parameters.dev_number_of_events[0]};
+  const unsigned number_of_velo_tracks = velo_tracks.number_of_tracks(event_number);
+  return std::forward_as_tuple(number_of_velo_tracks);
+}
+
+__device__ bool velo_micro_bias_line::velo_micro_bias_line_t::select(
+  const Parameters&,
+  const DeviceProperties& properties,
+  std::tuple<const unsigned> input)
+{
+  const auto number_of_velo_tracks = std::get<0>(input);
+  return number_of_velo_tracks >= properties.min_velo_tracks;
+}

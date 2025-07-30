@@ -1,0 +1,53 @@
+/*****************************************************************************\
+* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
+\*****************************************************************************/
+#include "ConsolidateMuon.cuh"
+
+#include "Common.h"
+#include "VeloDefinitions.cuh"
+#include "VeloEventModel.cuh"
+#include <string>
+
+INSTANTIATE_ALGORITHM(consolidate_muon::consolidate_muon_t)
+
+void consolidate_muon::consolidate_muon_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&) const
+{
+  set_size<dev_muon_tracks_output_t>(arguments, first<host_muon_total_number_of_tracks_t>(arguments));
+}
+
+void consolidate_muon::consolidate_muon_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const Allen::Context& context) const
+{
+  global_function(consolidate_muon)(dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x), context)(arguments);
+}
+
+__global__ void consolidate_muon::consolidate_muon(consolidate_muon::Parameters parameters)
+{
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+
+  // Input
+  auto event_muon_tracks_input =
+    parameters.dev_muon_tracks_input + event_number * Muon::Constants::max_number_of_tracks;
+
+  // Output
+  auto event_muon_tracks_output = parameters.dev_muon_tracks_output + parameters.dev_muon_tracks_offsets[event_number];
+  auto n_tracks =
+    parameters.dev_muon_tracks_offsets[event_number + 1] - parameters.dev_muon_tracks_offsets[event_number];
+
+  for (unsigned i_muon_track = threadIdx.x; i_muon_track < n_tracks; i_muon_track += blockDim.x) {
+    event_muon_tracks_output[i_muon_track] = event_muon_tracks_input[i_muon_track];
+  }
+}
