@@ -36,3 +36,4 @@ configuration/python/AllenConf/algorithms.py
 cache_preload.cmake
 .cache/
 *.swp
+input/Beam6800GeV-expected-2024-MagDown-nu7.6_MinBiasMD.mdf
