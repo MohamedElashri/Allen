@@ -1,0 +1,155 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
+
+variables:
+  FF_ENABLE_JOB_CLEANUP: 1  # clean up directories on our custom runners
+  GIT_SUBMODULE_STRATEGY: recursive
+  TARGET_BRANCH: master
+
+  ALLEN_DATA: "/scratch/allen_data"
+
+  LCG_VERSION: "LCG_106c"
+  # LCG_PLATFORM = {LCG_SYSTEM}+{LCG_QUALIFIER}-{LCG_OPTIMIZATION}
+  LCG_SYSTEM: "x86_64_v3-el9-gcc13"
+  LCG_QUALIFIER: "cpu"
+  LCG_OPTIMIZATION: "opt+g"
+
+  LB_NIGHTLY_SLOT: lhcb-head
+  NO_LBLOGIN: "1" # prevent lbdocker containers to start LbLogin/LbEnv
+
+  AVG_THROUGHPUT_DECREASE_THRESHOLD: "-2.5" # (%); fail throughput check if averaged throughput % change falls below -2.5%
+  DEVICE_THROUGHPUT_DECREASE_THRESHOLD: "-7.5" # (%); fail throughput check if single device throughput % change falls below -10.0%
+
+  OVERRIDE_CUDA_ARCH_FLAG: "-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_86,code=sm_86"
+
+stages:
+  - check            # Ensures the CI environment is valid
+  - build
+  - check-warnings
+  - run              # Build and run (throughput, efficiency, etc...)
+  - test             # Runs various tests of the software
+  - publish          # Publishes the results of the tests and runs in channels and grafana
+
+  - manual trigger   # Blocks full pipeline from running in merge requests
+  - build full
+  - run full         # Build and run (full child pipelines)
+  - test full        # Tests (full)
+  - publish full     # Publishing (full)
+
+check-env:
+  stage: check
+  rules:
+    - if: $CI_PROJECT_PATH != "lhcb/Allen"
+  script:
+    - |
+      echo "The Allen CI depends on custom GitLab runners and therefore tests"
+      echo "running on forks will fail. Please create a branch in the main"
+      echo "repository at https://gitlab.cern.ch/lhcb/Allen/"
+
+    - exit 1
+
+
+.active_branches: &active_branches
+  only:
+    refs:
+      - master
+      - web
+      - schedules
+      - merge_requests
+
+
+check-copyright:
+  <<: *active_branches
+
+  stage: check
+  image: gitlab-registry.cern.ch/lhcb-docker/os-base/alma9-devel:latest
+  script:
+    - curl -o lb-check-copyright "https://gitlab.cern.ch/lhcb-core/LbDevTools/-/raw/master/LbDevTools/SourceTools.py?inline=False"
+    - python3 lb-check-copyright --license=Apache-2.0 origin/${TARGET_BRANCH}
+  needs: []
+
+check-formatting:
+  <<: *active_branches
+  stage: check
+  tags:
+    - cvmfs
+  image: gitlab-registry.cern.ch/lhcb-docker/os-base/alma9-devel:latest
+  script:
+    - . /cvmfs/lhcb.cern.ch/lib/LbEnv.sh
+    - if [ ! -e .clang-format ] ; then
+    -   curl -o .clang-format "https://gitlab.cern.ch/lhcb-core/LbDevTools/raw/master/LbDevTools/data/default.clang-format?inline=false"
+    -   echo '.clang-format' >> .gitignore
+    -   git add .gitignore
+    - fi
+    - curl -o lb-format "https://gitlab.cern.ch/lhcb-core/LbDevTools/raw/master/LbDevTools/SourceTools.py?inline=false"
+    - python lb-format --format-patch apply-formatting.patch origin/${TARGET_BRANCH}
+  artifacts:
+    paths:
+      - apply-formatting.patch
+    when: on_failure
+    expire_in: 1 week
+  needs: []
+
+# On the master branch: compile docs, copy to public directory and deploy from there with gitlab pages
+pages:
+  only:
+    refs:
+      - master
+  stage: publish
+  image: gitlab-registry.cern.ch/lhcb-docker/os-base/alma9-devel:latest
+  tags:
+    - cvmfs
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  script:
+    - . /cvmfs/lhcb.cern.ch/lib/LbEnv.sh
+    # use nightly build for python environment, needed for API reference of python selection functions
+    - lb-run --nightly lhcb-head/latest Allen/HEAD make -C doc linkcheck || reasons+='ERROR failed link check\n'
+    - lb-run --nightly lhcb-head/latest Allen/HEAD make -C doc html || reasons+='ERROR failed html generation\n'
+    - mv doc/_build/html public
+    - if [ -n "$reasons" ]; then echo -e $reasons; exit 1; fi
+  allow_failure:
+    exit_codes: 77
+  artifacts:
+    paths:
+      - public
+  cache:
+    key: "$CI_JOB_NAME"
+    paths:
+      - .cache/pip
+
+# on any branch except for master: compile docs, copy to test directory, don't deploy
+test_pages:
+  only:
+    refs:
+      - web
+      - schedules
+      - merge_requests
+  stage: test
+  image: gitlab-registry.cern.ch/lhcb-docker/os-base/alma9-devel:latest
+  tags:
+    - cvmfs
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  script:
+    - . /cvmfs/lhcb.cern.ch/lib/LbEnv.sh
+    # use nightly build for python environment, needed for API reference of python selection functions
+    - lb-run --nightly lhcb-master/latest Allen/master make -C doc linkcheck || reasons+='ERROR failed link check\n'
+    - lb-run --nightly lhcb-master/latest Allen/master make -C doc html || reasons+='ERROR failed html generation\n'
+    - mv doc/_build/html test
+    - if [ -n "$reasons" ]; then echo -e $reasons; exit 1; fi
+  allow_failure:
+    exit_codes: 77
+  artifacts:
+    paths:
+      - test
+  cache:
+    key: "$CI_JOB_NAME"
+    paths:
+      - .cache/pip
+
+include:
+  - local: 'scripts/ci/config/main.yaml'
+  - project: 'lhcb-rta/reference-update-bot'
+    file: 'templates/ref-bot-ci-trigger-template.yml'

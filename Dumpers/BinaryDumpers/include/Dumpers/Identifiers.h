@@ -1,0 +1,119 @@
+/*****************************************************************************\
+* (c) Copyright 2019 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
+\*****************************************************************************/
+#pragma once
+
+#include <string>
+
+namespace Allen {
+  namespace NonEventData {
+    struct Identifier {
+    };
+
+    /** @class VeloGeometry
+     *  Identifier for the Velo Geometry non-event data for Allen
+     */
+    struct VeloGeometry : Identifier {
+      inline static std::string const id = "VeloGeometry";
+    };
+
+    /** @class UTGeometry
+     *  Identifier for the UT Geometry non-event data for Allen
+     */
+    struct UTGeometry : Identifier {
+      inline static std::string const id = "UTGeometry";
+    };
+
+    /** @class UTBoards
+     *  Identifier for the UT readout boards non-event data for Allen
+     */
+    struct UTBoards : Identifier {
+      inline static std::string const id = "UTBoards";
+    };
+
+    /** @class SciFiGeometry
+     *  Identifier for the SciFi Geometry non-event data for Allen
+     */
+    struct SciFiGeometry : Identifier {
+      inline static std::string const id = "SciFiGeometry";
+    };
+
+    /** @class UTLookupTables
+     *  Identifier for the UT lookup tables for Allen
+     */
+    struct UTLookupTables : Identifier {
+      inline static std::string const id = "UTLookupTables";
+    };
+
+    /** @class Beamline
+     *  Identifier for the beamline position for Allen
+     */
+    struct Beamline : Identifier {
+      inline static std::string const id = "Beamline";
+    };
+
+    /** @class CrossingAngles
+     *  Identifier for the crossing angles for Allen
+     */
+    struct CrossingAngles : Identifier {
+      inline static std::string const id = "CrossingAngles";
+    };
+
+    /** @class UTLookupTables
+     *  Identifier for the magnetic field non-event data for Allen
+     */
+    struct MagneticField : Identifier {
+      inline static std::string const id = "MagneticField";
+    };
+
+    /** @class MuonGeometry
+     *  Identifier for the Muon geometry non-event data for Allen
+     */
+    struct MuonGeometry : Identifier {
+      inline static std::string const id = "MuonGeometry";
+    };
+
+    /** @class MuonLookupTables
+     *  Identifier for the Muon lookup tables for Allen
+     */
+    struct MuonLookupTables : Identifier {
+      inline static std::string const id = "MuonLookupTables";
+    };
+
+    /** @class HCalGeometry
+     *  Identifier for the HCal geometry in Allen
+     */
+    struct HCalGeometry : Identifier {
+      inline static std::string const id = "HcalGeometry";
+    };
+
+    /** @class ECalGeometry
+     *  Identifier for the ECal geometry in Allen
+     */
+    struct ECalGeometry : Identifier {
+      inline static std::string const id = "EcalGeometry";
+    };
+
+    /** @class RichPDMDBMapping
+     *  Identifier for the RICH PDMDB decode mapping for Allen
+     */
+    struct RichPDMDBMapping : Identifier {
+      inline static std::string const id = "RichPDMDBMapping";
+    };
+
+    /** @class RichCableMapping
+     *  Identifier for the RICH cable mapping for Allen
+     */
+    struct RichCableMapping : Identifier {
+      inline static std::string const id = "RichCableMapping";
+    };
+
+  } // namespace NonEventData
+} // namespace Allen

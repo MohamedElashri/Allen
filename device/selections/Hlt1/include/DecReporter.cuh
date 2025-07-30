@@ -1,0 +1,45 @@
+/*****************************************************************************\
+* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
+\*****************************************************************************/
+#pragma once
+
+#include "AlgorithmTypes.cuh"
+
+namespace dec_reporter {
+  struct Parameters {
+    HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    HOST_INPUT(host_number_of_active_lines_t, unsigned) host_number_of_active_lines;
+    DEVICE_INPUT(dev_number_of_active_lines_t, unsigned) dev_number_of_active_lines;
+    DEVICE_INPUT(dev_selections_t, uint32_t) dev_selections;
+    DEVICE_INPUT(dev_selections_offsets_t, unsigned) dev_selections_offsets;
+    DEVICE_OUTPUT(dev_max_objects_offsets_t, unsigned) dev_max_objects_offsets;
+    HOST_OUTPUT(host_max_objects_t, unsigned) host_max_objects;
+    DEVICE_OUTPUT(dev_dec_reports_t, unsigned) dev_dec_reports;
+    HOST_OUTPUT(host_dec_reports_t, unsigned) host_dec_reports;
+  };
+
+  __global__ void dec_reporter(Parameters, unsigned, unsigned, unsigned);
+
+  struct dec_reporter_t : public DeviceAlgorithm, Parameters {
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
+
+    void operator()(
+      const ArgumentReferences<Parameters>& arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      const Allen::Context& context) const;
+
+  private:
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {64, 1, 1}, "block dimensions"};
+    Allen::Property<unsigned> m_tck {this, "tck", 0, "TCK"};
+    Allen::Property<unsigned> m_key {this, "encoding_key", 0xDEADBEEF, "encoding key"};
+    Allen::Property<unsigned> m_taskID {this, "task_id", 1, "Task ID"};
+  };
+} // namespace dec_reporter

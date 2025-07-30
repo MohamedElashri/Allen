@@ -1,0 +1,276 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
+\*****************************************************************************/
+#pragma once
+
+#include <stdint.h>
+#include "VeloEventModel.cuh"
+#include "States.cuh"
+#include "Common.h"
+#include "AlgorithmTypes.cuh"
+#include "VeloConsolidated.cuh"
+#include "ParticleTypes.cuh"
+#include "patPV_Definitions.cuh"
+#include "CopyTrackParameters.cuh"
+#include "BeamlinePVConstants.cuh"
+#include "AllenMonitoring.h"
+
+namespace velo_kalman_filter {
+  /**
+   * @brief Helper function to filter one hit
+   */
+  __device__ void inline velo_kalman_filter_step(
+    const float z,
+    const float zhit,
+    const float xhit,
+    const float whit,
+    float& x,
+    float& tx,
+    float& covXX,
+    float& covXTx,
+    float& covTxTx)
+  {
+    // compute the prediction
+    const float dz = zhit - z;
+    const float predx = x + dz * tx;
+
+    const float dz_t_covTxTx = dz * covTxTx;
+    const float predcovXTx = covXTx + dz_t_covTxTx;
+    const float dx_t_covXTx = dz * covXTx;
+
+    const float predcovXX = covXX + 2 * dx_t_covXTx + dz * dz_t_covTxTx;
+    const float predcovTxTx = covTxTx;
+    // compute the gain matrix
+    const float R = 1.0f / ((1.0f / whit) + predcovXX);
+    const float Kx = predcovXX * R;
+    const float KTx = predcovXTx * R;
+    // update the state vector
+    const float r = xhit - predx;
+    x = predx + Kx * r;
+    tx = tx + KTx * r;
+    // update the covariance matrix. we can write it in many ways ...
+    covXX /*= predcovXX  - Kx * predcovXX */ = (1 - Kx) * predcovXX;
+    covXTx /*= predcovXTx - predcovXX * predcovXTx / R */ = (1 - Kx) * predcovXTx;
+    covTxTx = predcovTxTx - KTx * predcovXTx;
+    // not needed by any other algorithm
+    // const float chi2 = r * r * R;
+  }
+
+  /**
+   * @brief Fit the track with a Kalman filter,
+   *        allowing for some scattering at every hit
+   */
+
+  template<bool upstream, typename AllenState>
+  __device__ KalmanVeloState
+  simplified_fit(const Allen::Views::Velo::Consolidated::Track& track, const AllenState& stateAtBeamLine, bool backward)
+  {
+    const int direction = (backward ? 1 : -1) * (upstream ? 1 : -1);
+    const float noise2PerLayer =
+      1e-8f + 7e-6f * (stateAtBeamLine.tx() * stateAtBeamLine.tx() + stateAtBeamLine.ty() * stateAtBeamLine.ty());
+
+    // assume the hits are sorted,
+    // but don't assume anything on the direction of sorting
+    int firsthit = 0;
+    int lasthit = track.number_of_hits() - 1;
+    int dhit = 1;
+    if ((track.hit(lasthit).z() - track.hit(firsthit).z()) * direction < 0) {
+      const int temp = firsthit;
+      firsthit = lasthit;
+      lasthit = temp;
+      dhit = -1;
+    }
+
+    // We filter x and y simultaneously but take them uncorrelated.
+    // filter first the first hit.
+    KalmanVeloState state;
+    const auto hit = track.hit(firsthit);
+    state.x() = hit.x();
+    state.y() = hit.y();
+    state.z() = hit.z();
+    state.tx() = stateAtBeamLine.tx();
+    state.ty() = stateAtBeamLine.ty();
+
+    // Initialize the covariance matrix
+    state.c00() = 100.f;
+    state.c11() = 100.f;
+    state.c20() = 0.f;
+    state.c31() = 0.f;
+    state.c22() = 1.f;
+    state.c33() = 1.f;
+
+    // add remaining hits
+    for (auto i = firsthit + dhit; i != lasthit + dhit; i += dhit) {
+      const auto hit = track.hit(i);
+      const auto hit_x = hit.x();
+      const auto hit_y = hit.y();
+      const auto hit_z = hit.z();
+
+      // add the noise
+      state.c22() += noise2PerLayer;
+      state.c33() += noise2PerLayer;
+
+      // filter X and filter Y
+      velo_kalman_filter_step(
+        state.z(), hit_z, hit_x, Velo::Tracking::param_w, state.x(), state.tx(), state.c00(), state.c20(), state.c22());
+      velo_kalman_filter_step(
+        state.z(), hit_z, hit_y, Velo::Tracking::param_w, state.y(), state.ty(), state.c11(), state.c31(), state.c33());
+
+      // update z (not done in the filter, since needed only once)
+      state.z() = hit_z;
+    }
+
+    // add the noise at the last hit
+    state.c22() += noise2PerLayer;
+    state.c33() += noise2PerLayer;
+
+    float tx_beam;
+    float ty_beam;
+    if (state.z() > BeamlinePVConstants::Common::SMOG2_pp_separation) {
+      tx_beam = dev_beamline.tx.x;
+      ty_beam = dev_beamline.tx.y;
+    }
+    else {
+      tx_beam = dev_beamline.tx_SMOG.x;
+      ty_beam = dev_beamline.tx_SMOG.y;
+    }
+
+    auto delta_z = 0.f;
+    const float tx = state.tx() - tx_beam;
+    const float ty = state.ty() - ty_beam;
+
+    if constexpr (upstream) {
+      // Propagate to the closest point near the beam line
+      delta_z = (tx * (dev_beamline.pos.x - state.x()) + ty * (dev_beamline.pos.y - state.y())) / (tx * tx + ty * ty);
+    }
+    else {
+      // Propagate to the end of the Velo (z=770 mm)
+      delta_z = Velo::Constants::z_endVelo - state.z();
+    }
+
+    // Propagate the state
+    state.x() = state.x() + tx * delta_z;
+    state.y() = state.y() + ty * delta_z;
+    state.z() = state.z() + delta_z;
+
+    // Propagate the covariance matrix
+    const auto dz2 = delta_z * delta_z;
+    state.c00() += dz2 * state.c22() + 2.f * delta_z * state.c20();
+    state.c11() += dz2 * state.c33() + 2.f * delta_z * state.c31();
+    state.c20() += state.c22() * delta_z;
+    state.c31() += state.c33() * delta_z;
+
+    // finally, store the state
+    return state;
+  }
+
+  struct Parameters {
+    HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned) host_number_of_reconstructed_velo_tracks;
+    HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    MASK_INPUT(dev_event_list_t) dev_event_list;
+    DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
+    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_offsets_all_velo_tracks;
+    DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
+    DEVICE_OUTPUT(dev_is_backward_t, bool) dev_is_backward;
+    DEVICE_OUTPUT(dev_velo_kalman_beamline_states_t, char) dev_velo_kalman_beamline_states;
+    DEVICE_OUTPUT(dev_velo_kalman_endvelo_states_t, char) dev_velo_kalman_endvelo_states;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_velo_kalman_beamline_states_view_t,
+      DEPENDENCIES(dev_velo_kalman_beamline_states_t, dev_offsets_all_velo_tracks_t),
+      Allen::Views::Physics::KalmanStates)
+    dev_velo_kalman_beamline_states_view;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_velo_kalman_endvelo_states_view_t,
+      DEPENDENCIES(dev_velo_kalman_endvelo_states_t, dev_offsets_all_velo_tracks_t),
+      Allen::Views::Physics::KalmanStates)
+    dev_velo_kalman_endvelo_states_view;
+  };
+
+  __global__ void velo_kalman_filter(
+    Parameters,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType);
+  struct velo_kalman_filter_t : public DeviceAlgorithm, Parameters {
+    void update(const Constants& constants) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
+
+    void operator()(
+      const ArgumentReferences<Parameters>& arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      const Allen::Context& context) const;
+
+    __device__ static void monitor(
+      const Allen::Views::Velo::Consolidated::Track& velo_track,
+      const KalmanVeloState& beamline_state,
+      Allen::Monitoring::Histogram<>::DeviceType&,
+      Allen::Monitoring::Histogram<>::DeviceType&,
+      Allen::Monitoring::Histogram<>::DeviceType&,
+      Allen::Monitoring::Histogram<>::DeviceType&,
+      Allen::Monitoring::Histogram<>::DeviceType&,
+      Allen::Monitoring::Histogram<>::DeviceType&,
+      Allen::Monitoring::Histogram<>::DeviceType&,
+      Allen::Monitoring::Histogram<>::DeviceType&,
+      Allen::Monitoring::Histogram<>::DeviceType&);
+
+    void output_monitor(
+      const ArgumentReferences<Parameters>& arguments,
+      const RuntimeOptions& runtime_options,
+      const Allen::Context& context) const;
+
+  private:
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
+    Allen::Property<bool> m_enable_monitoring {this, "enable_monitoring", false, "Enable line monitoring"};
+
+    Allen::Monitoring::Histogram<> m_histogram_velo_total_track_eta {this,
+                                                                     "velo_total_track_eta",
+                                                                     "#total_eta",
+                                                                     {800u, -10.f, 10.f}};
+    Allen::Monitoring::Histogram<> m_histogram_velo_total_track_phi {this,
+                                                                     "velo_total_track_phi",
+                                                                     "#total_phi",
+                                                                     {160u, -4.f, 4.f}};
+    Allen::Monitoring::Histogram<> m_histogram_velo_total_track_nhits {this,
+                                                                       "velo_total_track_nhits",
+                                                                       "total N. hits / track",
+                                                                       {51u, -0.5f, 50.5f}};
+    Allen::Monitoring::Histogram<> m_histogram_velo_forward_track_eta {this,
+                                                                       "velo_forward_track_eta",
+                                                                       "#forward_eta",
+                                                                       {800u, -10.f, 10.f}};
+    Allen::Monitoring::Histogram<> m_histogram_velo_forward_track_phi {this,
+                                                                       "velo_forward_track_phi",
+                                                                       "#forward_phi",
+                                                                       {160u, -4.f, 4.f}};
+    Allen::Monitoring::Histogram<> m_histogram_velo_forward_track_nhits {this,
+                                                                         "velo_forward_track_nhits",
+                                                                         "forward N. hits / track",
+                                                                         {51u, -0.5f, 50.5f}};
+    Allen::Monitoring::Histogram<> m_histogram_velo_backward_track_eta {this,
+                                                                        "velo_backward_track_eta",
+                                                                        "#backward_eta",
+                                                                        {800u, -10.f, 10.f}};
+    Allen::Monitoring::Histogram<> m_histogram_velo_backward_track_phi {this,
+                                                                        "velo_backward_track_phi",
+                                                                        "#backward_phi",
+                                                                        {160u, -4.f, 4.f}};
+    Allen::Monitoring::Histogram<> m_histogram_velo_backward_track_nhits {this,
+                                                                          "velo_backward_track_nhits",
+                                                                          "backward N. hits / track",
+                                                                          {51u, -0.5f, 50.5f}};
+  };
+} // namespace velo_kalman_filter

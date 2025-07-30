@@ -1,0 +1,183 @@
+/*****************************************************************************\
+* (c) Copyright 2025 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
+\*****************************************************************************/
+#include "D02KsKsDDDDLine.cuh"
+
+INSTANTIATE_LINE(d02ksks_DDDD_line::d02ksks_DDDD_line_t, d02ksks_DDDD_line::Parameters)
+
+__device__ float d02ksks_DDDD_line::d02ksks_DDDD_line_t::m(
+  const Allen::Views::Physics::CompositeParticle& vertex1,
+  const Allen::Views::Physics::CompositeParticle& vertex2)
+{
+  const float Dz_px = vertex1.vertex().px() + vertex2.vertex().px();
+  const float Dz_py = vertex1.vertex().py() + vertex2.vertex().py();
+  const float Dz_pz = vertex1.vertex().pz() + vertex2.vertex().pz();
+  const float Dz_E = sqrtf(Allen::mK0 * Allen::mK0 + vertex1.vertex().p() * vertex1.vertex().p()) +
+                     sqrtf(Allen::mK0 * Allen::mK0 + vertex2.vertex().p() * vertex2.vertex().p());
+  return sqrtf(Dz_E * Dz_E - Dz_px * Dz_px - Dz_py * Dz_py - Dz_pz * Dz_pz);
+}
+
+__device__ bool d02ksks_DDDD_line::d02ksks_DDDD_line_t::fill_tuples(
+  const Parameters& parameters,
+  const DeviceProperties&,
+  std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+  unsigned index,
+  bool sel)
+{
+  // Unpack the tuple.
+  const auto ks_pair = std::get<0>(input);
+  // take just one child
+  const auto ks1 = static_cast<const Allen::Views::Physics::CompositeParticle*>(ks_pair.child(0));
+  const auto ks2 = static_cast<const Allen::Views::Physics::CompositeParticle*>(ks_pair.child(1));
+
+  const auto ks1trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(ks1->child(0));
+  const auto ks1trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(ks1->child(1));
+  const auto& ks1state1 = ks1trk1->state();
+  const auto& ks1state2 = ks1trk2->state();
+
+  const auto ks2trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(ks2->child(0));
+  const auto ks2trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(ks2->child(1));
+  const auto& ks2state1 = ks2trk1->state();
+  const auto& ks2state2 = ks2trk2->state();
+
+  const float cos1 =
+    (ks1state1.px() * ks1state2.px() + ks1state1.py() * ks1state2.py() + ks1state1.pz() * ks1state2.pz()) /
+    (ks1state1.p() * ks1state2.p());
+
+  const float cos2 =
+    (ks2state1.px() * ks2state2.px() + ks2state1.py() * ks2state2.py() + ks2state1.pz() * ks2state2.pz()) /
+    (ks2state1.p() * ks2state2.p());
+
+  if (sel) {
+    parameters.dev_pt_pi1_ks1[index] = ks1state1.pt();
+    parameters.dev_pt_pi2_ks1[index] = ks1state2.pt();
+    parameters.dev_p_pi1_ks1[index] = ks1state1.p();
+    parameters.dev_p_pi2_ks1[index] = ks1state2.p();
+    parameters.dev_ipchi2_pi1_ks1[index] = ks1trk1->ip_chi2();
+    parameters.dev_ipchi2_pi2_ks1[index] = ks1trk2->ip_chi2();
+    parameters.dev_ip_pi1_ks1[index] = ks1trk1->ip();
+    parameters.dev_ip_pi2_ks1[index] = ks1trk2->ip();
+
+    parameters.dev_pt_pi1_ks2[index] = ks2state1.pt();
+    parameters.dev_pt_pi2_ks2[index] = ks2state2.pt();
+    parameters.dev_p_pi1_ks2[index] = ks2state1.p();
+    parameters.dev_p_pi2_ks2[index] = ks2state2.p();
+    parameters.dev_ipchi2_pi1_ks2[index] = ks2trk1->ip_chi2();
+    parameters.dev_ipchi2_pi2_ks2[index] = ks2trk2->ip_chi2();
+    parameters.dev_ip_pi1_ks2[index] = ks2trk1->ip();
+    parameters.dev_ip_pi2_ks2[index] = ks2trk2->ip();
+
+    parameters.dev_cos_open_pi_ks1[index] = cos1;
+    parameters.dev_ip_ks1[index] = ks1->ip();
+    parameters.dev_ip_comb_ks1[index] = ks1trk1->ip() * ks1trk2->ip() / ks1->ip();
+    parameters.dev_pt_ks1[index] = ks1->vertex().pt();
+    parameters.dev_chi2vtx_ks1[index] = ks1->vertex().chi2();
+    parameters.dev_ipchi2_ks1[index] = -1.; // ks1->ip_chi2();
+    parameters.dev_dira_ks1[index] = ks1->dira();
+    parameters.dev_eta_ks1[index] = ks1->eta();
+    parameters.dev_mks1[index] = ks1->mdipi();
+    parameters.dev_cos_open_pi_ks2[index] = cos2;
+    parameters.dev_ip_ks2[index] = ks2->ip();
+    parameters.dev_ip_comb_ks2[index] = ks2trk1->ip() * ks2trk2->ip() / ks2->ip();
+    parameters.dev_pt_ks2[index] = ks2->vertex().pt();
+    parameters.dev_chi2vtx_ks2[index] = ks2->vertex().chi2();
+    parameters.dev_ipchi2_ks2[index] = -1.; // ks2->ip_chi2();
+    parameters.dev_dira_ks2[index] = ks2->dira();
+    parameters.dev_eta_ks2[index] = ks2->eta();
+    parameters.dev_mks2[index] = ks2->mdipi();
+    parameters.dev_mks_pair[index] = m(*ks1, *ks2);
+
+    parameters.dev_pv1x[index] = ks1->pv().position.x;
+    parameters.dev_pv1y[index] = ks1->pv().position.y;
+    parameters.dev_pv1z[index] = ks1->pv().position.z;
+    parameters.dev_pv2x[index] = ks2->pv().position.x;
+    parameters.dev_pv2y[index] = ks2->pv().position.y;
+    parameters.dev_pv2z[index] = ks2->pv().position.z;
+    parameters.dev_sv1x[index] = ks1->vertex().x();
+    parameters.dev_sv1y[index] = ks1->vertex().y();
+    parameters.dev_sv1z[index] = ks1->vertex().z();
+    parameters.dev_sv2x[index] = ks2->vertex().x();
+    parameters.dev_sv2y[index] = ks2->vertex().y();
+    parameters.dev_sv2z[index] = ks2->vertex().z();
+    parameters.dev_doca1_pi[index] = ks1->doca12();
+    parameters.dev_doca2_pi[index] = ks2->doca12();
+    parameters.dev_px_ks1[index] = ks1->vertex().px();
+    parameters.dev_py_ks1[index] = ks1->vertex().py();
+    parameters.dev_pz_ks1[index] = ks1->vertex().pz();
+    parameters.dev_px_ks2[index] = ks2->vertex().px();
+    parameters.dev_py_ks2[index] = ks2->vertex().py();
+    parameters.dev_pz_ks2[index] = ks2->vertex().pz();
+    parameters.dev_chi2trk_pi1_ks1[index] = ks1trk1->chi2() / ks1trk1->ndof();
+    parameters.dev_chi2trk_pi2_ks1[index] = ks1trk2->chi2() / ks1trk2->ndof();
+    parameters.dev_chi2trk_pi1_ks2[index] = ks2trk1->chi2() / ks2trk1->ndof();
+    parameters.dev_chi2trk_pi2_ks2[index] = ks2trk2->chi2() / ks2trk2->ndof();
+
+    parameters.dev_decision[index] = sel;
+  }
+  return sel;
+}
+
+__device__ bool d02ksks_DDDD_line::d02ksks_DDDD_line_t::select(
+  const Parameters&,
+  const DeviceProperties& properties,
+  std::tuple<const Allen::Views::Physics::CompositeParticle> input)
+{
+  // Unpack the tuple.
+  const auto ks_pair = std::get<0>(input);
+  const auto ks1 = static_cast<const Allen::Views::Physics::CompositeParticle*>(ks_pair.child(0));
+  const auto ks2 = static_cast<const Allen::Views::Physics::CompositeParticle*>(ks_pair.child(1));
+
+  const bool ks1_opposite_sign = ks1->charge() == 0;
+  const bool ks2_opposite_sign = ks2->charge() == 0;
+
+  if (ks1_opposite_sign != properties.OppositeSign || ks2_opposite_sign != properties.OppositeSign) return false;
+  // Get the first vertex decision.
+  // Vertex quality cuts.
+  bool dec1 = ks1->vertex().chi2() < properties.maxVertexChi2;
+  if (!dec1) return false;
+  // Kinematic cuts.
+  dec1 &= ks1->minpt() > properties.minTrackPt_piKs;
+  dec1 &= ks1->minp() > properties.minTrackP_piKs;
+  dec1 &= ks1->mdipi() > properties.minM_Ks;
+  dec1 &= ks1->mdipi() < properties.maxM_Ks;
+  dec1 &= ks1->vertex().pt() > properties.minComboPt_Ks;
+  dec1 &= ks1->has_pv() && ks2->has_pv();
+  dec1 &= ks1->vertex().z() >= properties.minZ_sv && ks1->pv().position.z >= properties.minZ_pv;
+  if (!dec1) return false;
+  // SV cuts.
+  dec1 &= ks1->eta() > properties.minEta_Ks;
+  dec1 &= ks1->eta() < properties.maxEta_Ks;
+  dec1 &= ks1->minip() > properties.minTrackIP_piKs;
+  if (!dec1) return false;
+
+  // Get the second vertex decision.
+  // Vertex quality cuts.
+  bool dec2 = ks2->vertex().chi2() < properties.maxVertexChi2;
+  if (!dec2) return false;
+  // Kinematic cuts.
+  dec2 &= ks2->minpt() > properties.minTrackPt_piKs;
+  dec2 &= ks2->minp() > properties.minTrackP_piKs;
+  dec2 &= ks2->mdipi() > properties.minM_Ks;
+  dec2 &= ks2->mdipi() < properties.maxM_Ks;
+  dec2 &= ks2->vertex().pt() > properties.minComboPt_Ks;
+  dec2 &= ks2->vertex().z() >= properties.minZ_sv && ks2->pv().position.z >= properties.minZ_pv;
+  if (!dec2) return false;
+  // SV cuts.
+  dec2 &= ks2->eta() > properties.minEta_Ks;
+  dec2 &= ks2->eta() < properties.maxEta_Ks;
+  dec2 &= ks2->minip() > properties.minTrackIP_piKs;
+  if (!dec2) return false;
+
+  // Mass window on KsKs combo
+  const auto mass_pair = m(*ks1, *ks2);
+  bool dec_combo = mass_pair > properties.minM_D0 && mass_pair < properties.maxM_D0;
+
+  return dec1 && dec2 && dec_combo;
+}

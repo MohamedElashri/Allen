@@ -1,0 +1,67 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "gpu",
+      "displayName": "Standalone GPU Release Build",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/buildgpu",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "STANDALONE": "ON",
+        "TARGET_DEVICE": "CUDA",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_TOOLCHAIN_FILE": "/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_106c/x86_64_v3-el9-gcc13+cuda12_4-opt+g.cmake",
+        "CUDNN_INCLUDE_DIR": "/home/melashri/local/cuda/include",
+        "CUDNN_LIBRARY": "/home/melashri/local/cuda/lib64/libcudnn.so"
+      }
+    },
+    {
+      "name": "gpu-debug",
+      "displayName": "Standalone GPU Debug Build",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/buildgpu-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "STANDALONE": "ON",
+        "TARGET_DEVICE": "CUDA",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_TOOLCHAIN_FILE": "/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_106c/x86_64_v3-el9-gcc13+cuda12_4-opt+g.cmake",
+        "CUDNN_INCLUDE_DIR": "/home/melashri/local/cuda/include",
+        "CUDNN_LIBRARY": "/home/melashri/local/cuda/lib64/libcudnn.so"
+      }
+    },
+    {
+      "name": "cpu",
+      "displayName": "Standalone CPU Release Build",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/buildcpu",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "STANDALONE": "ON",
+        "TARGET_DEVICE": "CPU",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_TOOLCHAIN_FILE": "/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_106c/x86_64_v3-el9-gcc13+cuda12_4-opt+g.cmake"
+      }
+    },
+    {
+      "name": "cpu-debug",
+      "displayName": "Standalone CPU Debug Build",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/buildcpu-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "STANDALONE": "ON",
+        "TARGET_DEVICE": "CPU",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_TOOLCHAIN_FILE": "/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_106c/x86_64_v3-el9-gcc13+cuda12_4-opt+g.cmake"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "gpu", "configurePreset": "gpu" },
+    { "name": "gpu-debug", "configurePreset": "gpu-debug" },
+    { "name": "cpu", "configurePreset": "cpu" },
+    { "name": "cpu-debug", "configurePreset": "cpu-debug" }
+  ]
+}
