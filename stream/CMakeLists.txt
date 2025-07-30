@@ -50,6 +50,7 @@ target_link_libraries(Stream
     track_matching
     MuonCommon
     Rich
+    pvfinder
   PUBLIC
     Utils
     Selections

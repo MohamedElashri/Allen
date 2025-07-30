@@ -68,6 +68,49 @@ message(STATUS "Allen device target: " ${TARGET_DEVICE})
 if(TARGET_DEVICE STREQUAL "CUDA")
   enable_language(CUDA)
   find_package(CUDAToolkit REQUIRED)
+  
+  # Find CuDNN for deep learning operations
+  find_path(CUDNN_INCLUDE_DIR cudnn.h
+    HINTS ${CUDAToolkit_INCLUDE_DIRS}
+    PATHS /usr/local/cuda/include
+          /usr/include
+    PATH_SUFFIXES include)
+
+  find_library(CUDNN_LIBRARY cudnn
+    HINTS ${CUDAToolkit_LIBRARY_DIR}
+    PATHS /usr/local/cuda/lib64
+          /usr/local/cuda/lib
+          /usr/lib64
+          /usr/lib
+    PATH_SUFFIXES lib64 lib)
+
+  # Verify that the library actually exists as a file
+  if(CUDNN_INCLUDE_DIR AND CUDNN_LIBRARY)
+    if(EXISTS "${CUDNN_LIBRARY}")
+      message(STATUS "Found CuDNN: ${CUDNN_LIBRARY}")
+      message(STATUS "CuDNN include dir: ${CUDNN_INCLUDE_DIR}")
+      set(CUDNN_FOUND TRUE)
+      add_library(CuDNN::CuDNN SHARED IMPORTED)
+      
+      # Get the directory containing the CuDNN library for RPATH
+      get_filename_component(CUDNN_LIBRARY_DIR "${CUDNN_LIBRARY}" DIRECTORY)
+      
+      set_target_properties(CuDNN::CuDNN PROPERTIES
+        IMPORTED_LOCATION "${CUDNN_LIBRARY}"
+        INTERFACE_INCLUDE_DIRECTORIES "${CUDNN_INCLUDE_DIR}"
+        INTERFACE_LINK_OPTIONS "-Wl,-rpath,${CUDNN_LIBRARY_DIR}")
+    else()
+      message(WARNING "CuDNN library file not found at ${CUDNN_LIBRARY}. CuDNN functionality will be disabled.")
+      set(CUDNN_FOUND FALSE)
+    endif()
+  else()
+    if(CUDNN_INCLUDE_DIR)
+      message(WARNING "CuDNN headers found at ${CUDNN_INCLUDE_DIR} but library not found. CuDNN functionality will be disabled.")
+    else()
+      message(STATUS "CuDNN not found. CuDNN functionality will be disabled.")
+    endif()
+    set(CUDNN_FOUND FALSE)
+  endif()
 elseif(TARGET_DEVICE STREQUAL "HIP")
   # Setup HIPCC compiler
   if(NOT DEFINED ROCM_PATH)

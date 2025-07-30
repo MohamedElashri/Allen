@@ -715,6 +715,7 @@ target_link_libraries(AllenLib
     Backend
     Calo
     Combiners
+    CuDNNIntegration
     DeviceValidators
     EventModel
     Examples
@@ -761,6 +762,12 @@ target_link_libraries(AllenLib
 # To propagate filesystem includes/libs
 target_link_libraries(AllenLib PRIVATE AllenFS)
 target_link_libraries(AllenCommon INTERFACE ROOT::RIO ROOT::Core ROOT::Cling ROOT::Hist ROOT::Tree TBB::tbb)
+
+# Link CuDNN if available (for CUDA builds with CuDNN integration)
+if(TARGET_DEVICE STREQUAL "CUDA" AND CUDNN_FOUND)
+  target_link_libraries(AllenLib PRIVATE CuDNN::CuDNN)
+  message(STATUS "CuDNN linked to AllenLib for CUDA builds")
+endif()
 
 if (NOT STANDALONE)
   target_link_libraries(AllenLib
