@@ -59,6 +59,22 @@ void PVInference_t::set_arguments_size(
     
     // Final PV histogram output: 100 bins per event
     set_size<dev_pv_histogram_t>(arguments, number_of_events * HISTOGRAM_SIZE);
+    
+    // Neural network weights - calculate total sizes needed
+    // FC layers: (9*20 + 20*20 + 20*20 + 20*20 + 20*20 + 20*800) = (180 + 400 + 400 + 400 + 400 + 16000) = 17780 weights
+    constexpr unsigned fc_total_weights = (9 * 20) + (20 * 20) + (20 * 20) + (20 * 20) + (20 * 20) + (20 * 800);
+    // FC biases: 20 + 20 + 20 + 20 + 20 + 800 = 920 biases
+    constexpr unsigned fc_total_biases = 20 + 20 + 20 + 20 + 20 + 800;
+    
+    set_size<dev_fc_weights_t>(arguments, fc_total_weights);
+    set_size<dev_fc_biases_t>(arguments, fc_total_biases);
+    
+    // U-Net weights allocation (approximation - will be updated based on actual weight counts)
+    constexpr unsigned unet_approx_weights = 100000;  // Rough estimate, will refine
+    constexpr unsigned unet_approx_biases = 1000;     // Rough estimate, will refine
+    
+    set_size<dev_unet_weights_t>(arguments, unet_approx_weights);
+    set_size<dev_unet_biases_t>(arguments, unet_approx_biases);
 }
 
 // Main algorithm operator
@@ -68,14 +84,27 @@ void PVInference_t::operator()(
     const Constants&,
     const Allen::Context& context) const 
 {
-    // Initialize weights if not already done
-    static bool weights_initialized = false;
-    if (!weights_initialized) {
+    // Initialize and load weights to device
+    static bool weights_loaded = false;
+    if (!weights_loaded) {
         if (!AllenWeightLoader::initialize()) {
-            // Handle initialization failure - for now just return
+            printf("ERROR: Failed to initialize weight loader\n");
             return;
         }
-        weights_initialized = true;
+        
+        // Load weights to device tensors
+        auto fc_weights = data<dev_fc_weights_t>(arguments);
+        auto fc_biases = data<dev_fc_biases_t>(arguments);
+        auto unet_weights = data<dev_unet_weights_t>(arguments);
+        auto unet_biases = data<dev_unet_biases_t>(arguments);
+        
+        // Load FC weights and biases to device
+        load_fc_weights_to_device(fc_weights, fc_biases, context);
+        
+        // Load U-Net weights and biases to device
+        load_unet_weights_to_device(unet_weights, unet_biases, context);
+        
+        weights_loaded = true;
     }
     
     // Launch main kernel
@@ -188,29 +217,51 @@ __global__ void pv_inference_kernel(Parameters parameters) {
         // FC layer forward pass (6 layers: 9→20→20→20→20→20→800)
         float layer_outputs[6][FC_OUTPUT_SIZE];  // Max size is 800 for layer 6
         
-        // Get weights from AllenWeightLoader (placeholder - weights loaded on host side)
-        const float* fc_weights[6] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
-        const float* fc_biases[6] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
+        // Access device weights and biases from parameters
+        const float* dev_fc_weights = parameters.dev_fc_weights;
+        const float* dev_fc_biases = parameters.dev_fc_biases;
         
-        // Skip weight processing for now until host-side weight loading is implemented
-        if (fc_weights[0] == nullptr) continue;
+        // Calculate weight offsets for each layer
+        constexpr unsigned layer_weight_offsets[6] = {
+            0,                              // Layer 1: offset 0
+            9 * 20,                         // Layer 2: offset 180  
+            9 * 20 + 20 * 20,              // Layer 3: offset 580
+            9 * 20 + 2 * 20 * 20,          // Layer 4: offset 980
+            9 * 20 + 3 * 20 * 20,          // Layer 5: offset 1380
+            9 * 20 + 4 * 20 * 20           // Layer 6: offset 1780
+        };
+        
+        constexpr unsigned layer_bias_offsets[6] = {
+            0,      // Layer 1: offset 0
+            20,     // Layer 2: offset 20
+            40,     // Layer 3: offset 40
+            60,     // Layer 4: offset 60
+            80,     // Layer 5: offset 80
+            100     // Layer 6: offset 100
+        };
         
         // Layer 1: 9 → 20
-        fc_forward_layer(features, fc_weights[0], fc_biases[0], layer_outputs[0], INPUT_FEATURES, FC_HIDDEN_SIZE);
+        fc_forward_layer(features, dev_fc_weights + layer_weight_offsets[0], 
+                        dev_fc_biases + layer_bias_offsets[0], 
+                        layer_outputs[0], INPUT_FEATURES, FC_HIDDEN_SIZE);
         
         // Layers 2-5: 20 → 20
         for (int layer = 1; layer < 5; ++layer) {
-            fc_forward_layer(layer_outputs[layer-1], fc_weights[layer], fc_biases[layer], 
+            fc_forward_layer(layer_outputs[layer-1], 
+                           dev_fc_weights + layer_weight_offsets[layer], 
+                           dev_fc_biases + layer_bias_offsets[layer], 
                            layer_outputs[layer], FC_HIDDEN_SIZE, FC_HIDDEN_SIZE);
         }
         
-        // Layer 6: 20 → 800 (8 channels × 100 bins)
-        fc_forward_layer(layer_outputs[4], fc_weights[5], fc_biases[5], 
+        // Layer 6: 20 → 800 (8 channels × 100 bins) - no ReLU for final layer
+        fc_forward_layer(layer_outputs[4], 
+                        dev_fc_weights + layer_weight_offsets[5], 
+                        dev_fc_biases + layer_bias_offsets[5], 
                         layer_outputs[5], FC_HIDDEN_SIZE, FC_OUTPUT_SIZE, false);
         
         // Apply per-interval softplus + 0.001 scaling (matches Python behavior)
         for (int i = 0; i < FC_OUTPUT_SIZE; ++i) {
-            float softplus_result = softplus_activation(layer_outputs[5][i]);
+            float softplus_result = logf(1.0f + expf(layer_outputs[5][i])); // softplus(x) = ln(1 + e^x)
             layer_outputs[5][i] = softplus_result * 0.001f;
         }
         
@@ -498,6 +549,76 @@ __global__ void concatenate_kernel(
             int input2_offset = batch_idx * channels2 * length + ch2_idx * length + pos_idx;
             int output_offset = batch_idx * (channels1 + channels2) * length + ch_idx * length + pos_idx;
             output[output_offset] = input2[input2_offset];
+        }
+    }
+}
+
+// Weight loading implementations
+void load_fc_weights_to_device(
+    float* dev_fc_weights,
+    float* dev_fc_biases,
+    const Allen::Context& context) 
+{
+    // FC layer weight and bias names in order
+    const char* fc_weight_names[] = {
+        "layer1_weight", "layer2_weight", "layer3_weight", 
+        "layer4_weight", "layer5_weight", "layer6_weight"
+    };
+    const char* fc_bias_names[] = {
+        "layer1_bias", "layer2_bias", "layer3_bias",
+        "layer4_bias", "layer5_bias", "layer6_bias"
+    };
+    
+    // Copy FC weights to device
+    unsigned weight_offset = 0;
+    for (int i = 0; i < 6; i++) {
+        const float* layer_weights = AllenWeightLoader::getLayerWeights(fc_weight_names[i]);
+        unsigned weight_size = AllenWeightLoader::getLayerSize(fc_weight_names[i]);
+        
+        if (layer_weights && weight_size > 0) {
+            cudaMemcpy(dev_fc_weights + weight_offset, layer_weights, weight_size * sizeof(float), cudaMemcpyHostToDevice);
+            weight_offset += weight_size;
+        }
+    }
+    
+    // Copy FC biases to device
+    unsigned bias_offset = 0;
+    for (int i = 0; i < 6; i++) {
+        const float* layer_biases = AllenWeightLoader::getLayerWeights(fc_bias_names[i]);
+        unsigned bias_size = AllenWeightLoader::getLayerSize(fc_bias_names[i]);
+        
+        if (layer_biases && bias_size > 0) {
+            cudaMemcpy(dev_fc_biases + bias_offset, layer_biases, bias_size * sizeof(float), cudaMemcpyHostToDevice);
+            bias_offset += bias_size;
+        }
+    }
+}
+
+void load_unet_weights_to_device(
+    float* dev_unet_weights,
+    float* dev_unet_biases,
+    const Allen::Context& context) 
+{
+    // U-Net layer names (simplified - will expand based on actual weight file structure)
+    const char* unet_weight_names[] = {
+        "rcbn1_conv_weight", "rcbn1_bn_weight", "rcbn1_bn_bias",
+        "rcbn2_conv_weight", "rcbn2_bn_weight", "rcbn2_bn_bias",
+        "rcbn3_conv_weight", "rcbn3_bn_weight", "rcbn3_bn_bias",
+        "up1_transpose_weight", "up1_conv_weight", "up1_bn_weight", "up1_bn_bias",
+        "up2_transpose_weight", "up2_conv_weight", "up2_bn_weight", "up2_bn_bias",
+        "out_intermediate_weight", "out_intermediate_bias",
+        "outc_weight", "outc_bias"
+    };
+    
+    // Copy U-Net weights to device (simplified version)
+    unsigned weight_offset = 0;
+    for (const char* weight_name : unet_weight_names) {
+        const float* layer_weights = AllenWeightLoader::getLayerWeights(weight_name);
+        unsigned weight_size = AllenWeightLoader::getLayerSize(weight_name);
+        
+        if (layer_weights && weight_size > 0 && weight_offset + weight_size < 100000) {
+            cudaMemcpy(dev_unet_weights + weight_offset, layer_weights, weight_size * sizeof(float), cudaMemcpyHostToDevice);
+            weight_offset += weight_size;
         }
     }
 }

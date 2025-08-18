@@ -65,6 +65,12 @@ struct Parameters {
     
     // Final PV histogram output (100 bins per event)
     DEVICE_OUTPUT(dev_pv_histogram_t, float) dev_pv_histogram;
+    
+    // Neural network weights on device
+    DEVICE_OUTPUT(dev_fc_weights_t, float) dev_fc_weights;       // All FC layer weights
+    DEVICE_OUTPUT(dev_fc_biases_t, float) dev_fc_biases;         // All FC layer biases
+    DEVICE_OUTPUT(dev_unet_weights_t, float) dev_unet_weights;   // All U-Net weights
+    DEVICE_OUTPUT(dev_unet_biases_t, float) dev_unet_biases;     // All U-Net biases
 };
 
 // Main kernel function
@@ -113,5 +119,16 @@ __device__ void fc_forward_pass(
 __device__ void softplus_activation(
     float* data,
     unsigned size);
+
+// Weight loading functions
+void load_fc_weights_to_device(
+    float* dev_fc_weights,
+    float* dev_fc_biases,
+    const Allen::Context& context);
+
+void load_unet_weights_to_device(
+    float* dev_unet_weights,
+    float* dev_unet_biases,
+    const Allen::Context& context);
 
 } // namespace PVInference
