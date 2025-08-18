@@ -27,7 +27,7 @@ def make_pv_inference(velo_tracks, velo_states):
         dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
         dev_velo_states_view_t=velo_states["dev_velo_kalman_beamline_states_view"],
         # Algorithm properties
-        max_tracks_per_event=2048,
+        max_tracks_per_event=128,
         enable_debug=False,
         z_min=-100.0,
         z_max=300.0

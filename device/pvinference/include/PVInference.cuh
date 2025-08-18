@@ -7,8 +7,8 @@
 
 namespace PVInference {
 
-// Algorithm constants - match UpperLimit standalone implementation
-constexpr unsigned MAX_TRACKS_PER_EVENT = 2048;         // Match standalone maxTracks
+// Algorithm constants - reduced for Allen memory constraints
+constexpr unsigned MAX_TRACKS_PER_EVENT = 128;          // Reduced from 512 to fit Allen memory limits
 constexpr unsigned FC_LAYERS = 6;
 constexpr unsigned FC_HIDDEN_SIZE = 20;
 constexpr unsigned FC_OUTPUT_SIZE = 800;                 // 8 latent channels x 100 bins

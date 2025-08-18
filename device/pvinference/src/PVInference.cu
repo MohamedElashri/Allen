@@ -26,12 +26,12 @@ void PVInference_t::set_arguments_size(
     const auto number_of_events = first<host_number_of_events_t>(arguments);
     const auto max_tracks = m_max_tracks_per_event;
     
-    // Track processing tensors
+    // Track processing tensors - Allen allocates for events in current slice
     set_size<dev_track_features_t>(arguments, number_of_events * max_tracks * INPUT_FEATURES);
     set_size<dev_track_masks_t>(arguments, number_of_events * max_tracks);
     set_size<dev_interval_assignments_t>(arguments, number_of_events * max_tracks * 2); // up to 2 intervals per track
     
-    // FC layer intermediate outputs (6 layers: 9→20→20→20→20→20→800)
+    // FC layer intermediate outputs (6 layers: 9→20→20→20→20→20→800) - reduced max_tracks from 2048 to 512
     set_size<dev_fc_layer1_t>(arguments, number_of_events * max_tracks * FC_HIDDEN_SIZE);        // 20
     set_size<dev_fc_layer2_t>(arguments, number_of_events * max_tracks * FC_HIDDEN_SIZE);        // 20
     set_size<dev_fc_layer3_t>(arguments, number_of_events * max_tracks * FC_HIDDEN_SIZE);        // 20
@@ -39,11 +39,11 @@ void PVInference_t::set_arguments_size(
     set_size<dev_fc_layer5_t>(arguments, number_of_events * max_tracks * FC_HIDDEN_SIZE);        // 20
     set_size<dev_fc_layer6_t>(arguments, number_of_events * max_tracks * FC_OUTPUT_SIZE);        // 800 (8 x 100)
     
-    // Interval processing tensors
+    // Interval processing tensors - per event in current slice
     set_size<dev_interval_kde_t>(arguments, number_of_events * NUM_INTERVALS * LATENT_CHANNELS * HISTOGRAM_SIZE); // 40 x 8 x 100
     set_size<dev_aggregated_kde_t>(arguments, number_of_events * LATENT_CHANNELS * HISTOGRAM_SIZE);               // 8 x 100
     
-    // U-Net processing tensors
+    // U-Net processing tensors - per event in current slice
     set_size<dev_unet_input_t>(arguments, number_of_events * LATENT_CHANNELS * HISTOGRAM_SIZE);      // 8 x 100
     set_size<dev_x1_t>(arguments, number_of_events * UNET_CHANNELS * HISTOGRAM_SIZE);                // 64 x 100
     set_size<dev_x2_t>(arguments, number_of_events * UNET_CHANNELS * 50);                            // 64 x 50
