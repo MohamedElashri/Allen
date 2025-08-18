@@ -13,7 +13,7 @@ LayerInfo AllenWeightLoader::layer_map_[50];
 char AllenWeightLoader::layer_names_[50][64];
 uint32_t AllenWeightLoader::num_layers_ = 0;
 
-// Embedded binary data - will be set by build system
+// Embedded binary data - symbols created by objcopy
 extern "C" {
     extern const uint8_t _binary_pvfinder_weights_bin_start[];
     extern const uint8_t _binary_pvfinder_weights_bin_end[];

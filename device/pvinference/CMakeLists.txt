@@ -11,26 +11,22 @@ include_directories(${PROJECT_SOURCE_DIR}/main/include)
 include_directories(${PROJECT_SOURCE_DIR}/stream/gear/include)
 include_directories(${PROJECT_SOURCE_DIR}/stream/sequence/include)
 
-# Embed binary weights file
-file(READ "${CMAKE_CURRENT_SOURCE_DIR}/include/pvfinder_weights.bin" weights_content HEX)
-string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1," weights_content ${weights_content})
+# Embed binary weights file using proper objcopy approach
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/include/pvfinder_weights.bin"
     "${CMAKE_CURRENT_BINARY_DIR}/pvfinder_weights.bin"
     COPYONLY
 )
 
-# Use objcopy to embed binary as object file
+# Create object file from binary weights using objcopy
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/pvfinder_weights.o
     COMMAND ${CMAKE_OBJCOPY} -I binary -O elf64-x86-64 -B i386:x86-64
             --rename-section .data=.rodata,alloc,load,readonly,data,contents
-            --redefine-sym _binary_pvfinder_weights_bin_start=_binary_pvfinder_weights_bin_start
-            --redefine-sym _binary_pvfinder_weights_bin_end=_binary_pvfinder_weights_bin_end
-            ${CMAKE_CURRENT_BINARY_DIR}/pvfinder_weights.bin
-            ${CMAKE_CURRENT_BINARY_DIR}/pvfinder_weights.o
+            pvfinder_weights.bin pvfinder_weights.o
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/pvfinder_weights.bin
-    COMMENT "Embedding binary weights"
+    COMMENT "Embedding pvfinder_weights.bin as object file"
 )
 
 add_custom_target(pvinference_weights_embed
