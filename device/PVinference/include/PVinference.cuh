@@ -83,8 +83,16 @@ namespace pvinference {
      * @return true if weights loaded successfully
      */
     bool load_binary_weights() const;
+    
+    /**
+     * @brief Transfer FC weights from host to device global memory
+     * @param arguments Algorithm arguments reference
+     * @param context Allen execution context
+     */
+    void transfer_fc_weights_to_device(
+      const ArgumentReferences<Parameters>& arguments,
+      const Allen::Context& context) const;
 
-  private:
   };
 
 } // namespace pvinference
