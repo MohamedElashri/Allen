@@ -455,8 +455,8 @@ __device__ void neural_network_forward(
         sum += layer_input[in_idx] * fc_weights[weight_offset + out_idx * input_size + in_idx];
       }
       
-      // ReLU activation (except final layer gets different activation)
-      layer_output[out_idx] = (layer < 5) ? fmaxf(0.0f, sum) : sum;
+      // LeakyReLU activation (0.01) for all layers to match UpperLimit reference
+      layer_output[out_idx] = (sum > 0.0f) ? sum : 0.01f * sum;
     }
     
     // Swap buffers for next iteration
