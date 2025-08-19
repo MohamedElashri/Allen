@@ -51,7 +51,7 @@ target_link_libraries(Stream
     MuonCommon
     Rich
     pvfinder
-    pvinference
+    PVinference
   PUBLIC
     Utils
     Selections
