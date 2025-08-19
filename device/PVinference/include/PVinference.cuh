@@ -139,11 +139,18 @@ namespace PVinference {
   // Phase 2: Workspace memory sizes for fixed allocation
   constexpr unsigned WARP_SIZE = 32;
   constexpr unsigned FC_WORKSPACE_SIZE = WARP_SIZE * 20 * FC_LAYERS; // Per-warp FC processing
-  constexpr unsigned UNET_WORKSPACE_SIZE = 64 * 100; // U-Net intermediate tensors per event
+  constexpr unsigned UNET_WORKSPACE_SIZE = 50000; // U-Net intermediate tensors per event (~46400 calculated)
   constexpr unsigned INTERVAL_HISTOGRAM_SIZE = N_INTERVALS * KDE_BINS; // 40 x 100 per event
   
-  // Phase 2: Estimated U-Net weight counts (to be refined in Phase 5)
-  constexpr unsigned UNET_WEIGHT_COUNT = 50000; // Placeholder estimate
-  constexpr unsigned UNET_BIAS_COUNT = 1000;    // Placeholder estimate
+  // Phase 5: Actual U-Net weight counts based on architecture
+  // rcbn1: Conv1D(8→64, k=7) = 8*64*7 = 3584 weights, 64 biases
+  // rcbn2: Conv1D(64→64, k=3) = 64*64*3 = 12288 weights, 64 biases  
+  // rcbn3: Conv1D(64→64, k=3) = 64*64*3 = 12288 weights, 64 biases
+  // up1: TransposeConv1D(64→64, k=2) + Conv1D(64→64, k=3) = 64*64*2 + 64*64*3 = 20480 weights, 128 biases
+  // up2: TransposeConv1D(128→64, k=2) + Conv1D(64→64, k=3) = 128*64*2 + 64*64*3 = 28672 weights, 128 biases
+  // out_intermediate: Conv1D(128→64, k=3) = 128*64*3 = 24576 weights, 64 biases
+  // outc: Conv1D(64→1, k=3) = 64*1*3 = 192 weights, 1 bias
+  constexpr unsigned UNET_WEIGHT_COUNT = 101280; // Total weights across all U-Net layers
+  constexpr unsigned UNET_BIAS_COUNT = 513;      // Total biases across all U-Net layers
 
 } // namespace PVinference
