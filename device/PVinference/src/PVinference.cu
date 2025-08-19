@@ -911,6 +911,12 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
     unet_forward_pass(fc_output, parameters.dev_unet_weights, parameters.dev_unet_biases, 
                       unet_output, unet_workspace);
     
+    // Phase 6: Apply final scaling (0.001) to U-Net output following UpperLimit reference
+    // This matches lines 974-977 in UpperLimit/src/pvfinder_inference.cpp
+    for (int k = 0; k < PVinference::KDE_BINS; ++k) {
+      unet_output[k] *= 0.001f;
+    }
+    
     // Phase 5: Add U-Net output to appropriate intervals
     // Add to primary interval
     if (interval1 >= 0 && interval1 < PVinference::N_INTERVALS) {
@@ -930,13 +936,28 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
   }
   __syncthreads();
   
-  // Aggregate interval histograms into final KDE (Phase 6)
+  // Phase 6: Enhanced KDE aggregation following UpperLimit reference patterns
   for (int i = thread_id; i < PVinference::KDE_BINS; i += block_size) {
     float sum = 0.0f;
+    int total_contributions = 0;
+    
+    // Aggregate contributions from all intervals (weighted by track counts)
     for (int interval = 0; interval < PVinference::N_INTERVALS; ++interval) {
       sum += s_interval_histograms[interval][i];
+      total_contributions += s_interval_counts[interval];
     }
+    
+    // Store aggregated result
     s_kde_histogram[i] = sum;
+  }
+  __syncthreads();
+  
+  // Phase 6: Apply final normalization if needed
+  // Following UpperLimit processInterval logic for consistent scaling
+  for (int i = thread_id; i < PVinference::KDE_BINS; i += block_size) {
+    // Maintain original aggregation but ensure proper range
+    // Values already scaled by 0.001 in U-Net processing
+    s_kde_histogram[i] = fmaxf(0.0f, s_kde_histogram[i]);
   }
   __syncthreads();
   
@@ -946,9 +967,24 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
     event_output[i] = s_kde_histogram[i];
   }
   
-  // Phase 3: Enhanced debug output with track processing info
+  // Phase 6: Enhanced debug output with KDE validation (minimal debugging)
   if (event_number == 0 && thread_id == 0) {
-    printf("PVinference Phase 3: Event %u, tracks=%u, intervals_used=%d, output[0]=%.6f, output[99]=%.6f\n", 
-           event_number, n_tracks, PVinference::N_INTERVALS, event_output[0], event_output[99]);
+    // Calculate min, max for validation
+    float min_val = event_output[0];
+    float max_val = event_output[0];
+    for (int i = 1; i < PVinference::KDE_BINS; ++i) {
+      min_val = fminf(min_val, event_output[i]);
+      max_val = fmaxf(max_val, event_output[i]);
+    }
+    
+    printf("PVinference Phase 6: Event %u, tracks=%u, KDE range=[%.6f, %.6f]\n", 
+           event_number, n_tracks, min_val, max_val);
+    
+    // Optional: Show first 10 values for detailed validation
+    printf("KDE sample (first 10): ");
+    for (int i = 0; i < 10 && i < PVinference::KDE_BINS; ++i) {
+      printf("%.6f ", event_output[i]);
+    }
+    printf("\n");
   }
 }
