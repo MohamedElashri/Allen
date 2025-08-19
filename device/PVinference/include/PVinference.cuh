@@ -27,6 +27,13 @@ namespace pvinference {
     DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
     DEVICE_INPUT(dev_velo_kalman_beamline_states_t, Allen::Views::Physics::KalmanStates) dev_velo_kalman_beamline_states;
     DEVICE_OUTPUT(dev_output_kde_t, float) dev_output_kde;
+    DEVICE_OUTPUT(dev_fc_workspace_t, float) dev_fc_workspace;
+    DEVICE_OUTPUT(dev_unet_workspace_t, float) dev_unet_workspace;
+    DEVICE_OUTPUT(dev_interval_histograms_t, float) dev_interval_histograms;
+    DEVICE_OUTPUT(dev_fc_weights_t, float) dev_fc_weights;
+    DEVICE_OUTPUT(dev_fc_biases_t, float) dev_fc_biases;
+    DEVICE_OUTPUT(dev_unet_weights_t, float) dev_unet_weights;
+    DEVICE_OUTPUT(dev_unet_biases_t, float) dev_unet_biases;
   };
 
   /**
@@ -69,6 +76,13 @@ namespace pvinference {
      * @param constants Algorithm constants to update
      */
     void update(const Constants& constants) const;
+    
+  private:
+    /**
+     * @brief Load binary weights from pvfinder_weights.bin
+     * @return true if weights loaded successfully
+     */
+    bool load_binary_weights() const;
 
   private:
   };
@@ -105,14 +119,23 @@ namespace PVinference {
   constexpr float Z_MAX = 300.0f;
   constexpr float INTERVAL_WIDTH = (Z_MAX - Z_MIN) / N_INTERVALS;
   
-  // Phase 1: Minimal constant memory usage (weights loaded in Phase 2)
+  // Phase 2: Input normalization in constant memory (small arrays)
   extern __constant__ float dev_input_mean[TRACK_FEATURES];
   extern __constant__ float dev_input_std[TRACK_FEATURES];
   
-  // All weights in global memory pointers (allocated in Phase 2)
-  extern __device__ float* dev_fc_weights;
-  extern __device__ float* dev_fc_biases;
-  extern __device__ float* dev_unet_weights;
-  extern __device__ float* dev_unet_biases;
+  // Phase 2: Only small arrays in constant memory to stay within 64KB limit
+  constexpr unsigned FC_WEIGHT_COUNT = 9*20 + 20*20 + 20*20 + 20*20 + 20*20 + 20*800;
+  constexpr unsigned FC_BIAS_COUNT = 20 + 20 + 20 + 20 + 20 + 800;
+  // FC weights moved to global memory to avoid 64KB constant memory limit
+  
+  // Phase 2: Workspace memory sizes for fixed allocation
+  constexpr unsigned WARP_SIZE = 32;
+  constexpr unsigned FC_WORKSPACE_SIZE = WARP_SIZE * 20 * FC_LAYERS; // Per-warp FC processing
+  constexpr unsigned UNET_WORKSPACE_SIZE = 64 * 100; // U-Net intermediate tensors per event
+  constexpr unsigned INTERVAL_HISTOGRAM_SIZE = N_INTERVALS * KDE_BINS; // 40 x 100 per event
+  
+  // Phase 2: Estimated U-Net weight counts (to be refined in Phase 5)
+  constexpr unsigned UNET_WEIGHT_COUNT = 50000; // Placeholder estimate
+  constexpr unsigned UNET_BIAS_COUNT = 1000;    // Placeholder estimate
 
 } // namespace PVinference

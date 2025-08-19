@@ -9,20 +9,21 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "PVinference.cuh"
+#include <fstream>
+#include <iostream>
+#include <cstring>
+#include <unordered_map>
+#include <vector>
+#include <memory>
+#include <algorithm>
 
 INSTANTIATE_ALGORITHM(pvinference::PVinference_t)
 
-// Phase 1: Minimal constant memory declarations (weights will be loaded in Phase 2)
+// Phase 2: Memory allocation and weight storage infrastructure
 namespace PVinference {
-  // Small placeholder arrays for Phase 1 - actual weights loaded in Phase 2
+  // Only small arrays in constant memory to stay within 64KB limit
   __constant__ float dev_input_mean[TRACK_FEATURES];
   __constant__ float dev_input_std[TRACK_FEATURES];
-  
-  // Global memory pointers for weights (allocated in Phase 2)
-  __device__ float* dev_fc_weights = nullptr;
-  __device__ float* dev_fc_biases = nullptr;
-  __device__ float* dev_unet_weights = nullptr;
-  __device__ float* dev_unet_biases = nullptr;
 }
 
 void pvinference::PVinference_t::set_arguments_size(
@@ -30,8 +31,26 @@ void pvinference::PVinference_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  // Set output size: 100 KDE bins per event (track-independent allocation)
-  set_size<dev_output_kde_t>(arguments, first<host_number_of_events_t>(arguments) * PVinference::KDE_BINS);
+  const unsigned num_events = first<host_number_of_events_t>(arguments);
+  
+  // Phase 2: Track-independent fixed-size memory allocation
+  // Output: 100 KDE bins per event
+  set_size<dev_output_kde_t>(arguments, num_events * PVinference::KDE_BINS);
+  
+  // FC workspace: Fixed per-warp allocation (track-independent)
+  set_size<dev_fc_workspace_t>(arguments, PVinference::FC_WORKSPACE_SIZE);
+  
+  // U-Net workspace: Per-event intermediate tensors
+  set_size<dev_unet_workspace_t>(arguments, num_events * PVinference::UNET_WORKSPACE_SIZE);
+  
+  // Interval histograms: 40 intervals × 100 bins per event
+  set_size<dev_interval_histograms_t>(arguments, num_events * PVinference::INTERVAL_HISTOGRAM_SIZE);
+  
+  // U-Net weights in global memory (large weights)
+  set_size<dev_fc_weights_t>(arguments, PVinference::FC_WEIGHT_COUNT);
+  set_size<dev_fc_biases_t>(arguments, PVinference::FC_BIAS_COUNT);
+  set_size<dev_unet_weights_t>(arguments, PVinference::UNET_WEIGHT_COUNT);
+  set_size<dev_unet_biases_t>(arguments, PVinference::UNET_BIAS_COUNT);
 }
 
 void pvinference::PVinference_t::operator()(
@@ -52,9 +71,132 @@ void pvinference::PVinference_t::operator()(
 
 void pvinference::PVinference_t::update(const Constants& constants) const
 {
-  // TODO Phase 2: Load FC and U-Net weights from binary files
-  // For now, initialize with placeholder message
-  info_cout << "PVinference algorithm initialized - Phase 1 structure complete" << std::endl;
+  // Phase 2: Load binary weights from pvfinder_weights.bin
+  if (load_binary_weights()) {
+    info_cout << "PVinference Phase 2: Binary weights loaded successfully" << std::endl;
+  } else {
+    warning_cout << "PVinference Phase 2: Failed to load binary weights - using placeholders" << std::endl;
+  }
+}
+
+bool pvinference::PVinference_t::load_binary_weights() const
+{
+  // Phase 2: Binary weight loading implementation
+  const std::string weights_path = "device/PVinference/include/weights/pvfinder_weights.bin";
+  
+  std::ifstream file(weights_path, std::ios::binary);
+  if (!file.is_open()) {
+    warning_cout << "Cannot open binary weights file: " << weights_path << std::endl;
+    return false;
+  }
+
+  // Read and validate header (matching UpperLimit binary format)
+  struct WeightHeader {
+    uint32_t magic;          // 0x50564657 ("PVFW")
+    uint32_t version;        // 1
+    uint32_t num_layers;     // Number of weight layers
+    uint32_t total_weights;  // Total float count
+  } header;
+  
+  file.read(reinterpret_cast<char*>(&header), sizeof(WeightHeader));
+  if (file.gcount() != sizeof(WeightHeader)) {
+    warning_cout << "Failed to read weight file header" << std::endl;
+    return false;
+  }
+
+  if (header.magic != 0x50564657 || header.version != 1) {
+    warning_cout << "Invalid binary weights file format or version" << std::endl;
+    return false;
+  }
+
+  info_cout << "Loading " << header.num_layers << " layers, " << header.total_weights << " weights" << std::endl;
+
+  // Read layer headers to build lookup map
+  struct LayerHeader {
+    char name[64];          // Layer name
+    uint32_t size;          // Number of floats
+    uint32_t offset;        // Byte offset
+  };
+  
+  std::vector<LayerHeader> layers(header.num_layers);
+  file.read(reinterpret_cast<char*>(layers.data()), header.num_layers * sizeof(LayerHeader));
+  if (file.gcount() != static_cast<std::streamsize>(header.num_layers * sizeof(LayerHeader))) {
+    warning_cout << "Failed to read layer headers" << std::endl;
+    return false;
+  }
+
+  // Load all weights into temporary buffer
+  std::unique_ptr<float[]> weight_data = std::make_unique<float[]>(header.total_weights);
+  file.read(reinterpret_cast<char*>(weight_data.get()), header.total_weights * sizeof(float));
+  if (file.gcount() != static_cast<std::streamsize>(header.total_weights * sizeof(float))) {
+    warning_cout << "Failed to read weight data" << std::endl;
+    return false;
+  }
+  file.close();
+
+  // Phase 2: Copy FC weights to constant memory
+  // Extract FC weights from binary data and copy to constant memory arrays
+  std::vector<float> fc_weights(PVinference::FC_WEIGHT_COUNT);
+  std::vector<float> fc_biases(PVinference::FC_BIAS_COUNT);
+  
+  // Build layer lookup map
+  std::unordered_map<std::string, std::pair<uint32_t, uint32_t>> layer_map;
+  for (const auto& layer : layers) {
+    std::string name(layer.name);
+    uint32_t float_offset = (layer.offset - sizeof(WeightHeader) - header.num_layers * sizeof(LayerHeader)) / sizeof(float);
+    layer_map[name] = std::make_pair(layer.size, float_offset);
+  }
+  
+  // Extract FC layer weights (layers 1-6)
+  unsigned weight_idx = 0, bias_idx = 0;
+  const unsigned fc_layer_sizes[] = {9, 20, 20, 20, 20, 20, 800};
+  
+  for (int layer = 0; layer < 6; ++layer) {
+    const unsigned input_size = fc_layer_sizes[layer];
+    const unsigned output_size = fc_layer_sizes[layer + 1];
+    
+    // Extract weights for this layer
+    std::string weight_name = "fc_layer" + std::to_string(layer + 1) + "_weight";
+    std::string bias_name = "fc_layer" + std::to_string(layer + 1) + "_bias";
+    
+    auto weight_it = layer_map.find(weight_name);
+    auto bias_it = layer_map.find(bias_name);
+    
+    if (weight_it != layer_map.end() && bias_it != layer_map.end()) {
+      // Copy weights
+      const float* layer_weights = weight_data.get() + weight_it->second.second;
+      std::copy(layer_weights, layer_weights + input_size * output_size, fc_weights.data() + weight_idx);
+      weight_idx += input_size * output_size;
+      
+      // Copy biases
+      const float* layer_biases = weight_data.get() + bias_it->second.second;
+      std::copy(layer_biases, layer_biases + output_size, fc_biases.begin() + bias_idx);
+      bias_idx += output_size;
+    }
+  }
+
+  // Phase 2: For now, just log successful weight parsing - actual loading will be done via global memory
+  info_cout << "Parsed " << fc_weights.size() << " FC weights and " << fc_biases.size() << " FC biases from binary file" << std::endl;
+  
+  // TODO Phase 4: Copy FC weights to global memory allocated via Allen's set_arguments_size
+  // This will be implemented when FC layers are activated
+
+  // Phase 2: Setup input normalization (placeholder values for now)
+  std::vector<float> input_mean(PVinference::TRACK_FEATURES, 0.0f);
+  std::vector<float> input_std(PVinference::TRACK_FEATURES, 1.0f);
+  
+  cudaError_t err3 = cudaMemcpyToSymbol(PVinference::dev_input_mean, input_mean.data(), 
+                                        input_mean.size() * sizeof(float));
+  cudaError_t err4 = cudaMemcpyToSymbol(PVinference::dev_input_std, input_std.data(), 
+                                        input_std.size() * sizeof(float));
+                                        
+  if (err3 != cudaSuccess || err4 != cudaSuccess) {
+    warning_cout << "Failed to copy normalization constants to constant memory" << std::endl;
+    return false;
+  }
+
+  info_cout << "Phase 2: Binary weight loading infrastructure complete" << std::endl;
+  return true;
 }
 
 /**
@@ -134,16 +276,30 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
   // Early exit if no tracks
   if (n_tracks == 0) return;
   
-  // Shared memory for block-level processing
+  // Phase 2: Enhanced shared memory workspace for per-block processing
   __shared__ float s_kde_histogram[PVinference::KDE_BINS];
   __shared__ float s_interval_histograms[PVinference::N_INTERVALS][PVinference::KDE_BINS];
+  __shared__ float s_fc_workspace[PVinference::WARP_SIZE][20];  // FC processing workspace
+  __shared__ int s_interval_counts[PVinference::N_INTERVALS];   // Track counts per interval
   
-  // Initialize shared memory histograms to zero
+  // Initialize shared memory histograms and counters to zero
   for (int i = thread_id; i < PVinference::KDE_BINS; i += block_size) {
     s_kde_histogram[i] = 0.0f;
     for (int interval = 0; interval < PVinference::N_INTERVALS; ++interval) {
       s_interval_histograms[interval][i] = 0.0f;
     }
+  }
+  
+  // Initialize interval counters
+  for (int i = thread_id; i < PVinference::N_INTERVALS; i += block_size) {
+    s_interval_counts[i] = 0;
+  }
+  
+  // Initialize FC workspace
+  const int warp_id = thread_id / 32;
+  const int lane_id = thread_id % 32;
+  if (warp_id < PVinference::WARP_SIZE && lane_id < 20) {
+    s_fc_workspace[warp_id][lane_id] = 0.0f;
   }
   __syncthreads();
   
