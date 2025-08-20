@@ -27,6 +27,11 @@ target_link_libraries(PVinference PRIVATE Backend HostEventModel EventModel Util
 
 target_include_directories(PVinference PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
+# Define compile-time path to weights file
+target_compile_definitions(PVinference PRIVATE 
+  PVINFERENCE_WEIGHTS_PATH="${CMAKE_CURRENT_SOURCE_DIR}/include/weights/pvfinder_weights.bin"
+)
+
 if (USE_KALMAN_DOUBLE_PRECISION)
   add_compile_definitions(KALMAN_DOUBLE_PRECISION)
 endif()

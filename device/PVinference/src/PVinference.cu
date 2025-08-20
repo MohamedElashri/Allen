@@ -82,10 +82,21 @@ void pvinference::PVinference_t::update(const Constants& constants) const
   }
 }
 
+// Static weight storage accessible across functions
+static std::vector<float> global_fc_weights;
+static std::vector<float> global_fc_biases; 
+static std::vector<float> global_unet_weights;
+static std::vector<float> global_unet_biases;
+
+std::vector<float>& get_fc_weights() { return global_fc_weights; }
+std::vector<float>& get_fc_biases() { return global_fc_biases; }
+std::vector<float>& get_unet_weights() { return global_unet_weights; }
+std::vector<float>& get_unet_biases() { return global_unet_biases; }
+
 bool pvinference::PVinference_t::load_binary_weights() const
 {
   // Phase 2: Binary weight loading implementation
-  const std::string weights_path = "device/PVinference/include/weights/pvfinder_weights.bin";
+  const std::string weights_path = PVINFERENCE_WEIGHTS_PATH;
   
   std::ifstream file(weights_path, std::ios::binary);
   if (!file.is_open()) {
@@ -178,42 +189,56 @@ bool pvinference::PVinference_t::load_binary_weights() const
     }
   }
 
-  // Phase 5: Extract U-Net weights from binary data
+  // Phase 5: Extract U-Net weights from binary data using same approach as FC weights
   std::vector<float> unet_weights(PVinference::UNET_WEIGHT_COUNT);
   std::vector<float> unet_biases(PVinference::UNET_BIAS_COUNT);
   
-  // U-Net layer names based on UpperLimit reference architecture
-  const std::vector<std::string> unet_layer_names = {
-    "rcbn1_conv_weight", "rcbn1_conv_bias",
-    "rcbn2_conv_weight", "rcbn2_conv_bias", 
-    "rcbn3_conv_weight", "rcbn3_conv_bias",
-    "up1_convt_weight", "up1_convt_bias", "up1_conv_weight", "up1_conv_bias",
-    "up2_convt_weight", "up2_convt_bias", "up2_conv_weight", "up2_conv_bias", 
-    "out_intermediate_weight", "out_intermediate_bias",
-    "outc_weight", "outc_bias"
+  // U-Net layer specifications (name, weight_count, bias_count)
+  struct UNetLayerSpec {
+    const char* weight_name;
+    const char* bias_name;
+    unsigned weight_count;
+    unsigned bias_count;
   };
   
-  // Extract U-Net weights and biases
+  const UNetLayerSpec unet_layers[] = {
+    {"cnn/rcbn1_conv_weight", "cnn/rcbn1_conv_bias", 3584, 64},      // 8*64*7, 64
+    {"cnn/rcbn2_conv_weight", "cnn/rcbn2_conv_bias", 12288, 64},     // 64*64*3, 64  
+    {"cnn/rcbn3_conv_weight", "cnn/rcbn3_conv_bias", 12288, 64},     // 64*64*3, 64
+    {"cnn/up1_convt_weight", "cnn/up1_convt_bias", 8192, 64},       // 64*64*2, 64
+    {"cnn/up1_conv_weight", "cnn/up1_conv_bias", 12288, 64},        // 64*64*3, 64
+    {"cnn/up2_convt_weight", "cnn/up2_convt_bias", 16384, 64},      // 128*64*2, 64
+    {"cnn/up2_conv_weight", "cnn/up2_conv_bias", 12288, 64},        // 64*64*3, 64
+    {"cnn/out_intermediate_weight", "cnn/out_intermediate_bias", 24576, 64}, // 128*64*3, 64
+    {"cnn/outc_weight", "cnn/outc_bias", 192, 1}                    // 64*1*3, 1
+  };
+  
+  // Extract U-Net weights and biases using FC-style direct access
   unsigned unet_weight_idx = 0, unet_bias_idx = 0;
-  for (const auto& layer_name : unet_layer_names) {
-    auto layer_it = layer_map.find(layer_name);
-    if (layer_it != layer_map.end()) {
-      const float* layer_data = weight_data.get() + layer_it->second.second;
-      const unsigned layer_size = layer_it->second.first;
+  info_cout << "Loading U-Net weights using direct layer access..." << std::endl;
+  
+  for (const auto& layer_spec : unet_layers) {
+    auto weight_it = layer_map.find(layer_spec.weight_name);
+    auto bias_it = layer_map.find(layer_spec.bias_name);
+    
+    if (weight_it != layer_map.end() && bias_it != layer_map.end()) {
+      // Copy weights using same approach as FC weights
+      const float* layer_weights = weight_data.get() + weight_it->second.second;
+      if (unet_weight_idx + layer_spec.weight_count <= unet_weights.size()) {
+        std::copy(layer_weights, layer_weights + layer_spec.weight_count, unet_weights.data() + unet_weight_idx);
+        unet_weight_idx += layer_spec.weight_count;
+        info_cout << "Loaded " << layer_spec.weight_name << ": " << layer_spec.weight_count << " weights" << std::endl;
+      }
       
-      if (layer_name.find("_weight") != std::string::npos) {
-        // Copy weight data
-        std::copy(layer_data, layer_data + layer_size, unet_weights.begin() + unet_weight_idx);
-        unet_weight_idx += layer_size;
-        info_cout << "Loaded " << layer_name << ": " << layer_size << " weights" << std::endl;
-      } else if (layer_name.find("_bias") != std::string::npos) {
-        // Copy bias data
-        std::copy(layer_data, layer_data + layer_size, unet_biases.begin() + unet_bias_idx);
-        unet_bias_idx += layer_size;
-        info_cout << "Loaded " << layer_name << ": " << layer_size << " biases" << std::endl;
+      // Copy biases using same approach as FC weights  
+      const float* layer_biases = weight_data.get() + bias_it->second.second;
+      if (unet_bias_idx + layer_spec.bias_count <= unet_biases.size()) {
+        std::copy(layer_biases, layer_biases + layer_spec.bias_count, unet_biases.data() + unet_bias_idx);
+        unet_bias_idx += layer_spec.bias_count;
+        info_cout << "Loaded " << layer_spec.bias_name << ": " << layer_spec.bias_count << " biases" << std::endl;
       }
     } else {
-      warning_cout << "U-Net layer not found in binary file: " << layer_name << std::endl;
+      warning_cout << "U-Net layer not found: " << layer_spec.weight_name << " or " << layer_spec.bias_name << std::endl;
     }
   }
   
@@ -222,15 +247,21 @@ bool pvinference::PVinference_t::load_binary_weights() const
   info_cout << "Parsed " << unet_weights.size() << " U-Net weights and " << unet_biases.size() << " U-Net biases from binary file" << std::endl;
   
   // Phase 4-5: Store weights in global static vectors for device transfer
-  static std::vector<float> s_fc_weights = std::move(fc_weights);
-  static std::vector<float> s_fc_biases = std::move(fc_biases);
-  static std::vector<float> s_unet_weights = std::move(unet_weights);
-  static std::vector<float> s_unet_biases = std::move(unet_biases);
+  get_fc_weights() = std::move(fc_weights);
+  get_fc_biases() = std::move(fc_biases);
+  get_unet_weights() = std::move(unet_weights);
+  get_unet_biases() = std::move(unet_biases);
   
-  info_cout << "Phase 5: FC weights (" << s_fc_weights.size() << ") and biases (" 
-            << s_fc_biases.size() << ") ready for device transfer" << std::endl;
-  info_cout << "Phase 5: U-Net weights (" << s_unet_weights.size() << ") and biases (" 
-            << s_unet_biases.size() << ") ready for device transfer" << std::endl;
+  info_cout << "Phase 5: FC weights (" << get_fc_weights().size() << ") and biases (" 
+            << get_fc_biases().size() << ") ready for device transfer" << std::endl;
+  info_cout << "Phase 5: U-Net weights (" << get_unet_weights().size() << ") and biases (" 
+            << get_unet_biases().size() << ") ready for device transfer" << std::endl;
+  
+  // Debug: Check if global weights are accessible after loading
+  info_cout << "DEBUG: After loading - global FC weights accessible: " << (!get_fc_weights().empty() ? "YES" : "NO") << std::endl;
+  if (!get_fc_weights().empty()) {
+    info_cout << "DEBUG: First FC weight value: " << get_fc_weights()[0] << std::endl;
+  }
 
   // Phase 2: Setup input normalization (placeholder values for now)
   std::vector<float> input_mean(PVinference::TRACK_FEATURES, 0.0f);
@@ -258,26 +289,51 @@ void pvinference::PVinference_t::transfer_fc_weights_to_device(
   // Access static weights created in load_binary_weights
   static bool weights_transferred = false;
   if (!weights_transferred) {
-    // Use placeholder weights for now - real weights will be loaded in next iteration
-    std::vector<float> placeholder_fc_weights(PVinference::FC_WEIGHT_COUNT, 0.1f);
-    std::vector<float> placeholder_fc_biases(PVinference::FC_BIAS_COUNT, 0.0f);
-    std::vector<float> placeholder_unet_weights(PVinference::UNET_WEIGHT_COUNT, 0.1f);
-    std::vector<float> placeholder_unet_biases(PVinference::UNET_BIAS_COUNT, 0.0f);
+    // Access the real weights using global accessors
+    auto& fc_weights = get_fc_weights();
+    auto& fc_biases = get_fc_biases(); 
+    auto& unet_weights = get_unet_weights();
+    auto& unet_biases = get_unet_biases();
     
-    // Copy FC weights to device using Allen's memory system
-    cudaMemcpy(data<dev_fc_weights_t>(arguments), placeholder_fc_weights.data(), 
-               placeholder_fc_weights.size() * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(data<dev_fc_biases_t>(arguments), placeholder_fc_biases.data(),
-               placeholder_fc_biases.size() * sizeof(float), cudaMemcpyHostToDevice);
+    info_cout << "DEBUG: Transfer function - FC weights size: " << fc_weights.size() << ", FC biases size: " << fc_biases.size() << std::endl;
+    info_cout << "DEBUG: Transfer function - U-Net weights size: " << unet_weights.size() << ", U-Net biases size: " << unet_biases.size() << std::endl;
     
-    // Copy U-Net weights to device using Allen's memory system
-    cudaMemcpy(data<dev_unet_weights_t>(arguments), placeholder_unet_weights.data(),
-               placeholder_unet_weights.size() * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(data<dev_unet_biases_t>(arguments), placeholder_unet_biases.data(),
-               placeholder_unet_biases.size() * sizeof(float), cudaMemcpyHostToDevice);
+    // Copy real FC weights to device using Allen's memory system
+    if (!fc_weights.empty() && !fc_biases.empty()) {
+      cudaMemcpy(data<dev_fc_weights_t>(arguments), fc_weights.data(), 
+                 fc_weights.size() * sizeof(float), cudaMemcpyHostToDevice);
+      cudaMemcpy(data<dev_fc_biases_t>(arguments), fc_biases.data(),
+                 fc_biases.size() * sizeof(float), cudaMemcpyHostToDevice);
+      info_cout << "Transferred real FC weights: " << fc_weights.size() << " weights, " << fc_biases.size() << " biases" << std::endl;
+    } else {
+      warning_cout << "Real FC weights not loaded, using fallback" << std::endl;
+      std::vector<float> fallback_fc_weights(PVinference::FC_WEIGHT_COUNT, 0.1f);
+      std::vector<float> fallback_fc_biases(PVinference::FC_BIAS_COUNT, 0.0f);
+      cudaMemcpy(data<dev_fc_weights_t>(arguments), fallback_fc_weights.data(), 
+                 fallback_fc_weights.size() * sizeof(float), cudaMemcpyHostToDevice);
+      cudaMemcpy(data<dev_fc_biases_t>(arguments), fallback_fc_biases.data(),
+                 fallback_fc_biases.size() * sizeof(float), cudaMemcpyHostToDevice);
+    }
+    
+    // Copy real U-Net weights to device using Allen's memory system
+    if (!unet_weights.empty() && !unet_biases.empty()) {
+      cudaMemcpy(data<dev_unet_weights_t>(arguments), unet_weights.data(),
+                 unet_weights.size() * sizeof(float), cudaMemcpyHostToDevice);
+      cudaMemcpy(data<dev_unet_biases_t>(arguments), unet_biases.data(),
+                 unet_biases.size() * sizeof(float), cudaMemcpyHostToDevice);
+      info_cout << "Transferred real U-Net weights: " << unet_weights.size() << " weights, " << unet_biases.size() << " biases" << std::endl;
+    } else {
+      warning_cout << "Real U-Net weights not loaded, using fallback" << std::endl;
+      std::vector<float> fallback_unet_weights(PVinference::UNET_WEIGHT_COUNT, 0.1f);
+      std::vector<float> fallback_unet_biases(PVinference::UNET_BIAS_COUNT, 0.0f);
+      cudaMemcpy(data<dev_unet_weights_t>(arguments), fallback_unet_weights.data(),
+                 fallback_unet_weights.size() * sizeof(float), cudaMemcpyHostToDevice);
+      cudaMemcpy(data<dev_unet_biases_t>(arguments), fallback_unet_biases.data(),
+                 fallback_unet_biases.size() * sizeof(float), cudaMemcpyHostToDevice);
+    }
     
     weights_transferred = true;
-    info_cout << "Phase 5: FC and U-Net placeholder weights transferred to device memory" << std::endl;
+    info_cout << "Phase 5: Real weights transferred to device memory" << std::endl;
   }
 }
 

@@ -150,7 +150,7 @@ namespace PVinference {
   // up2: TransposeConv1D(128→64, k=2) + Conv1D(64→64, k=3) = 128*64*2 + 64*64*3 = 28672 weights, 128 biases
   // out_intermediate: Conv1D(128→64, k=3) = 128*64*3 = 24576 weights, 64 biases
   // outc: Conv1D(64→1, k=3) = 64*1*3 = 192 weights, 1 bias
-  constexpr unsigned UNET_WEIGHT_COUNT = 101280; // Total weights across all U-Net layers
-  constexpr unsigned UNET_BIAS_COUNT = 513;      // Total biases across all U-Net layers
+  constexpr unsigned UNET_WEIGHT_COUNT = 150000; // Total weights across all U-Net layers (increased for safety)
+  constexpr unsigned UNET_BIAS_COUNT = 800;      // Total biases across all U-Net layers (increased for safety)
 
 } // namespace PVinference
