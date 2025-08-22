@@ -1162,36 +1162,51 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
              unet_output[5], unet_output[6], unet_output[7], unet_output[8], unet_output[9]);
     }
     
-    // Phase 6: Apply final scaling (0.001) to U-Net output following UpperLimit reference
-    // This matches lines 974-977 in UpperLimit/src/pvfinder_inference.cpp
-    for (int k = 0; k < PVinference::KDE_BINS; ++k) {
-      unet_output[k] *= 0.001f;
-    }
+    // Phase 6: Skip final 0.001 scaling here - it's applied in per-interval processing
+    // The per-interval softplus + 0.001 scaling below replaces this step
     
     // Phase 5: Add U-Net output to appropriate intervals
     // Add to primary interval
     const float primary_weight = 1.0f;
     const float secondary_weight = has_second_interval ? 1.0f : 0.0f;
-    
-    // Branchless primary interval accumulation
     const bool valid_primary = (interval1 >= 0 && interval1 < PVinference::N_INTERVALS);
     const bool valid_secondary = has_second_interval && (interval2 >= 0 && interval2 < PVinference::N_INTERVALS);
     
-    // Add to primary interval (branchless)
+    // Add to primary interval (branchless) with per-interval softplus + 0.001 scaling
+    // This matches UpperLimit applyMaskAndSum kernel lines 78-88
     for (int k = 0; k < PVinference::KDE_BINS; ++k) {
-      const float contrib1 = valid_primary ? unet_output[k] : 0.0f;
-      const int idx1 = valid_primary ? interval1 : 0;
-      atomicAdd(&s_interval_histograms[idx1][k], contrib1);
+      if (valid_primary) {
+        // Apply numerically stable softplus + 0.001 scaling to match UpperLimit reference
+        const float threshold = 20.0f;  // Prevent overflow in exp()
+        float softplus_result;
+        if (unet_output[k] > threshold) {
+          softplus_result = unet_output[k];  // Approximation for large values
+        } else {
+          softplus_result = logf(1.0f + expf(unet_output[k]));  // Exact for small values
+        }
+        const float contrib1 = softplus_result * 0.001f;
+        atomicAdd(&s_interval_histograms[interval1][k], contrib1);
+      }
     }
-    const int count1 = valid_primary ? 1 : 0;
+    
     const int cidx1 = valid_primary ? interval1 : 0;
+    const int count1 = valid_primary ? 1 : 0;
     atomicAdd(&s_interval_counts[cidx1], count1);
     
-    // Add to secondary interval (branchless)  
+    // Add to secondary interval (branchless) with per-interval softplus + 0.001 scaling
     for (int k = 0; k < PVinference::KDE_BINS; ++k) {
-      const float contrib2 = valid_secondary ? unet_output[k] : 0.0f;
-      const int idx2 = valid_secondary ? interval2 : 0;
-      atomicAdd(&s_interval_histograms[idx2][k], contrib2);
+      if (valid_secondary) {
+        // Apply numerically stable softplus + 0.001 scaling to match UpperLimit reference
+        const float threshold = 20.0f;  // Prevent overflow in exp()
+        float softplus_result;
+        if (unet_output[k] > threshold) {
+          softplus_result = unet_output[k];  // Approximation for large values
+        } else {
+          softplus_result = logf(1.0f + expf(unet_output[k]));  // Exact for small values
+        }
+        const float contrib2 = softplus_result * 0.001f;
+        atomicAdd(&s_interval_histograms[interval2][k], contrib2);
+      }
     }
     const int count2 = valid_secondary ? 1 : 0;
     const int cidx2 = valid_secondary ? interval2 : 0;
