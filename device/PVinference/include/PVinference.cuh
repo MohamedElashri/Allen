@@ -34,6 +34,7 @@ namespace pvinference {
     DEVICE_OUTPUT(dev_fc_biases_t, float) dev_fc_biases;
     DEVICE_OUTPUT(dev_unet_weights_t, float) dev_unet_weights;
     DEVICE_OUTPUT(dev_unet_biases_t, float) dev_unet_biases;
+    DEVICE_OUTPUT(dev_unet_bn_params_t, float) dev_unet_bn_params;
   };
 
   /**
@@ -152,5 +153,8 @@ namespace PVinference {
   // outc: Conv1D(64→1, k=3) = 64*1*3 = 192 weights, 1 bias
   constexpr unsigned UNET_WEIGHT_COUNT = 150000; // Total weights across all U-Net layers (increased for safety)
   constexpr unsigned UNET_BIAS_COUNT = 800;      // Total biases across all U-Net layers (increased for safety)
+  
+  // BatchNorm parameters: 5 layers with BN (rcbn1, rcbn2, rcbn3, up1, up2) × 64 channels × 4 params each = 1280 total
+  constexpr unsigned UNET_BN_PARAM_COUNT = 5 * 64 * 4; // weight, bias, running_mean, running_var per channel
 
 } // namespace PVinference
