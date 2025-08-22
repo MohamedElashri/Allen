@@ -1117,6 +1117,78 @@ __device__ void neural_network_forward(
 }
 
 /**
+ * @brief PHASE 2 OPTIMIZATION: Warp-level KDE reduction with softplus scaling
+ * @param s_interval_unet_outputs U-Net outputs per interval [N_INTERVALS * 100]
+ * @param s_interval_track_counts Track counts per interval [N_INTERVALS]  
+ * @param s_warp_contributions Output warp contributions [NUM_WARPS][KDE_BINS]
+ */
+__device__ void warp_level_kde_reduction(
+    const float* s_interval_unet_outputs,
+    const int* s_interval_track_counts,
+    float s_warp_contributions[][PVinference::KDE_BINS])
+{
+  const int warp_id = threadIdx.x / 32;
+  const int lane_id = threadIdx.x % 32;
+  
+  // Initialize warp contributions
+  for (int bin = lane_id; bin < PVinference::KDE_BINS; bin += 32) {
+    s_warp_contributions[warp_id][bin] = 0.0f;
+  }
+  __syncwarp();
+  
+  // Each warp processes different intervals in parallel
+  for (int interval = warp_id; interval < PVinference::N_INTERVALS; interval += 8) { // 8 warps
+    if (s_interval_track_counts[interval] > 0) {
+      // Each lane processes different bins within the interval
+      for (int bin = lane_id; bin < PVinference::KDE_BINS; bin += 32) {
+        const float unet_value = s_interval_unet_outputs[interval * 100 + bin];
+        
+        // Apply softplus + 0.001 scaling (matching UpperLimit reference)
+        const float threshold = 20.0f;
+        const bool use_approx = (unet_value > threshold);
+        const float softplus_result = use_approx ? unet_value : logf(1.0f + expf(unet_value));
+        const float scaled_contrib = softplus_result * 0.001f;
+        
+        // Accumulate to warp-private memory (no atomics needed)
+        s_warp_contributions[warp_id][bin] += scaled_contrib;
+      }
+    }
+  }
+}
+
+/**
+ * @brief PHASE 2 OPTIMIZATION: Tree reduction aggregation across warps
+ * @param s_warp_contributions Input warp contributions [NUM_WARPS][KDE_BINS]
+ * @param s_kde_histogram Output final KDE histogram [KDE_BINS]
+ */
+__device__ void tree_reduction_kde_aggregation(
+    float s_warp_contributions[][PVinference::KDE_BINS],
+    float* s_kde_histogram)
+{
+  const int warp_id = threadIdx.x / 32;
+  const int lane_id = threadIdx.x % 32;
+  constexpr int NUM_WARPS = 8;
+  
+  // Tree reduction across warps (log2(8) = 3 steps)
+  for (int stride = 1; stride < NUM_WARPS; stride *= 2) {
+    if (warp_id % (stride * 2) == 0 && warp_id + stride < NUM_WARPS) {
+      // Each thread in warp reduces different bins
+      for (int bin = lane_id; bin < PVinference::KDE_BINS; bin += 32) {
+        s_warp_contributions[warp_id][bin] += s_warp_contributions[warp_id + stride][bin];
+      }
+    }
+    __syncthreads();
+  }
+  
+  // Final aggregation to KDE histogram (only first warp)
+  if (warp_id == 0) {
+    for (int bin = lane_id; bin < PVinference::KDE_BINS; bin += 32) {
+      s_kde_histogram[bin] = fmaxf(0.0f, s_warp_contributions[0][bin]);
+    }
+  }
+}
+
+/**
  * @brief Main PVinference CUDA kernel - one block per event
  * @param parameters Algorithm parameters containing input/output data
  */
@@ -1139,6 +1211,10 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
   __shared__ float s_kde_histogram[PVinference::KDE_BINS];
   __shared__ int s_interval_track_counts[PVinference::N_INTERVALS];  // Track counts per interval
   __shared__ float s_interval_unet_outputs[PVinference::N_INTERVALS * 100]; // U-Net outputs per interval
+  
+  // PHASE 2 OPTIMIZATION: Warp-level reduction workspace
+  constexpr int NUM_WARPS = 8; // 256 threads / 32 = 8 warps
+  __shared__ float s_warp_contributions[NUM_WARPS][PVinference::KDE_BINS];
   
   // Access global memory FC buffer for this event
   float* dev_interval_fc_buffers = parameters.dev_interval_histograms + 
@@ -1221,29 +1297,15 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
   __syncthreads();
   
   // ========================================================================
-  // PHASE 3: Final KDE Aggregation from Interval U-Net Outputs
+  // PHASE 3: Reduction-Based KDE Aggregation (PHASE 2 OPTIMIZATION)
   // ========================================================================
-  for (int i = thread_id; i < PVinference::KDE_BINS; i += block_size) {
-    float sum = 0.0f;
-    
-    // Aggregate U-Net outputs from all intervals with proper scaling
-    for (int interval = 0; interval < PVinference::N_INTERVALS; ++interval) {
-      if (s_interval_track_counts[interval] > 0) {
-        const float unet_value = s_interval_unet_outputs[interval * 100 + i];
-        
-        // Apply softplus + 0.001 scaling (matching UpperLimit reference)
-        const float threshold = 20.0f;
-        const bool use_approx = (unet_value > threshold);
-        const float softplus_result = use_approx ? unet_value : logf(1.0f + expf(unet_value));
-        const float scaled_contrib = softplus_result * 0.001f;
-        
-        sum += scaled_contrib;
-      }
-    }
-    
-    // Store final aggregated KDE value
-    s_kde_histogram[i] = fmaxf(0.0f, sum);
-  }
+  
+  // Step 1: Warp-level contribution calculation
+  warp_level_kde_reduction(s_interval_unet_outputs, s_interval_track_counts, s_warp_contributions);
+  __syncthreads();
+  
+  // Step 2: Tree reduction across warps
+  tree_reduction_kde_aggregation(s_warp_contributions, s_kde_histogram);
   __syncthreads();
   
   // Phase 6: Apply final normalization if needed
