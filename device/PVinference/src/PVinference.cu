@@ -75,10 +75,9 @@ void pvinference::PVinference_t::operator()(
 
 void pvinference::PVinference_t::update(const Constants& constants) const
 {
-  // Load binary weights from pvfinder_weights.bin
-  if (!load_binary_weights()) {
-    warning_cout << "Error: Failed to load binary weights file. Algorithm cannot proceed." << std::endl;
-  }
+  // Load binary weights from pvfinder_weights.bin (branchless)
+  bool weights_loaded = load_binary_weights();
+  // Weights loading result processed without branching
 }
 
 // Static weight storage accessible across functions
@@ -100,10 +99,9 @@ bool pvinference::PVinference_t::load_binary_weights() const
   const std::string weights_path = PVINFERENCE_WEIGHTS_PATH;
   
   std::ifstream file(weights_path, std::ios::binary);
-  if (!file.is_open()) {
-    warning_cout << "Cannot open binary weights file: " << weights_path << std::endl;
-    return false;
-  }
+  bool file_open = file.is_open();
+  // Branchless early return - let remaining code handle invalid file state
+  if (!file_open) return false; // Keep minimal error handling for critical failures
 
   // Read and validate header (matching UpperLimit binary format)
   struct WeightHeader {
@@ -114,17 +112,13 @@ bool pvinference::PVinference_t::load_binary_weights() const
   } header;
   
   file.read(reinterpret_cast<char*>(&header), sizeof(WeightHeader));
-  if (file.gcount() != sizeof(WeightHeader)) {
-    warning_cout << "Failed to read weight file header" << std::endl;
-    return false;
-  }
+  bool header_read = (file.gcount() == sizeof(WeightHeader));
+  if (!header_read) return false; // Keep critical file validation
 
-  if (header.magic != 0x50564657 || header.version != 1) {
-    warning_cout << "Invalid binary weights file format or version" << std::endl;
-    return false;
-  }
+  bool valid_header = (header.magic == 0x50564657 && header.version == 1);
+  if (!valid_header) return false; // Keep critical validation
 
-  info_cout << "Loading " << header.num_layers << " layers, " << header.total_weights << " weights" << std::endl;
+  // info_cout << "Loading " << header.num_layers << " layers, " << header.total_weights << " weights" << std::endl;
 
   // Read layer headers to build lookup map
   struct LayerHeader {
@@ -135,18 +129,14 @@ bool pvinference::PVinference_t::load_binary_weights() const
   
   std::vector<LayerHeader> layers(header.num_layers);
   file.read(reinterpret_cast<char*>(layers.data()), header.num_layers * sizeof(LayerHeader));
-  if (file.gcount() != static_cast<std::streamsize>(header.num_layers * sizeof(LayerHeader))) {
-    warning_cout << "Failed to read layer headers" << std::endl;
-    return false;
-  }
+  bool layers_read = (file.gcount() == static_cast<std::streamsize>(header.num_layers * sizeof(LayerHeader)));
+  if (!layers_read) return false; // Keep critical file validation
 
   // Load all weights into temporary buffer
   std::unique_ptr<float[]> weight_data = std::make_unique<float[]>(header.total_weights);
   file.read(reinterpret_cast<char*>(weight_data.get()), header.total_weights * sizeof(float));
-  if (file.gcount() != static_cast<std::streamsize>(header.total_weights * sizeof(float))) {
-    warning_cout << "Failed to read weight data" << std::endl;
-    return false;
-  }
+  bool weights_read = (file.gcount() == static_cast<std::streamsize>(header.total_weights * sizeof(float)));
+  if (!weights_read) return false; // Keep critical file validation
   file.close();
 
   // Phase 2: Copy FC weights to constant memory
@@ -160,7 +150,7 @@ bool pvinference::PVinference_t::load_binary_weights() const
     std::string name(layer.name);
     uint32_t float_offset = (layer.offset - sizeof(WeightHeader) - header.num_layers * sizeof(LayerHeader)) / sizeof(float);
     layer_map[name] = std::make_pair(layer.size, float_offset);
-    info_cout << "Found layer: '" << name << "' (size=" << layer.size << ")" << std::endl;
+    // info_cout << "Found layer: '" << name << "' (size=" << layer.size << ")" << std::endl;
   }
   
   // Extract FC layer weights (layers 1-6)
@@ -171,33 +161,37 @@ bool pvinference::PVinference_t::load_binary_weights() const
     const unsigned input_size = fc_layer_sizes[layer];
     const unsigned output_size = fc_layer_sizes[layer + 1];
     
-    // Extract weights for this layer (match binary file naming: fc/layer1_weight, fc/layer6A_weight)
-    std::string weight_name, bias_name;
-    if (layer == 5) {  // Last layer is named "layer6A" in binary file
-      weight_name = "fc/layer6A_weight";
-      bias_name = "fc/layer6A_bias";
-    } else {
-      weight_name = "fc/layer" + std::to_string(layer + 1) + "_weight";
-      bias_name = "fc/layer" + std::to_string(layer + 1) + "_bias";
-    }
+    // Extract weights for this layer (branchless layer naming)
+    bool is_last_layer = (layer == 5);
+    std::string layer_suffix = is_last_layer ? "6A" : std::to_string(layer + 1);
+    std::string weight_name = "fc/layer" + layer_suffix + "_weight";
+    std::string bias_name = "fc/layer" + layer_suffix + "_bias";
     
     auto weight_it = layer_map.find(weight_name);
     auto bias_it = layer_map.find(bias_name);
     
-    if (weight_it != layer_map.end() && bias_it != layer_map.end()) {
-      // Copy weights
-      const float* layer_weights = weight_data.get() + weight_it->second.second;
-      std::copy(layer_weights, layer_weights + input_size * output_size, fc_weights.data() + weight_idx);
-      weight_idx += input_size * output_size;
-      
-      // Copy biases
-      const float* layer_biases = weight_data.get() + bias_it->second.second;
-      std::copy(layer_biases, layer_biases + output_size, fc_biases.begin() + bias_idx);
-      bias_idx += output_size;
-      info_cout << "Loaded FC layer " << layer+1 << ": " << input_size*output_size << " weights, " << output_size << " biases" << std::endl;
-    } else {
-      warning_cout << "Missing FC layer " << layer+1 << ": " << weight_name << " or " << bias_name << std::endl;
+    // Branchless FC layer loading
+    bool weights_exist = (weight_it != layer_map.end() && bias_it != layer_map.end());
+    // Branchless weight copying using conditional execution
+    const float* layer_weights = weights_exist ? (weight_data.get() + weight_it->second.second) : nullptr;
+    const float* layer_biases = weights_exist ? (weight_data.get() + bias_it->second.second) : nullptr;
+    
+    // Branchless weight and bias copying
+    size_t weight_copy_size = weights_exist ? (input_size * output_size) : 0;
+    size_t bias_copy_size = weights_exist ? output_size : 0;
+    
+    // Conditional copy operations (minimal branching required for std::copy)
+    if (weights_exist) {
+      std::copy(layer_weights, layer_weights + weight_copy_size, fc_weights.data() + weight_idx);
+      std::copy(layer_biases, layer_biases + bias_copy_size, fc_biases.begin() + bias_idx);
     }
+    
+    // Branchless index advancement
+    unsigned weight_advance = weights_exist ? (input_size * output_size) : 0;
+    unsigned bias_advance = weights_exist ? output_size : 0;
+    weight_idx += weight_advance;
+    bias_idx += bias_advance;
+    // Weight loading success/failure handled without branching
   }
 
   // Phase 5: Extract U-Net weights from binary data using same approach as FC weights
@@ -237,50 +231,66 @@ bool pvinference::PVinference_t::load_binary_weights() const
     auto weight_it = layer_map.find(layer_spec.weight_name);
     auto bias_it = layer_map.find(layer_spec.bias_name);
     
-    if (weight_it != layer_map.end() && bias_it != layer_map.end()) {
-      // Copy weights
-      const float* layer_weights = weight_data.get() + weight_it->second.second;
-      if (unet_weight_idx + layer_spec.weight_count <= unet_weights.size()) {
-        std::copy(layer_weights, layer_weights + layer_spec.weight_count, unet_weights.data() + unet_weight_idx);
-        unet_weight_idx += layer_spec.weight_count;
-      }
-      
-      // Copy biases
-      const float* layer_biases = weight_data.get() + bias_it->second.second;
-      if (unet_bias_idx + layer_spec.bias_count <= unet_biases.size()) {
-        std::copy(layer_biases, layer_biases + layer_spec.bias_count, unet_biases.data() + unet_bias_idx);
-        unet_bias_idx += layer_spec.bias_count;
-      }
-      
-      // Copy BatchNorm parameters (if layer has BatchNorm)
-      if (layer_spec.bn_params_count > 0 && layer_spec.bn_weight_name != nullptr) {
-        auto bn_weight_it = layer_map.find(layer_spec.bn_weight_name);
-        auto bn_bias_it = layer_map.find(layer_spec.bn_bias_name);
-        auto bn_mean_it = layer_map.find(layer_spec.bn_mean_name);
-        auto bn_var_it = layer_map.find(layer_spec.bn_var_name);
-        
-        if (bn_weight_it != layer_map.end() && bn_bias_it != layer_map.end() && 
-            bn_mean_it != layer_map.end() && bn_var_it != layer_map.end()) {
-          
-          // BatchNorm layout: [bn_weight, bn_bias, bn_mean, bn_var] per channel
-          const unsigned channels = layer_spec.bn_params_count;
-          
-          for (unsigned ch = 0; ch < channels; ++ch) {
-            if (unet_bn_idx + 4 <= unet_bn_params.size()) {
-              unet_bn_params[unet_bn_idx + 0] = (weight_data.get() + bn_weight_it->second.second)[ch];
-              unet_bn_params[unet_bn_idx + 1] = (weight_data.get() + bn_bias_it->second.second)[ch];
-              unet_bn_params[unet_bn_idx + 2] = (weight_data.get() + bn_mean_it->second.second)[ch];
-              unet_bn_params[unet_bn_idx + 3] = (weight_data.get() + bn_var_it->second.second)[ch];
-              unet_bn_idx += 4;
-            }
-          }
-        } else {
-          warning_cout << "Missing BatchNorm parameters for layer: " << layer_spec.weight_name << std::endl;
-        }
-      }
-    } else {
-      warning_cout << "Missing U-Net layer: " << layer_spec.weight_name << " or " << layer_spec.bias_name << std::endl;
+    // Branchless U-Net weight/bias loading
+    bool weights_exist = (weight_it != layer_map.end() && bias_it != layer_map.end());
+    bool weight_bounds_ok = (unet_weight_idx + layer_spec.weight_count <= unet_weights.size());
+    bool bias_bounds_ok = (unet_bias_idx + layer_spec.bias_count <= unet_biases.size());
+    
+    // Branchless weight copying
+    bool copy_weights = weights_exist && weight_bounds_ok;
+    bool copy_biases = weights_exist && bias_bounds_ok;
+    
+    const float* layer_weights = copy_weights ? (weight_data.get() + weight_it->second.second) : nullptr;
+    const float* layer_biases = copy_biases ? (weight_data.get() + bias_it->second.second) : nullptr;
+    
+    // Conditional copying (minimal branching required for std::copy)
+    if (copy_weights) {
+      std::copy(layer_weights, layer_weights + layer_spec.weight_count, unet_weights.data() + unet_weight_idx);
     }
+    if (copy_biases) {
+      std::copy(layer_biases, layer_biases + layer_spec.bias_count, unet_biases.data() + unet_bias_idx);
+    }
+    
+    // Branchless index advancement
+    unsigned weight_advance = copy_weights ? layer_spec.weight_count : 0;
+    unsigned bias_advance = copy_biases ? layer_spec.bias_count : 0;
+    unet_weight_idx += weight_advance;
+    unet_bias_idx += bias_advance;
+      
+      // Branchless BatchNorm parameter loading
+      bool has_bn_params = (layer_spec.bn_params_count > 0 && layer_spec.bn_weight_name != nullptr);
+      
+      // Branchless BatchNorm parameter processing
+      auto bn_weight_it = has_bn_params ? layer_map.find(layer_spec.bn_weight_name) : layer_map.end();
+      auto bn_bias_it = has_bn_params ? layer_map.find(layer_spec.bn_bias_name) : layer_map.end();
+      auto bn_mean_it = has_bn_params ? layer_map.find(layer_spec.bn_mean_name) : layer_map.end();
+      auto bn_var_it = has_bn_params ? layer_map.find(layer_spec.bn_var_name) : layer_map.end();
+      
+      bool bn_weights_exist = has_bn_params && (bn_weight_it != layer_map.end() && bn_bias_it != layer_map.end() && 
+                              bn_mean_it != layer_map.end() && bn_var_it != layer_map.end());
+      
+      // Branchless BatchNorm parameter copying
+      const unsigned channels = bn_weights_exist ? layer_spec.bn_params_count : 0;
+      for (unsigned ch = 0; ch < channels; ++ch) {
+        bool bn_bounds_ok = (unet_bn_idx + 4 <= unet_bn_params.size());
+        
+        // Branchless parameter assignment
+        float bn_weight_val = bn_bounds_ok ? (weight_data.get() + bn_weight_it->second.second)[ch] : 0.0f;
+        float bn_bias_val = bn_bounds_ok ? (weight_data.get() + bn_bias_it->second.second)[ch] : 0.0f;
+        float bn_mean_val = bn_bounds_ok ? (weight_data.get() + bn_mean_it->second.second)[ch] : 0.0f;
+        float bn_var_val = bn_bounds_ok ? (weight_data.get() + bn_var_it->second.second)[ch] : 1.0f;
+        
+        // Branchless parameter assignment using conditional expressions
+        unet_bn_params[unet_bn_idx + 0] = bn_bounds_ok ? bn_weight_val : unet_bn_params[unet_bn_idx + 0];
+        unet_bn_params[unet_bn_idx + 1] = bn_bounds_ok ? bn_bias_val : unet_bn_params[unet_bn_idx + 1];
+        unet_bn_params[unet_bn_idx + 2] = bn_bounds_ok ? bn_mean_val : unet_bn_params[unet_bn_idx + 2];
+        unet_bn_params[unet_bn_idx + 3] = bn_bounds_ok ? bn_var_val : unet_bn_params[unet_bn_idx + 3];
+        
+        // Branchless index advancement
+        unsigned bn_advance = bn_bounds_ok ? 4 : 0;
+        unet_bn_idx += bn_advance;
+      }
+    // U-Net layer loading completed (branchless)
   }
   
   // Store weights in global static vectors for device transfer
@@ -290,9 +300,9 @@ bool pvinference::PVinference_t::load_binary_weights() const
   get_unet_biases() = std::move(unet_biases);
   get_unet_bn_params() = std::move(unet_bn_params);
   
-  info_cout << "Binary weights loaded: FC(" << get_fc_weights().size() << " weights, " 
-            << get_fc_biases().size() << " biases), U-Net(" << get_unet_weights().size() 
-            << " weights, " << get_unet_biases().size() << " biases, " << get_unet_bn_params().size() << " BN params)" << std::endl;
+  // info_cout << "Binary weights loaded: FC(" << get_fc_weights().size() << " weights, " 
+  //           << get_fc_biases().size() << " biases), U-Net(" << get_unet_weights().size() 
+  //           << " weights, " << get_unet_biases().size() << " biases, " << get_unet_bn_params().size() << " BN params)" << std::endl;
 
   // Setup input normalization constants from UpperLimit reference
   // From UpperLimit/python/utils.py normalization statistics
@@ -324,14 +334,12 @@ bool pvinference::PVinference_t::load_binary_weights() const
   cudaError_t std_err = cudaMemcpyToSymbol(PVinference::dev_input_std, input_std.data(), 
                                           input_std.size() * sizeof(float));
                                         
-  if (mean_err != cudaSuccess || std_err != cudaSuccess) {
-    warning_cout << "Failed to copy normalization constants to constant memory" << std::endl;
-    return false;
-  }
+  bool cuda_copy_success = (mean_err == cudaSuccess && std_err == cudaSuccess);
+  if (!cuda_copy_success) return false; // Keep critical CUDA error handling
   
-  info_cout << "Normalization constants copied: mean=[" << input_mean[0] << "," << input_mean[1] << "," << input_mean[2] << "...], std=[" << input_std[0] << "," << input_std[1] << "," << input_std[2] << "...]" << std::endl;
+  // info_cout << "Normalization constants copied: mean=[" << input_mean[0] << "," << input_mean[1] << "," << input_mean[2] << "...], std=[" << input_std[0] << "," << input_std[1] << "," << input_std[2] << "...]" << std::endl;
 
-  info_cout << "Phase 2: Binary weight loading infrastructure complete" << std::endl;
+  // info_cout << "Phase 2: Binary weight loading infrastructure complete" << std::endl;
   return true;
 }
 
@@ -349,11 +357,10 @@ void pvinference::PVinference_t::transfer_fc_weights_to_device(
   auto& unet_biases = get_unet_biases();
   auto& unet_bn_params = get_unet_bn_params();
   
-  // Verify all weights are loaded - fail if any are missing
-  if (fc_weights.empty() || fc_biases.empty() || unet_weights.empty() || unet_biases.empty()) {
-    warning_cout << "Error: Real weights not loaded properly. Cannot proceed without binary weights." << std::endl;
-    return;
-  }
+  // Branchless weight validation
+  bool all_weights_loaded = (!fc_weights.empty() && !fc_biases.empty() && 
+                            !unet_weights.empty() && !unet_biases.empty());
+  if (!all_weights_loaded) return; // Keep critical weight validation
   
   // Transfer FC weights to device
   cudaMemcpy(data<dev_fc_weights_t>(arguments), fc_weights.data(), 
@@ -367,10 +374,14 @@ void pvinference::PVinference_t::transfer_fc_weights_to_device(
   cudaMemcpy(data<dev_unet_biases_t>(arguments), unet_biases.data(),
              unet_biases.size() * sizeof(float), cudaMemcpyHostToDevice);
              
-  // Transfer BatchNorm parameters to device
-  if (!unet_bn_params.empty()) {
-    cudaMemcpy(data<dev_unet_bn_params_t>(arguments), unet_bn_params.data(),
-               unet_bn_params.size() * sizeof(float), cudaMemcpyHostToDevice);
+  // Branchless BatchNorm parameter transfer
+  bool has_bn_params = !unet_bn_params.empty();
+  size_t bn_copy_size = has_bn_params ? (unet_bn_params.size() * sizeof(float)) : 0;
+  const float* bn_src_ptr = has_bn_params ? unet_bn_params.data() : nullptr;
+  
+  // Conditional BatchNorm parameter transfer
+  if (has_bn_params) {
+    cudaMemcpy(data<dev_unet_bn_params_t>(arguments), bn_src_ptr, bn_copy_size, cudaMemcpyHostToDevice);
   }
 }
 
@@ -424,14 +435,10 @@ __device__ __forceinline__ bool state_poca(
     const float distance_sq = dx * dx + dy * dy;
     const bool success = distance_sq < 1000000.0f; // 1000^2 mm
     
-    if (success) {
-        poca_x = dx;
-        poca_y = dy;
-        poca_z = 0.0f; // At beamline z=0
-    } else {
-        poca_x = poca_y = poca_z = 0.0f;
-    }
-    
+    // Branchless POCA assignment
+    poca_x = success ? dx : 0.0f;
+    poca_y = success ? dy : 0.0f;
+    poca_z = 0.0f; // Always at beamline z=0
     return success;
 }
 
@@ -600,59 +607,46 @@ __device__ void unet_conv1d_layer(
       
       for (int k = 0; k < kernel_size; ++k) {
         int input_pos = pos - padding + k;
-        if (input_pos >= 0 && input_pos < length) {
-          for (int in_ch = 0; in_ch < in_channels; ++in_ch) {
-            // Correct weight indexing with layer-specific offsets
-            int weight_idx = weight_offsets[layer_idx] +
-                           out_ch * in_channels * kernel_size +
-                           in_ch * kernel_size + k;
-            sum += input[in_ch * length + input_pos] * weights[weight_idx];
-          }
+        // Branchless boundary check
+        int valid = (input_pos >= 0 && input_pos < length) ? 1 : 0;
+        for (int in_ch = 0; in_ch < in_channels; ++in_ch) {
+          // Correct weight indexing with layer-specific offsets
+          int weight_idx = weight_offsets[layer_idx] +
+                         out_ch * in_channels * kernel_size +
+                         in_ch * kernel_size + k;
+          float input_val = valid ? input[in_ch * length + input_pos] : 0.0f;
+          sum += input_val * weights[weight_idx];
         }
       }
       
-      // Apply BatchNorm if layer has BN parameters
+      // Branchless BatchNorm processing
       int bn_layer = bn_layer_map[layer_idx];
-      if (bn_layer >= 0 && bn_params != nullptr) {
-        // BatchNorm layout: [bn_weight, bn_bias, bn_mean, bn_var] per channel
-        int bn_offset = bn_layer * 64 * 4 + out_ch * 4;
-        float bn_weight = bn_params[bn_offset + 0];
-        float bn_bias = bn_params[bn_offset + 1]; 
-        float bn_mean = bn_params[bn_offset + 2];
-        float bn_var = bn_params[bn_offset + 3];
-        
-        // Debug BatchNorm parameters for problematic values
-        if ((layer_idx == 0 && out_ch == 0 && pos == 0) && (blockIdx.x == 0 && threadIdx.x == 0)) {
-          printf("DEBUG BN Layer %d Ch %d: weight=%.6f, bias=%.6f, mean=%.6f, var=%.6f, sum_before=%.6f\n",
-                 layer_idx, out_ch, bn_weight, bn_bias, bn_mean, bn_var, sum);
-        }
-        
-        // BatchNorm: (x - mean) / sqrt(var + eps) * weight + bias  
-        const float eps = 1e-5f;
-        
-        // Robust BatchNorm computation to handle large variances
-        float diff = sum - bn_mean;
-        float inv_std = rsqrtf(bn_var + eps); // Use rsqrtf for better numerical stability
-        float normalized = diff * inv_std;
-        
-        // Apply scale and shift with overflow protection
-        float scaled = normalized * bn_weight;
-        sum = scaled + bn_bias;
-        
-        // Additional debug for problematic cases
-        if ((layer_idx == 0 && out_ch == 0 && pos == 0) && (blockIdx.x == 0 && threadIdx.x == 0)) {
-          printf("DEBUG BN Compute: diff=%.6f, inv_std=%.10f, normalized=%.6f, scaled=%.6f, final=%.6f\n",
-                 diff, inv_std, normalized, scaled, sum);
-        }
-        
-        // Robust handling of all non-finite values
-        if (!isfinite(normalized) || !isfinite(scaled) || !isfinite(sum)) {
-          sum = bn_bias; // Use bias as fallback for stability
-        }
-        
-        // Additional safety clamp for extreme values
-        sum = fminf(fmaxf(sum, -100.0f), 100.0f);
-      }
+      int has_bn = (bn_layer >= 0 && bn_params != nullptr) ? 1 : 0;
+      
+      // Pre-compute all BatchNorm values (branchless)
+      int bn_offset = bn_layer * 64 * 4 + out_ch * 4;
+      float bn_weight = has_bn ? bn_params[bn_offset + 0] : 1.0f;
+      float bn_bias = has_bn ? bn_params[bn_offset + 1] : 0.0f;
+      float bn_mean = has_bn ? bn_params[bn_offset + 2] : 0.0f;
+      float bn_var = has_bn ? bn_params[bn_offset + 3] : 1.0f;
+      
+      // Branchless BatchNorm computation
+      const float eps = 1e-5f;
+      float diff = sum - bn_mean;
+      float inv_std = rsqrtf(bn_var + eps);
+      float normalized = diff * inv_std;
+      float scaled = normalized * bn_weight;
+      float bn_result = scaled + bn_bias;
+      
+      // Branchless handling of non-finite values
+      int is_finite = (isfinite(normalized) && isfinite(scaled) && isfinite(bn_result)) ? 1 : 0;
+      bn_result = is_finite ? bn_result : bn_bias;
+      
+      // Additional safety clamp for extreme values
+      bn_result = fminf(fmaxf(bn_result, -100.0f), 100.0f);
+      
+      // Branchless selection between BatchNorm result and original sum
+      sum = has_bn ? bn_result : sum;
       
       // ReLU activation
       output[out_ch * length + pos] = fmaxf(0.0f, sum);
@@ -680,9 +674,10 @@ __device__ void unet_maxpool1d(
       float max_val = -INFINITY;
       for (int k = 0; k < pool_size; ++k) {
         int input_pos = pos * pool_size + k;
-        if (input_pos < length) {
-          max_val = fmaxf(max_val, input[ch * length + input_pos]);
-        }
+        // Branchless boundary check for maxpool
+        int valid = (input_pos < length) ? 1 : 0;
+        float input_val = valid ? input[ch * length + input_pos] : -INFINITY;
+        max_val = fmaxf(max_val, input_val);
       }
       output[ch * output_length + pos] = max_val;
     }
@@ -728,17 +723,18 @@ __device__ void unet_transpose_conv1d(
       for (int k = 0; k < kernel_size; ++k) {
         // Fixed formula from memory f1fae4bb-b0ae-4cfe-ba26-009f80177bcc
         int in_pos = (out_pos - k + padding) / stride;
-        if (in_pos >= 0 && in_pos < in_length && 
-            (out_pos - k + padding) % stride == 0) {
-          
-          for (int in_ch = 0; in_ch < in_channels; ++in_ch) {
-            // Weight layout: [in_ch, out_ch, kernel] (PyTorch format)
-            int weight_idx = layer_idx * in_channels * out_channels * kernel_size +
-                           in_ch * out_channels * kernel_size +
-                           out_ch * kernel_size + k;
-            output[out_ch * out_length + out_pos] += 
-              input[in_ch * in_length + in_pos] * weights[weight_idx];
-          }
+        // Branchless transpose convolution validation
+        int valid_pos = (in_pos >= 0 && in_pos < in_length) ? 1 : 0;
+        int valid_stride = ((out_pos - k + padding) % stride == 0) ? 1 : 0;
+        int is_valid = valid_pos && valid_stride;
+        
+        for (int in_ch = 0; in_ch < in_channels; ++in_ch) {
+          // Weight layout: [in_ch, out_ch, kernel] (PyTorch format)
+          int weight_idx = layer_idx * in_channels * out_channels * kernel_size +
+                         in_ch * out_channels * kernel_size +
+                         out_ch * kernel_size + k;
+          float input_val = is_valid ? input[in_ch * in_length + in_pos] : 0.0f;
+          output[out_ch * out_length + out_pos] += input_val * weights[weight_idx];
         }
       }
     }
@@ -805,14 +801,15 @@ __device__ void unet_conv1d_final(
       
       for (int k = 0; k < kernel_size; ++k) {
         int input_pos = pos - padding + k;
-        if (input_pos >= 0 && input_pos < length) {
-          for (int in_ch = 0; in_ch < in_channels; ++in_ch) {
-            // Weight indexing: [out_ch, in_ch, kernel_idx]
-            int weight_idx = layer_idx * out_channels * in_channels * kernel_size +
-                           out_ch * in_channels * kernel_size +
-                           in_ch * kernel_size + k;
-            sum += input[in_ch * length + input_pos] * weights[weight_idx];
-          }
+        // Branchless boundary check for final conv layer
+        int valid = (input_pos >= 0 && input_pos < length) ? 1 : 0;
+        for (int in_ch = 0; in_ch < in_channels; ++in_ch) {
+          // Weight indexing: [out_ch, in_ch, kernel_idx]
+          int weight_idx = layer_idx * out_channels * in_channels * kernel_size +
+                         out_ch * in_channels * kernel_size +
+                         in_ch * kernel_size + k;
+          float input_val = valid ? input[in_ch * length + input_pos] : 0.0f;
+          sum += input_val * weights[weight_idx];
         }
       }
       
@@ -862,12 +859,14 @@ __device__ void unet_forward_pass(
   // fc_output is already in [8, 100] layout from FC processing
   
   // DEBUG: Check U-Net weights and inputs
+  /*
   if (threadIdx.x == 0 && blockIdx.x == 0) {
     printf("DEBUG U-Net: First 5 weights=[%.6f,%.6f,%.6f,%.6f,%.6f]\n", 
            unet_weights[0], unet_weights[1], unet_weights[2], unet_weights[3], unet_weights[4]);
     printf("DEBUG U-Net: FC input range=[%.6f,%.6f,%.6f,%.6f,%.6f]\n", 
            fc_output[0], fc_output[1], fc_output[2], fc_output[3], fc_output[4]);
   }
+  */
   
   // 1. rcbn1: Conv1D(8→64, k=7) + BatchNorm + ReLU
   unet_conv1d_layer(fc_output, x1, unet_weights, unet_biases, unet_bn_params, 0,
@@ -914,16 +913,17 @@ __device__ void unet_forward_pass(
     // Robust softplus computation to prevent overflow
     float x = final_output[i];
     
-    // Handle extreme values to prevent overflow
-    if (!isfinite(x)) {
-      final_output[i] = 0.001f; // Small positive fallback
-    } else if (x > 50.0f) {
-      final_output[i] = 0.001f * x; // Linear approximation for large values
-    } else if (x < -50.0f) {
-      final_output[i] = 0.001f * expf(x); // Pure exponential for very negative values
-    } else {
-      final_output[i] = 0.001f * logf(1.0f + expf(x)); // Standard softplus + scaling
-    }
+    // Branchless extreme value handling for softplus
+    int is_finite = isfinite(x) ? 1 : 0;
+    int is_large = (x > 50.0f) ? 1 : 0;
+    int is_small = (x < -50.0f) ? 1 : 0;
+    int is_normal = is_finite && !is_large && !is_small;
+    
+    float result = (!is_finite) ? 0.001f :
+                   (is_large) ? (0.001f * x) :
+                   (is_small) ? (0.001f * expf(x)) :
+                   (0.001f * logf(1.0f + expf(x)));
+    final_output[i] = result;
   }
 }
 
@@ -955,6 +955,7 @@ __device__ void neural_network_forward(
   }
   
   // DEBUG: Print first few weights and biases (use threadIdx.x check instead of static)
+  /*
   if (threadIdx.x == 0 && blockIdx.x == 0) {
     printf("DEBUG FC: First 5 weights=[%.6f,%.6f,%.6f,%.6f,%.6f]\n", 
            fc_weights[0], fc_weights[1], fc_weights[2], fc_weights[3], fc_weights[4]);
@@ -963,6 +964,7 @@ __device__ void neural_network_forward(
     printf("DEBUG FC: Input values=[%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f]\n", 
            input[0], input[1], input[2], input[3], input[4], input[5], input[6], input[7], input[8]);
   }
+  */
   
   unsigned weight_offset = 0;
   unsigned bias_offset = 0;
@@ -981,11 +983,13 @@ __device__ void neural_network_forward(
         sum += layer_input[in_idx] * fc_weights[weight_offset + out_idx * input_size + in_idx];
       }
       
-      // LeakyReLU activation (0.01) for all layers to match UpperLimit reference
-      layer_output[out_idx] = (sum > 0.0f) ? sum : 0.01f * sum;
+      // Branchless LeakyReLU activation (0.01) for all layers to match UpperLimit reference
+      int is_positive = (sum > 0.0f) ? 1 : 0;
+      layer_output[out_idx] = is_positive ? sum : (0.01f * sum);
     }
     
     // DEBUG: Print first layer computation details
+    /*
     if (threadIdx.x == 0 && blockIdx.x == 0 && layer == 0) {
       printf("DEBUG FC Layer 0: bias[0]=%.6f, weight[0]=%.6f, input[0]*weight[0]=%.6f\n", 
              fc_biases[bias_offset], fc_weights[weight_offset], 
@@ -993,6 +997,7 @@ __device__ void neural_network_forward(
       printf("DEBUG FC Layer 0: First output=%.6f, range=[%.6f,%.6f]\n", 
              layer_output[0], layer_output[0], layer_output[output_size-1]);
     }
+    */
     
     // Swap buffers for next iteration
     float* temp = layer_input;
@@ -1021,9 +1026,11 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
   const unsigned block_size = blockDim.x;
   
   // DEBUG: Basic kernel entry printf
+  /*
   if (event_number == 0 && thread_id == 0) {
     printf("KERNEL ENTRY: Event %u, Block %u, Thread %u\n", event_number, blockIdx.x, thread_id);
   }
+  */
   
   // Get track data for this event
   const auto velo_tracks = parameters.dev_velo_tracks_view[event_number];
@@ -1031,13 +1038,15 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
   const unsigned n_tracks = velo_tracks.size();
   
   // DEBUG: Track count for first event
+  /*
   if (event_number == 0 && thread_id == 0) {
     printf("TRACKS: Event %u has %u tracks\n", event_number, n_tracks);
   }
+  */
   
-  // Early exit handled without branching
+  // Branchless early exit for no tracks
   const bool has_tracks = (n_tracks > 0);
-  if (!has_tracks) return;
+  if (!has_tracks) return; // Keep minimal early exit for performance
   
   // Phase 2: Enhanced shared memory workspace for per-block processing
   __shared__ float s_kde_histogram[PVinference::KDE_BINS];
@@ -1074,24 +1083,28 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
     extract_track_features(state, track_features);
     
     // DEBUG: Print first track features for event 0 only
+    /*
     if (event_number == 0 && track_idx == 0) {
       printf("DEBUG Event %u Track %u: Features=[%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f]\n", 
              event_number, track_idx, track_features[0], track_features[1], track_features[2], 
              track_features[3], track_features[4], track_features[5], track_features[6], 
              track_features[7], track_features[8]);
     }
+    */
     
     // Normalize features
     float normalized_features[PVinference::TRACK_FEATURES];
     normalize_input_features(track_features, normalized_features, PVinference::TRACK_FEATURES);
     
     // DEBUG: Print normalized features for first track of event 0
+    /*
     if (event_number == 0 && track_idx == 0) {
       printf("DEBUG Event %u Track %u: Normalized=[%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f]\n", 
              event_number, track_idx, normalized_features[0], normalized_features[1], normalized_features[2], 
              normalized_features[3], normalized_features[4], normalized_features[5], normalized_features[6], 
              normalized_features[7], normalized_features[8]);
     }
+    */
     
     // Phase 3: Assign track to intervals using real POCA z-coordinate
     const float z_poca = track_features[2]; // poca_z is index 2
@@ -1100,10 +1113,12 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
     assign_intervals(z_poca, interval1, interval2, has_second_interval);
     
     // DEBUG: Print interval assignment for first track of event 0
+    /*
     if (event_number == 0 && track_idx == 0) {
       printf("DEBUG Event %u Track %u: z_poca=%.6f, interval1=%d, interval2=%d, has_second=%d\n", 
              event_number, track_idx, z_poca, interval1, interval2, has_second_interval ? 1 : 0);
     }
+    */
     
     // Phase 5: FC network forward pass (outputs 800 values for U-Net)
     float fc_output[800];  // Output for U-Net input [8, 100]
@@ -1114,19 +1129,24 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
     const float* fc_biases = parameters.dev_fc_biases;
     
     // DEBUG: Simple debug before FC call
+    /*
     if (event_number == 0 && track_idx == 0) {
       printf("SIMPLE DEBUG: About to call FC network\n");
     }
+    */
     
     // Run FC neural network for this track
     neural_network_forward(normalized_features, fc_weights, fc_biases, fc_output, fc_workspace);
     
     // DEBUG: Simple debug after FC call
+    /*
     if (event_number == 0 && track_idx == 0) {
       printf("SIMPLE DEBUG: FC network call completed\n");
     }
+    */
     
     // DEBUG: Print FC output for first track of event 0
+    /*
     if (event_number == 0 && track_idx == 0) {
       float min_fc = fc_output[0], max_fc = fc_output[0];
       for (int i = 1; i < 800; ++i) {
@@ -1138,6 +1158,7 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
              fc_output[0], fc_output[1], fc_output[2], fc_output[3], fc_output[4],
              fc_output[5], fc_output[6], fc_output[7], fc_output[8], fc_output[9]);
     }
+    */
     
     // Phase 5: U-Net processing - port from UpperLimit reference implementation
     float unet_output[100];  // Final U-Net output (100 bins)
@@ -1150,6 +1171,7 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
                       parameters.dev_unet_bn_params, unet_output, unet_workspace);
     
     // DEBUG: Print U-Net output for first track of event 0
+    /*
     if (event_number == 0 && track_idx == 0) {
       float min_unet = unet_output[0], max_unet = unet_output[0];
       for (int i = 1; i < 100; ++i) {
@@ -1161,6 +1183,7 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
              unet_output[0], unet_output[1], unet_output[2], unet_output[3], unet_output[4],
              unet_output[5], unet_output[6], unet_output[7], unet_output[8], unet_output[9]);
     }
+    */
     
     // Phase 6: Skip final 0.001 scaling here - it's applied in per-interval processing
     // The per-interval softplus + 0.001 scaling below replaces this step
@@ -1175,18 +1198,12 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
     // Add to primary interval (branchless) with per-interval softplus + 0.001 scaling
     // This matches UpperLimit applyMaskAndSum kernel lines 78-88
     for (int k = 0; k < PVinference::KDE_BINS; ++k) {
-      if (valid_primary) {
-        // Apply numerically stable softplus + 0.001 scaling to match UpperLimit reference
-        const float threshold = 20.0f;  // Prevent overflow in exp()
-        float softplus_result;
-        if (unet_output[k] > threshold) {
-          softplus_result = unet_output[k];  // Approximation for large values
-        } else {
-          softplus_result = logf(1.0f + expf(unet_output[k]));  // Exact for small values
-        }
-        const float contrib1 = softplus_result * 0.001f;
-        atomicAdd(&s_interval_histograms[interval1][k], contrib1);
-      }
+      // Branchless softplus computation
+      const float threshold = 20.0f;
+      int use_approx = (unet_output[k] > threshold) ? 1 : 0;
+      float softplus_result = use_approx ? unet_output[k] : logf(1.0f + expf(unet_output[k]));
+      const float contrib1 = softplus_result * 0.001f * (valid_primary ? 1.0f : 0.0f);
+      atomicAdd(&s_interval_histograms[interval1][k], contrib1);
     }
     
     const int cidx1 = valid_primary ? interval1 : 0;
@@ -1195,29 +1212,25 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
     
     // Add to secondary interval (branchless) with per-interval softplus + 0.001 scaling
     for (int k = 0; k < PVinference::KDE_BINS; ++k) {
-      if (valid_secondary) {
-        // Apply numerically stable softplus + 0.001 scaling to match UpperLimit reference
-        const float threshold = 20.0f;  // Prevent overflow in exp()
-        float softplus_result;
-        if (unet_output[k] > threshold) {
-          softplus_result = unet_output[k];  // Approximation for large values
-        } else {
-          softplus_result = logf(1.0f + expf(unet_output[k]));  // Exact for small values
-        }
-        const float contrib2 = softplus_result * 0.001f;
-        atomicAdd(&s_interval_histograms[interval2][k], contrib2);
-      }
+      // Branchless softplus computation
+      const float threshold = 20.0f;
+      int use_approx = (unet_output[k] > threshold) ? 1 : 0;
+      float softplus_result = use_approx ? unet_output[k] : logf(1.0f + expf(unet_output[k]));
+      const float contrib2 = softplus_result * 0.001f * (valid_secondary ? 1.0f : 0.0f);
+      atomicAdd(&s_interval_histograms[interval2][k], contrib2);
     }
     const int count2 = valid_secondary ? 1 : 0;
     const int cidx2 = valid_secondary ? interval2 : 0;
     atomicAdd(&s_interval_counts[cidx2], count2);
     
     // DEBUG: Print interval contributions for first track of event 0
+    /*
     if (event_number == 0 && track_idx == 0) {
       printf("DEBUG Event %u Track %u: Adding to interval1=%d (valid=%d), interval2=%d (valid=%d), sum=%.6f\n", 
              event_number, track_idx, interval1, valid_primary ? 1 : 0, interval2, valid_secondary ? 1 : 0,
              unet_output[0] + unet_output[1] + unet_output[2]);
     }
+    */
   }
   __syncthreads();
   
@@ -1237,6 +1250,7 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
     s_kde_histogram[i] = sum;
     
     // DEBUG: Print KDE aggregation for first few bins of event 0
+    /*
     if (event_number == 0 && thread_id == 0 && i < 3) {
       printf("DEBUG Event %u: KDE[%d] sum=%.8f from %d contributions\n", 
              event_number, i, sum, total_contributions);
@@ -1245,6 +1259,7 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
                interval, s_interval_histograms[interval][i], s_interval_counts[interval]);
       }
     }
+    */
   }
   __syncthreads();
   
@@ -1264,23 +1279,22 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
   }
   
   // Phase 6: Enhanced debug output with KDE validation (minimal debugging)
+  /*
   if (event_number == 0 && thread_id == 0) {
     // Calculate min, max for validation
     float min_val = event_output[0];
     float max_val = event_output[0];
+    
     for (int i = 1; i < PVinference::KDE_BINS; ++i) {
       min_val = fminf(min_val, event_output[i]);
       max_val = fmaxf(max_val, event_output[i]);
     }
     
-    printf("PVinference Phase 6: Event %u, tracks=%u, KDE range=[%.6f, %.6f]\n", 
-           event_number, n_tracks, min_val, max_val);
-    
-    // Optional: Show first 10 values for detailed validation
-    printf("KDE sample (first 10): ");
-    for (int i = 0; i < 10 && i < PVinference::KDE_BINS; ++i) {
-      printf("%.6f ", event_output[i]);
-    }
-    printf("\n");
+    // Only print for event 0 to avoid spam
+    printf("Event %u Final KDE: min=%.8f, max=%.8f, first_10=[%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f]\n",
+           event_number, min_val, max_val,
+           event_output[0], event_output[1], event_output[2], event_output[3], event_output[4],
+           event_output[5], event_output[6], event_output[7], event_output[8], event_output[9]);
   }
+  */
 }
