@@ -928,12 +928,113 @@ __device__ void unet_forward_pass(
 }
 
 /**
+ * @brief Aggregate FC output to appropriate intervals for U-Net processing
+ * @param fc_output FC network output [800] reshaped as [8][100]
+ * @param interval1 Primary interval index
+ * @param interval2 Secondary interval index (if track spans two intervals)
+ * @param has_second_interval Whether track contributes to second interval
+ * @param dev_interval_fc_buffers Global memory buffer for interval FC aggregation
+ * @param s_interval_track_counts Shared memory array for track counts per interval
+ */
+__device__ void aggregate_fc_to_intervals(
+    const float fc_output[800],
+    int interval1, int interval2, bool has_second_interval,
+    float* dev_interval_fc_buffers, // Global memory: [event][interval][ch][pos]
+    int* s_interval_track_counts,
+    unsigned event_number)
+{
+  const bool valid_primary = (interval1 >= 0 && interval1 < PVinference::N_INTERVALS);
+  const bool valid_secondary = has_second_interval && (interval2 >= 0 && interval2 < PVinference::N_INTERVALS);
+  
+  // Aggregate FC output to primary interval
+  if (valid_primary) {
+    const int interval1_offset = interval1 * 8 * 100;
+    for (int ch = 0; ch < 8; ++ch) {
+      for (int pos = 0; pos < 100; ++pos) {
+        const int fc_idx = ch * 100 + pos;
+        const int global_idx = interval1_offset + ch * 100 + pos;
+        atomicAdd(&dev_interval_fc_buffers[global_idx], fc_output[fc_idx]);
+      }
+    }
+    atomicAdd(&s_interval_track_counts[interval1], 1);
+  }
+  
+  // Aggregate FC output to secondary interval (if applicable)
+  if (valid_secondary) {
+    const int interval2_offset = interval2 * 8 * 100;
+    for (int ch = 0; ch < 8; ++ch) {
+      for (int pos = 0; pos < 100; ++pos) {
+        const int fc_idx = ch * 100 + pos;
+        const int global_idx = interval2_offset + ch * 100 + pos;
+        atomicAdd(&dev_interval_fc_buffers[global_idx], fc_output[fc_idx]);
+      }
+    }
+    atomicAdd(&s_interval_track_counts[interval2], 1);
+  }
+}
+
+/**
+ * @brief Process U-Net for a single interval using aggregated FC data
+ * @param interval Interval index to process
+ * @param dev_interval_fc_buffers Global memory buffer with aggregated FC data
+ * @param s_interval_track_counts Track counts per interval
+ * @param unet_weights U-Net weight parameters
+ * @param unet_biases U-Net bias parameters
+ * @param bn_params BatchNorm parameters
+ * @param unet_workspace Workspace memory for U-Net computation
+ * @param s_interval_unet_outputs Shared memory for storing U-Net outputs
+ */
+__device__ void process_interval_unet(
+    int interval,
+    const float* dev_interval_fc_buffers,
+    const int* s_interval_track_counts,
+    const float* unet_weights, const float* unet_biases, const float* bn_params,
+    float* unet_workspace,
+    float* s_interval_unet_outputs, // [N_INTERVALS][100]
+    unsigned event_number)
+{
+  // Skip intervals with no tracks
+  if (s_interval_track_counts[interval] == 0) {
+    // Initialize output to zero for empty intervals
+    for (int k = 0; k < 100; ++k) {
+      s_interval_unet_outputs[interval * 100 + k] = 0.0f;
+    }
+    return;
+  }
+  
+  // Calculate normalization factor
+  const float norm_factor = 1.0f / s_interval_track_counts[interval];
+  
+  // Normalize aggregated FC input by track count
+  float normalized_fc_input[800];
+  const int interval_offset = interval * 8 * 100;
+  
+  for (int ch = 0; ch < 8; ++ch) {
+    for (int pos = 0; pos < 100; ++pos) {
+      const int fc_idx = ch * 100 + pos;
+      const int global_idx = interval_offset + ch * 100 + pos;
+      normalized_fc_input[fc_idx] = dev_interval_fc_buffers[global_idx] * norm_factor;
+    }
+  }
+  
+  // Run U-Net on normalized aggregated input
+  float unet_output[100];
+  unet_forward_pass(normalized_fc_input, unet_weights, unet_biases, bn_params, 
+                   unet_output, unet_workspace);
+  
+  // Store result in shared memory for later KDE aggregation
+  for (int k = 0; k < 100; ++k) {
+    s_interval_unet_outputs[interval * 100 + k] = unet_output[k];
+  }
+}
+
+/**
  * @brief Phase 4: Neural network forward pass through 6 FC layers
  * @param input Normalized input features [9]
  * @param fc_weights Device FC weights (global memory)
  * @param fc_biases Device FC biases (global memory)  
  * @param output Output tensor for interval processing
- * @param temp_workspace Temporary workspace for layer computations
+ * @param temp_workspace Temporary workspace
  */
 __device__ void neural_network_forward(
   const float* __restrict__ input,
@@ -1025,102 +1126,68 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
   const unsigned thread_id = threadIdx.x;
   const unsigned block_size = blockDim.x;
   
-  // DEBUG: Basic kernel entry printf
-  /*
-  if (event_number == 0 && thread_id == 0) {
-    printf("KERNEL ENTRY: Event %u, Block %u, Thread %u\n", event_number, blockIdx.x, thread_id);
-  }
-  */
-  
   // Get track data for this event
   const auto velo_tracks = parameters.dev_velo_tracks_view[event_number];
   const auto velo_states = parameters.dev_velo_kalman_beamline_states[event_number];
   const unsigned n_tracks = velo_tracks.size();
   
-  // DEBUG: Track count for first event
-  /*
-  if (event_number == 0 && thread_id == 0) {
-    printf("TRACKS: Event %u has %u tracks\n", event_number, n_tracks);
-  }
-  */
-  
   // Branchless early exit for no tracks
   const bool has_tracks = (n_tracks > 0);
-  if (!has_tracks) return; // Keep minimal early exit for performance
+  if (!has_tracks) return;
   
-  // Phase 2: Enhanced shared memory workspace for per-block processing
+  // PHASE 1 OPTIMIZATION: Shared memory for interval processing
   __shared__ float s_kde_histogram[PVinference::KDE_BINS];
-  __shared__ float s_interval_histograms[PVinference::N_INTERVALS][PVinference::KDE_BINS];
-  __shared__ int s_interval_counts[PVinference::N_INTERVALS];   // Track counts per interval
+  __shared__ int s_interval_track_counts[PVinference::N_INTERVALS];  // Track counts per interval
+  __shared__ float s_interval_unet_outputs[PVinference::N_INTERVALS * 100]; // U-Net outputs per interval
   
-  // Initialize shared memory histograms and counters to zero
+  // Access global memory FC buffer for this event
+  float* dev_interval_fc_buffers = parameters.dev_interval_histograms + 
+    event_number * PVinference::N_INTERVALS * 8 * 100;
+  
+  // Initialize shared memory arrays
   for (int i = thread_id; i < PVinference::KDE_BINS; i += block_size) {
     s_kde_histogram[i] = 0.0f;
-    for (int interval = 0; interval < PVinference::N_INTERVALS; ++interval) {
-      s_interval_histograms[interval][i] = 0.0f;
+  }
+  
+  for (int i = thread_id; i < PVinference::N_INTERVALS; i += block_size) {
+    s_interval_track_counts[i] = 0;
+    // Initialize U-Net outputs for this interval
+    for (int k = 0; k < 100; ++k) {
+      s_interval_unet_outputs[i * 100 + k] = 0.0f;
     }
   }
   
-  // Initialize interval counters
-  for (int i = thread_id; i < PVinference::N_INTERVALS; i += block_size) {
-    s_interval_counts[i] = 0;
+  // Initialize global memory FC buffers for this event
+  for (int i = thread_id; i < PVinference::N_INTERVALS * 8 * 100; i += block_size) {
+    dev_interval_fc_buffers[i] = 0.0f;
   }
   
-  // Initialize FC workspace
-  // const int warp_id = thread_id / 32;
-  const int lane_id = thread_id % 32;
   __syncthreads();
   
-  // Phase 3: Process tracks in parallel with proper Allen track data integration
+  // ========================================================================
+  // PHASE 1: FC Processing Per Track + Interval Aggregation
+  // ========================================================================
   for (unsigned track_idx = thread_id; track_idx < n_tracks; track_idx += block_size) {
     
     // Get the specific track and its Kalman state
     const auto track = velo_tracks.track(track_idx);
     const auto state = velo_states.state(track.track_index());
     
-    // Phase 3: Extract real track features using physics calculations
+    // Extract real track features using physics calculations
     float track_features[PVinference::TRACK_FEATURES];
     extract_track_features(state, track_features);
-    
-    // DEBUG: Print first track features for event 0 only
-    /*
-    if (event_number == 0 && track_idx == 0) {
-      printf("DEBUG Event %u Track %u: Features=[%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f]\n", 
-             event_number, track_idx, track_features[0], track_features[1], track_features[2], 
-             track_features[3], track_features[4], track_features[5], track_features[6], 
-             track_features[7], track_features[8]);
-    }
-    */
     
     // Normalize features
     float normalized_features[PVinference::TRACK_FEATURES];
     normalize_input_features(track_features, normalized_features, PVinference::TRACK_FEATURES);
     
-    // DEBUG: Print normalized features for first track of event 0
-    /*
-    if (event_number == 0 && track_idx == 0) {
-      printf("DEBUG Event %u Track %u: Normalized=[%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f]\n", 
-             event_number, track_idx, normalized_features[0], normalized_features[1], normalized_features[2], 
-             normalized_features[3], normalized_features[4], normalized_features[5], normalized_features[6], 
-             normalized_features[7], normalized_features[8]);
-    }
-    */
-    
-    // Phase 3: Assign track to intervals using real POCA z-coordinate
+    // Assign track to intervals using real POCA z-coordinate
     const float z_poca = track_features[2]; // poca_z is index 2
     int interval1, interval2;
     bool has_second_interval;
     assign_intervals(z_poca, interval1, interval2, has_second_interval);
     
-    // DEBUG: Print interval assignment for first track of event 0
-    /*
-    if (event_number == 0 && track_idx == 0) {
-      printf("DEBUG Event %u Track %u: z_poca=%.6f, interval1=%d, interval2=%d, has_second=%d\n", 
-             event_number, track_idx, z_poca, interval1, interval2, has_second_interval ? 1 : 0);
-    }
-    */
-    
-    // Phase 5: FC network forward pass (outputs 800 values for U-Net)
+    // FC network forward pass (outputs 800 values for U-Net input)
     float fc_output[800];  // Output for U-Net input [8, 100]
     float fc_workspace[1600]; // Workspace for layer computations (800*2)
     
@@ -1128,138 +1195,54 @@ __global__ void pvinference_kernel(pvinference::Parameters parameters)
     const float* fc_weights = parameters.dev_fc_weights;
     const float* fc_biases = parameters.dev_fc_biases;
     
-    // DEBUG: Simple debug before FC call
-    /*
-    if (event_number == 0 && track_idx == 0) {
-      printf("SIMPLE DEBUG: About to call FC network\n");
-    }
-    */
-    
     // Run FC neural network for this track
     neural_network_forward(normalized_features, fc_weights, fc_biases, fc_output, fc_workspace);
     
-    // DEBUG: Simple debug after FC call
-    /*
-    if (event_number == 0 && track_idx == 0) {
-      printf("SIMPLE DEBUG: FC network call completed\n");
-    }
-    */
-    
-    // DEBUG: Print FC output for first track of event 0
-    /*
-    if (event_number == 0 && track_idx == 0) {
-      float min_fc = fc_output[0], max_fc = fc_output[0];
-      for (int i = 1; i < 800; ++i) {
-        min_fc = fminf(min_fc, fc_output[i]);
-        max_fc = fmaxf(max_fc, fc_output[i]);
-      }
-      printf("DEBUG Event %u Track %u: FC output range=[%.6f, %.6f], first 10=[%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f]\n", 
-             event_number, track_idx, min_fc, max_fc,
-             fc_output[0], fc_output[1], fc_output[2], fc_output[3], fc_output[4],
-             fc_output[5], fc_output[6], fc_output[7], fc_output[8], fc_output[9]);
-    }
-    */
-    
-    // Phase 5: U-Net processing - port from UpperLimit reference implementation
-    float unet_output[100];  // Final U-Net output (100 bins)
-    
-    // Get U-Net workspace from global memory
-    float* unet_workspace = parameters.dev_unet_workspace + event_number * PVinference::UNET_WORKSPACE_SIZE;
-    
-    // Run U-Net CNN forward pass
-    unet_forward_pass(fc_output, parameters.dev_unet_weights, parameters.dev_unet_biases, 
-                      parameters.dev_unet_bn_params, unet_output, unet_workspace);
-    
-    // DEBUG: Print U-Net output for first track of event 0
-    /*
-    if (event_number == 0 && track_idx == 0) {
-      float min_unet = unet_output[0], max_unet = unet_output[0];
-      for (int i = 1; i < 100; ++i) {
-        min_unet = fminf(min_unet, unet_output[i]);
-        max_unet = fmaxf(max_unet, unet_output[i]);
-      }
-      printf("DEBUG Event %u Track %u: U-Net output range=[%.6f, %.6f], first 10=[%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f]\n", 
-             event_number, track_idx, min_unet, max_unet,
-             unet_output[0], unet_output[1], unet_output[2], unet_output[3], unet_output[4],
-             unet_output[5], unet_output[6], unet_output[7], unet_output[8], unet_output[9]);
-    }
-    */
-    
-    // Phase 6: Skip final 0.001 scaling here - it's applied in per-interval processing
-    // The per-interval softplus + 0.001 scaling below replaces this step
-    
-    // Phase 5: Add U-Net output to appropriate intervals
-    // Add to primary interval
-    const float primary_weight = 1.0f;
-    const float secondary_weight = has_second_interval ? 1.0f : 0.0f;
-    const bool valid_primary = (interval1 >= 0 && interval1 < PVinference::N_INTERVALS);
-    const bool valid_secondary = has_second_interval && (interval2 >= 0 && interval2 < PVinference::N_INTERVALS);
-    
-    // Add to primary interval (branchless) with per-interval softplus + 0.001 scaling
-    // This matches UpperLimit applyMaskAndSum kernel lines 78-88
-    for (int k = 0; k < PVinference::KDE_BINS; ++k) {
-      // Branchless softplus computation
-      const float threshold = 20.0f;
-      int use_approx = (unet_output[k] > threshold) ? 1 : 0;
-      float softplus_result = use_approx ? unet_output[k] : logf(1.0f + expf(unet_output[k]));
-      const float contrib1 = softplus_result * 0.001f * (valid_primary ? 1.0f : 0.0f);
-      atomicAdd(&s_interval_histograms[interval1][k], contrib1);
-    }
-    
-    const int cidx1 = valid_primary ? interval1 : 0;
-    const int count1 = valid_primary ? 1 : 0;
-    atomicAdd(&s_interval_counts[cidx1], count1);
-    
-    // Add to secondary interval (branchless) with per-interval softplus + 0.001 scaling
-    for (int k = 0; k < PVinference::KDE_BINS; ++k) {
-      // Branchless softplus computation
-      const float threshold = 20.0f;
-      int use_approx = (unet_output[k] > threshold) ? 1 : 0;
-      float softplus_result = use_approx ? unet_output[k] : logf(1.0f + expf(unet_output[k]));
-      const float contrib2 = softplus_result * 0.001f * (valid_secondary ? 1.0f : 0.0f);
-      atomicAdd(&s_interval_histograms[interval2][k], contrib2);
-    }
-    const int count2 = valid_secondary ? 1 : 0;
-    const int cidx2 = valid_secondary ? interval2 : 0;
-    atomicAdd(&s_interval_counts[cidx2], count2);
-    
-    // DEBUG: Print interval contributions for first track of event 0
-    /*
-    if (event_number == 0 && track_idx == 0) {
-      printf("DEBUG Event %u Track %u: Adding to interval1=%d (valid=%d), interval2=%d (valid=%d), sum=%.6f\n", 
-             event_number, track_idx, interval1, valid_primary ? 1 : 0, interval2, valid_secondary ? 1 : 0,
-             unet_output[0] + unet_output[1] + unet_output[2]);
-    }
-    */
+    // PHASE 1 OPTIMIZATION: Aggregate FC output to intervals instead of running U-Net per track
+    aggregate_fc_to_intervals(fc_output, interval1, interval2, has_second_interval,
+                             dev_interval_fc_buffers, s_interval_track_counts, event_number);
   }
   __syncthreads();
   
-  // Phase 6: Enhanced KDE aggregation following UpperLimit reference patterns
+  // ========================================================================
+  // PHASE 2: U-Net Processing Per Interval
+  // ========================================================================
+  for (int interval = thread_id; interval < PVinference::N_INTERVALS; interval += block_size) {
+    // Get U-Net workspace from global memory
+    float* unet_workspace = parameters.dev_unet_workspace + 
+      event_number * PVinference::UNET_WORKSPACE_SIZE;
+    
+    // Process U-Net for this interval using aggregated FC data
+    process_interval_unet(interval, dev_interval_fc_buffers, s_interval_track_counts,
+                         parameters.dev_unet_weights, parameters.dev_unet_biases,
+                         parameters.dev_unet_bn_params, unet_workspace,
+                         s_interval_unet_outputs, event_number);
+  }
+  __syncthreads();
+  
+  // ========================================================================
+  // PHASE 3: Final KDE Aggregation from Interval U-Net Outputs
+  // ========================================================================
   for (int i = thread_id; i < PVinference::KDE_BINS; i += block_size) {
     float sum = 0.0f;
-    int total_contributions = 0;
     
-    // Aggregate contributions from all intervals (branchless)
+    // Aggregate U-Net outputs from all intervals with proper scaling
     for (int interval = 0; interval < PVinference::N_INTERVALS; ++interval) {
-      const float weight = (s_interval_counts[interval] > 0) ? 1.0f : 0.0f;
-      sum += s_interval_histograms[interval][i] * weight;
-      total_contributions += s_interval_counts[interval];
+      if (s_interval_track_counts[interval] > 0) {
+        const float unet_value = s_interval_unet_outputs[interval * 100 + i];
+        
+        // Apply softplus + 0.001 scaling (matching UpperLimit reference)
+        const float threshold = 20.0f;
+        const bool use_approx = (unet_value > threshold);
+        const float softplus_result = use_approx ? unet_value : logf(1.0f + expf(unet_value));
+        const float scaled_contrib = softplus_result * 0.001f;
+        
+        sum += scaled_contrib;
+      }
     }
     
     // Store final aggregated KDE value
-    s_kde_histogram[i] = sum;
-    
-    // DEBUG: Print KDE aggregation for first few bins of event 0
-    /*
-    if (event_number == 0 && thread_id == 0 && i < 3) {
-      printf("DEBUG Event %u: KDE[%d] sum=%.8f from %d contributions\n", 
-             event_number, i, sum, total_contributions);
-      for (int interval = 0; interval < 5; ++interval) {
-        printf("  Interval[%d]: hist=%.8f, count=%d\n", 
-               interval, s_interval_histograms[interval][i], s_interval_counts[interval]);
-      }
-    }
-    */
+    s_kde_histogram[i] = fmaxf(0.0f, sum);
   }
   __syncthreads();
   
